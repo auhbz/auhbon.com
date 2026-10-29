@@ -1,13 +1,15 @@
 "use client";
 
-import { useId, useSyncExternalStore } from "react";
+import { useId, useState, useSyncExternalStore } from "react";
 import {
   blockedByMotion,
   CATEGORIES,
   DEFAULT_FUN,
   getFun,
   LOOKS,
-  SECRETS,
+  peekSecret,
+  SECRET_LIST,
+  type Secret,
   setEffectOn,
   setFunOn,
   setSoundHover,
@@ -89,6 +91,8 @@ export function BellsPanel() {
           </button>
         </div>
 
+        {fun.on ? <SecretsProgress found={fun.secrets} peeked={fun.peeked} /> : null}
+
         <div className="mt-4 flex items-center gap-2 rounded-lg bg-paper p-3">
           <Switch label="Enable bells and whistles" checked={fun.on} onChange={toggleAll} className="flex-1 font-medium" />
         </div>
@@ -132,12 +136,84 @@ export function BellsPanel() {
           </div>
         </fieldset>
 
-        <p className="mt-5 border-t border-line pt-4 text-sm text-muted">
-          Secrets found: <strong className="text-ink">{fun.secrets.length}</strong> of {SECRETS.length}
-          {fun.secrets.length < SECRETS.length ? ". Keen eyes and old cheat codes help." : ". You found them all. Nice."}
-        </p>
       </div>
     </>
+  );
+}
+
+/**
+ * Achievements: a progress bar that opens into a badge list. Locked badges are
+ * blurred; tapping one reveals its icon as a hint (the title stays hidden).
+ */
+function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] }) {
+  const [open, setOpen] = useState(false);
+  const [detail, setDetail] = useState<string | null>(null);
+  const listId = useId();
+  const selected = SECRET_LIST.find((x) => x.id === detail);
+  const total = SECRET_LIST.length;
+  const pct = Math.round((found.length / total) * 100);
+
+  return (
+    <div className="mt-4">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen((v) => !v)}
+        className="w-full rounded-lg border border-line p-3 text-left hover:border-ink/40"
+      >
+        <span className="flex items-center justify-between text-sm">
+          <span className="font-medium">Secrets found</span>
+          <span className="text-muted">
+            {found.length} of {total}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className={`ml-1 inline transition-transform ${open ? "rotate-180" : ""}`}>
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </span>
+        </span>
+        <span aria-hidden="true" className="mt-2 block h-2 overflow-hidden rounded-full bg-paper">
+          <span className="block h-full rounded-full bg-kelp transition-[width] duration-500" style={{ width: `${pct}%` }} />
+        </span>
+      </button>
+      {open ? (
+        <ul id={listId} className="mt-2 grid grid-cols-5 gap-2" aria-label="Secrets">
+          {SECRET_LIST.map((secret, i) => {
+            const isFound = found.includes(secret.id);
+            const isPeeked = peeked.includes(secret.id);
+            return (
+              <li key={secret.id}>
+                <button
+                  type="button"
+                  title={isFound ? `${secret.title}: ${secret.how}` : isPeeked ? "Still locked" : "Tap to peek at the hint"}
+                  aria-label={isFound ? `Found: ${secret.title}. ${secret.how}` : isPeeked ? `Locked secret ${i + 1}. Hint icon: ${secret.icon}` : `Locked secret ${i + 1}. Tap to peek at its hint icon`}
+                  aria-pressed={detail === secret.id}
+                  onClick={() => {
+                    if (!isFound) peekSecret(secret.id as Secret);
+                    setDetail(secret.id);
+                  }}
+                  className={`flex aspect-square w-full flex-col items-center justify-center rounded-lg border text-2xl aria-pressed:outline-2 aria-pressed:outline-offset-1 aria-pressed:outline-[var(--focus)] ${isFound ? "border-kelp bg-paper" : "border-line border-dashed"}`}
+                >
+                  <span aria-hidden="true" className={isFound ? "" : isPeeked ? "opacity-70 grayscale" : "blur-[6px] grayscale"}>
+                    {secret.icon}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      {open ? (
+        <p className="mt-2 min-h-8 text-sm text-muted" aria-live="polite">
+          {selected
+            ? found.includes(selected.id)
+              ? `${selected.title}: ${selected.how}.`
+              : "Still locked. The icon is your hint."
+            : found.length === total
+              ? "You found them all. Nice."
+              : "Tap a locked badge to peek at its hint; tap a found one to see how you got it."}
+        </p>
+      ) : null}
+    </div>
   );
 }
 

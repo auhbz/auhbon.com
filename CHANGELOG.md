@@ -4,12 +4,28 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.6.0 | Secrets & achievements | [`release/1.6.0`](https://github.com/auhbz/auhbon.com/tree/release/1.6.0) |
 | 1.5.3 | Effect fixes & tweaks | [`release/1.5.3`](https://github.com/auhbz/auhbon.com/tree/release/1.5.3) |
 | 1.5.2 | Updating text | [`release/1.5.2`](https://github.com/auhbz/auhbon.com/tree/release/1.5.2) |
 | 1.5.1 | Bells & whistles prototype | [`release/1.5.1`](https://github.com/auhbz/auhbon.com/tree/release/1.5.1) |
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.6.0 — Secrets & achievements
+
+Branch: `release/1.6.0`
+
+### Added
+- **Secrets progress** at the top of the Bells & whistles panel (shown while it's on): "Secrets found X of 10" with a bar, expanding to a grid of 10 badges. Unfound badges are blurred; tap one to peek at its icon as a hint (#8).
+- **Five new secrets** (10 total):
+  - 🦇 *Batter up*: Spooky theme + slingshot, then hit a bat with a rock (#16).
+  - 🥚 *In plain sight*: a big egg that only appears while it's part of a text selection (e.g. Select All), and can only be clicked while highlighted (#17).
+  - ⚗️ *Elementalist*: Electric buttons + Fire trail + Bubbles dots (#10).
+  - 🌳 *Back to nature*: Nature theme + Birds sounds + Fruit dots (#10).
+  - 🤡 *Creepy clown*: Spooky theme + Cursed trail + Clown sounds (#10).
 
 ---
 

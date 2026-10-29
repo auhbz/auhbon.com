@@ -6,6 +6,7 @@ import { activeVariant, DEFAULT_FUN, getFun, lookActive, subscribeFun } from "@/
 import { FxEngine } from "@/lib/fx/engine";
 import { play, type SoundEvent, type SoundPack } from "@/lib/sound";
 import { prefersReducedMotion } from "@/lib/events";
+import { reveal } from "@/components/easter-eggs";
 
 const noSubscribe = () => () => {};
 
@@ -29,7 +30,9 @@ export function FxCanvas() {
 
   useEffect(() => {
     if (!canvas.current) return;
-    const fx = new FxEngine(canvas.current, playIfOn);
+    const fx = new FxEngine(canvas.current, playIfOn, (id) => {
+      if (id === "bat") reveal("bat", "Batter up!");
+    });
     engine.current = fx;
     const onBurst = (e: Event) => {
       const { x, y, kind } = (e as CustomEvent<Burst>).detail;

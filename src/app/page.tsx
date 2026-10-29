@@ -3,6 +3,7 @@ import { education, experience, profile, projectFilters, projects, skills, type 
 import { GitHubRepos, GitHubReposSkeleton } from "@/components/github-repos";
 import { HeroName } from "@/components/hero-name";
 import { ProjectExplorer } from "@/components/project-explorer";
+import { HiddenEgg } from "@/components/hidden-egg";
 import { ExternalLink } from "@/components/external-link";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
@@ -183,27 +184,29 @@ export default function Home() {
       </Section>
 
       <Section id="contact" title="Contact">
-        <p className="max-w-prose font-display text-2xl leading-snug font-medium tracking-tight sm:text-3xl">
-          I&apos;m looking for my next software engineering role in Los Angeles, hybrid or on-site.
-        </p>
-        <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2" aria-label="Ways to reach me">
-          {profile.email ? (
-            <li>
-              <ExternalLink className="text-link" href={`mailto:${profile.email}`}>
-                {profile.email}
-              </ExternalLink>
-            </li>
-          ) : null}
-          {profile.links.map((link) => (
-            <li key={link.href}>
-              <ExternalLink className="text-link" href={link.href}>
-                {link.label}
-              </ExternalLink>
-            </li>
-          ))}
-        </ul>
+        <div className="relative">
+          <p className="max-w-prose font-display text-2xl leading-snug font-medium tracking-tight sm:text-3xl">
+            I&apos;m looking for my next software engineering role in Los Angeles, hybrid or on-site.
+          </p>
+          <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2" aria-label="Ways to reach me">
+            {profile.email ? (
+              <li>
+                <ExternalLink className="text-link" href={`mailto:${profile.email}`}>
+                  {profile.email}
+                </ExternalLink>
+              </li>
+            ) : null}
+            {profile.links.map((link) => (
+              <li key={link.href}>
+                <ExternalLink className="text-link" href={link.href}>
+                  {link.label}
+                </ExternalLink>
+              </li>
+            ))}
+          </ul>
+          <HiddenEgg />
+        </div>
       </Section>
     </>
   );
 }
-

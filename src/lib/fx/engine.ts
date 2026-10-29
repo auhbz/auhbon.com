@@ -90,6 +90,8 @@ export class FxEngine {
   constructor(
     private canvas: HTMLCanvasElement,
     private sound: (e: SoundEvent) => void,
+    /** Called when something in the engine unlocks a secret. */
+    private secret: (id: "bat") => void = () => {},
   ) {
     this.ctx = canvas.getContext("2d")!;
     this.resize();
@@ -579,6 +581,21 @@ export class FxEngine {
         // Hits barely slow the rock, so it keeps to the path you aimed.
         r.vx *= 0.94;
         r.vy *= 0.94;
+      }
+      // Spooky theme: rocks can hit the bats.
+      for (const bat of this.particles) {
+        if (!bat.flap || !bat.ambient) continue;
+        if (Math.hypot(bat.x - r.x, bat.y - r.y) < bat.size * 0.7) {
+          bat.ambient = false; // now it falls, spinning, and fades
+          bat.flap = false;
+          bat.vx = r.vx * 0.3;
+          bat.vy = -2;
+          bat.gravity = 0.35;
+          bat.spin = 0.25;
+          bat.decay = 0.012;
+          this.sound("hit");
+          this.secret("bat");
+        }
       }
       const gone = r.age > 4500 || r.y > window.innerHeight + 60 || r.x < -60 || r.x > window.innerWidth + 60;
       if (gone) {

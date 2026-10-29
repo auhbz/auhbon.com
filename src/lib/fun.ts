@@ -66,9 +66,25 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
   { id: "spooky", label: "Spooky", description: "Fog, flicker, and things that fly at night" },
 ];
 
-/** Each secret is found once; the panel shows how many are left. */
-export const SECRETS = ["konami", "hire", "name", "diamond", "sudo"] as const;
-export type Secret = (typeof SECRETS)[number];
+/**
+ * Secrets work like video-game achievements. Each has a title (hidden until
+ * found) and an icon that doubles as a hint: locked icons are blurred, and a
+ * visitor can tap one to peek at it.
+ */
+export const SECRET_LIST = [
+  { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row" },
+  { id: "konami", title: "Cheat code", icon: "🎮", how: "Entered the Konami code" },
+  { id: "hire", title: "Great idea", icon: "💼", how: "Typed “hire”" },
+  { id: "diamond", title: "Shine bright", icon: "💎", how: "Clicked my current job on the timeline" },
+  { id: "sudo", title: "Superuser", icon: "🥪", how: "Asked Quick actions for a sandwich, with sudo" },
+  { id: "bat", title: "Batter up", icon: "🦇", how: "Hit a bat with a slingshot rock in the Spooky theme" },
+  { id: "egg", title: "In plain sight", icon: "🥚", how: "Selected all the text and found the egg" },
+  { id: "elements", title: "Elementalist", icon: "⚗️", how: "Electric buttons, Fire trail and Bubbles together" },
+  { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit" },
+  { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds" },
+] as const;
+export type Secret = (typeof SECRET_LIST)[number]["id"];
+export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
 
 /** `hover` only applies to sound effects: whether hovering plays sounds. */
 export type Effect = { on: boolean; variant: string; hover?: boolean };
@@ -77,6 +93,8 @@ export type FunState = {
   effects: Record<Category, Effect>;
   look: Look;
   secrets: string[];
+  /** Locked secrets whose hint icon the visitor chose to reveal. */
+  peeked: string[];
 };
 
 export const FUN_EVENT = "portfolio:fun";
@@ -100,7 +118,7 @@ export const ALL_OFF: Record<Category, Effect> = {
   sound: { ...ALL_ON.sound, on: false },
 };
 
-export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [] };
+export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [] };
 
 /**
  * The master switch is a summary, not a separate layer: it's "on" whenever any
@@ -138,6 +156,7 @@ function read(): FunState {
       // Older saves kept a look while switched off; treat "off" as the clean site.
       look: master && LOOKS.some((l) => l.id === p.look) ? (p.look as Look) : "classic",
       secrets: Array.isArray(p.secrets) ? p.secrets.filter((s) => SECRETS.includes(s as Secret)) : [],
+      peeked: Array.isArray(p.peeked) ? p.peeked.filter((s) => SECRETS.includes(s as Secret)) : [],
     });
   } catch {
     return DEFAULT_FUN;
@@ -207,6 +226,19 @@ export function shuffle() {
   }
   updateFun((s) => ({ ...s, effects, look: "classic" }));
   return CATEGORIES.map((c) => c.options.find((o) => o.id === effects[c.id].variant)!.label);
+}
+
+/** Reveal a locked secret's hint icon (its title stays hidden until found). */
+export const peekSecret = (id: Secret) =>
+  updateFun((s) => (s.peeked.includes(id) ? s : { ...s, peeked: [...s.peeked, id] }));
+
+/** Which combination secret, if any, the current settings unlock. */
+export function comboSecret(s: FunState): Secret | null {
+  const v = (c: Category) => (s.effects[c].on ? s.effects[c].variant : null);
+  if (v("buttons") === "electric" && v("trail") === "fire" && v("dots") === "bubbles") return "elements";
+  if (s.look === "nature" && v("sound") === "birds" && v("dots") === "fruit") return "wild";
+  if (s.look === "spooky" && v("trail") === "cursed" && v("sound") === "clown") return "haunted";
+  return null;
 }
 
 /** Returns true the first time a secret is found. */

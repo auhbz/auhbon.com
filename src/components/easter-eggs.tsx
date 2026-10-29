@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { burst, sound, toast } from "@/lib/fx";
-import { findSecret, getFun, SECRETS, setFunOn, type Secret } from "@/lib/fun";
+import { comboSecret, findSecret, FUN_EVENT, getFun, SECRETS, setFunOn, type Secret } from "@/lib/fun";
 
 export const HERO_WAVE_EVENT = "portfolio:hero-wave";
 
@@ -82,11 +82,27 @@ export function EasterEggs({ email }: { email: string }) {
       }
     };
 
+    // Combination secrets: certain effects and themes switched on together.
+    const COMBO_MESSAGES: Record<string, string> = {
+      elements: "Elementalist: lightning, fire and water.",
+      wild: "Back to nature.",
+      haunted: "Creepy clown. 🎈",
+    };
+    const onFun = () => {
+      const combo = comboSecret(getFun());
+      if (combo && !getFun().secrets.includes(combo)) {
+        burst("confetti");
+        reveal(combo, COMBO_MESSAGES[combo]);
+      }
+    };
+
     window.addEventListener("keydown", onKey);
     document.addEventListener("click", onClick);
+    window.addEventListener(FUN_EVENT, onFun);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("click", onClick);
+      window.removeEventListener(FUN_EVENT, onFun);
       window.clearTimeout(clickTimer);
     };
   }, [email]);
