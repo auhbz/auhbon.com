@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { filterProjects, goToSection, OPEN_PALETTE_EVENT, openPalette } from "@/lib/events";
 import { setTheme, type Theme } from "@/lib/theme";
+import { toast } from "@/lib/fx";
+import { getFun, LOOKS, setFunOn, setLook } from "@/lib/fun";
+import { reveal } from "@/components/easter-eggs";
 import type { Link } from "@/content/profile";
 
 type Command = {
@@ -25,13 +28,8 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
-  const [toast, setToast] = useState("");
   const listId = useId();
-
-  const notify = useCallback((message: string) => {
-    setToast(message);
-    window.setTimeout(() => setToast((m) => (m === message ? "" : m)), 2600);
-  }, []);
+  const notify = toast;
 
   const commands = useMemo<Command[]>(() => {
     const list: Command[] = sections.map((s) => ({
@@ -103,12 +101,45 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
         },
       });
     }
+    list.push({
+      id: "fun-toggle",
+      group: "Bells and whistles",
+      label: "Turn bells and whistles on or off",
+      keywords: "fun extras effects emoji rainbow sparkle enable disable party",
+      run: () => {
+        const next = !getFun().on;
+        setFunOn(next);
+        notify(next ? "Bells and whistles on" : "Bells and whistles off");
+      },
+    });
+    for (const look of LOOKS) {
+      list.push({
+        id: `look-${look.id}`,
+        group: "Bells and whistles",
+        label: `${look.label} look`,
+        keywords: `mode style skin ${look.description}`,
+        run: () => {
+          setLook(look.id);
+          notify(`${look.label} look on`);
+        },
+      });
+    }
     return list;
   }, [sections, filters, email, links, notify]);
 
   const results = useMemo(() => {
     const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
     if (!terms.length) return commands;
+    if (terms[0] === "sudo") {
+      return [
+        {
+          id: "sudo",
+          group: "Hmm",
+          label: "sudo make me a sandwich",
+          run: () => reveal("sudo", "Okay. 🥪"),
+        },
+      ];
+    }
 
     // Every term must match somewhere; whole-word hits in the label rank highest,
     // so "java" puts "Show Java projects" ahead of "Show JavaScript projects".
@@ -263,11 +294,6 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
         </p>
       </dialog>
 
-      <div role="status" aria-live="polite" className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
-        {toast ? (
-          <p className="toast rounded-full bg-ink px-5 py-2.5 text-[0.95rem] font-medium text-paper shadow-lg">{toast}</p>
-        ) : null}
-      </div>
     </>
   );
 }
@@ -290,7 +316,7 @@ export function PaletteButton() {
       type="button"
       onClick={openPalette}
       aria-keyshortcuts="Meta+K Control+K"
-      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line px-3 text-sm text-muted hover:border-ink/40 hover:text-ink"
+      className="pill inline-flex min-h-11 items-center gap-2 rounded-full border border-line px-3 text-sm text-muted hover:border-ink/40 hover:text-ink"
     >
       <SearchIcon />
       <span className="sr-only sm:not-sr-only">Quick actions</span>

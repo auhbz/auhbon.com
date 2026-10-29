@@ -173,7 +173,7 @@ function FilterChip({
       type="button"
       aria-pressed={pressed}
       onClick={onClick}
-      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/20 px-4 text-[0.95rem] font-medium transition-colors hover:border-ink aria-pressed:border-kelp aria-pressed:bg-kelp aria-pressed:text-kelp-ink"
+      className="pill inline-flex min-h-11 items-center gap-2 rounded-full border border-ink/20 px-4 text-[0.95rem] font-medium transition-colors hover:border-ink aria-pressed:border-kelp aria-pressed:bg-kelp aria-pressed:text-kelp-ink"
     >
       {label}
       {count ? (

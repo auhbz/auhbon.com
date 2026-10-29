@@ -88,7 +88,7 @@ export default function Home() {
               <li>
                 <a
                   href={`mailto:${profile.email}`}
-                  className="inline-flex min-h-11 items-center rounded-full bg-kelp px-5 font-medium text-kelp-ink hover:opacity-90"
+                  className="pill pill-filled inline-flex min-h-11 items-center rounded-full bg-kelp px-5 font-medium text-kelp-ink hover:opacity-90"
                 >
                   Email me
                 </a>
@@ -98,7 +98,7 @@ export default function Home() {
               <li key={link.href}>
                 <a
                   href={link.href}
-                  className="inline-flex min-h-11 items-center rounded-full border border-ink/25 px-5 font-medium hover:border-ink"
+                  className="pill inline-flex min-h-11 items-center rounded-full border border-ink/25 px-5 font-medium hover:border-ink"
                 >
                   {link.label}
                 </a>
@@ -126,7 +126,13 @@ export default function Home() {
         <ol className="relative border-l border-line">
           {experience.map((role) => (
             <li key={`${role.org}-${role.start}`} className="relative pb-10 pl-6 last:pb-0">
-              <span aria-hidden="true" className="absolute top-2 -left-[5px] size-2.5 rounded-full bg-kelp" />
+              {/* Decorative dot. Easter egg: it's clickable, for anyone with a keen eye. */}
+              <span
+                aria-hidden="true"
+                data-egg="dot"
+                data-current={!role.end}
+                className="absolute top-2 -left-[5px] size-2.5 cursor-pointer rounded-full bg-kelp transition-transform before:absolute before:-inset-2 before:content-[''] hover:scale-150"
+              />
               <h3 className="font-display text-lg font-semibold tracking-tight">{role.title}</h3>
               <p>{role.org}</p>
               <p className="text-sm text-muted">

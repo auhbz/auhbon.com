@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { getTheme, setTheme, THEME_EVENT, type Theme } from "@/lib/theme";
+import { DEFAULT_FUN, getFun, LOOKS, subscribeFun } from "@/lib/fun";
 
 const ORDER: Theme[] = ["system", "light", "dark"];
 const LABEL: Record<Theme, string> = { system: "System", light: "Light", dark: "Dark" };
@@ -18,15 +19,23 @@ function subscribe(onChange: () => void) {
 export function ThemeToggle() {
   // The saved theme lives in localStorage, outside React, so read it as an external store.
   const current = useSyncExternalStore(subscribe, getTheme, () => "system" as Theme);
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const next = ORDER[(ORDER.indexOf(current) + 1) % ORDER.length];
+
+  // Terminal and Pico-8 looks bring their own colors, so light/dark is paused meanwhile.
+  const look = fun.on && fun.look !== "classic" ? LOOKS.find((l) => l.id === fun.look)?.label : undefined;
+  const label = look
+    ? `Theme: set by the ${look} look`
+    : `Theme: ${LABEL[current]}. Switch to ${LABEL[next]}`;
 
   return (
     <button
       type="button"
       onClick={() => setTheme(next)}
-      aria-label={`Theme: ${LABEL[current]}. Switch to ${LABEL[next]}`}
-      title={`Theme: ${LABEL[current]}`}
-      className="inline-flex size-11 items-center justify-center rounded-full text-muted hover:text-ink"
+      disabled={Boolean(look)}
+      aria-label={label}
+      title={look ? `Colors come from the ${look} look` : `Theme: ${LABEL[current]}`}
+      className="inline-flex size-11 items-center justify-center rounded-full text-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
     >
       <ThemeIcon theme={current} />
     </button>

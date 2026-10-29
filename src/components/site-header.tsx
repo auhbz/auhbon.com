@@ -2,6 +2,7 @@ import Link from "next/link";
 import { profile } from "@/content/profile";
 import { PaletteButton } from "@/components/command-palette";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { BellsPanel } from "@/components/bells-panel";
 
 const nav = [
   { href: "#work", label: "Work" },
@@ -38,6 +39,7 @@ export function SiteHeader() {
         <div className="flex items-center gap-1">
           <PaletteButton />
           <ThemeToggle />
+          <BellsPanel />
         </div>
       </div>
     </header>

@@ -6,6 +6,10 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CommandPalette } from "@/components/command-palette";
 import { themeInitScript } from "@/lib/theme";
+import { funInitScript } from "@/lib/fun";
+import { Toaster } from "@/components/toaster";
+import { FxCanvas } from "@/components/fx-canvas";
+import { EasterEggs } from "@/components/easter-eggs";
 import "./globals.css";
 
 // Self-hosted fonts: no request to Google at runtime, which keeps the CSP to 'self'.
@@ -64,7 +68,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" suppressHydrationWarning className={`${bricolage.variable} ${plex.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col bg-paper text-ink">
         <Script id="theme-init" strategy="beforeInteractive">
-          {themeInitScript}
+          {themeInitScript + funInitScript}
         </Script>
         <a
           href="#main"
@@ -90,6 +94,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           email={profile.email}
           links={[...profile.links, { label: "site source code", href: `https://github.com/${profile.githubUser}/${profile.domain}` }]}
         />
+        <Toaster />
+        <FxCanvas />
+        <EasterEggs email={profile.email} />
       </body>
     </html>
   );
