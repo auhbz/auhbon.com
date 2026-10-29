@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# auhbon.com
 
-## Getting Started
+Personal portfolio of Auhbon Amiri, software engineer in Los Angeles.
+Live at **[auhbon.com](https://auhbon.com)**.
 
-First, run the development server:
+The site is small on purpose, but it's built the way I'd build production software: typed end to end, accessible by default, locked down with security headers, and checked in CI on every change.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Highlights
+
+**Live data, static speed.** The "On GitHub" section reads my latest public repositories from the GitHub REST API. It uses Next.js Cache Components (`"use cache"` + `cacheLife("hours")`), so the page is prerendered as static HTML and refreshes itself in the background about once an hour. If GitHub is unreachable, the section shows a plain fallback link instead of breaking the page.
+
+**Accessibility (WCAG 2.2 AA).**
+- Semantic landmarks, one `h1`, logical heading order, skip link to main content
+- Every color pair is verified by `scripts/contrast.mjs` in CI (light and dark themes)
+- One consistent, high-contrast `:focus-visible` ring; 44px minimum touch targets
+- Links are underlined, so meaning never depends on color alone
+- Respects `prefers-reduced-motion` and `prefers-color-scheme`
+- Audited with axe-core across desktop/mobile and light/dark: 0 violations
+
+**Security.**
+- Strict headers on every response: CSP pinned to `'self'`, HSTS (with preload), `X-Frame-Options: DENY`, `nosniff`, a restrictive `Permissions-Policy`, COOP/CORP, and `X-Powered-By` removed
+- No third-party scripts, fonts or trackers; fonts are self-hosted
+- Data from the GitHub API is filtered (no forks, archived or private repos) and URLs are restricted to `http(s)` before rendering
+- The optional `GITHUB_TOKEN` is server-only (`server-only` guard) and needs no permissions
+- CI runs with read-only permissions; `npm audit` and Dependabot keep dependencies current
+
+**Performance and SEO.** Static prerendering, self-hosted variable fonts with `font-display: swap`, generated Open Graph image, sitemap, robots.txt, canonical URL and schema.org `Person` structured data.
+
+## Stack
+
+Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · Vercel
+
+## Project layout
+
+```
+src/
+  content/profile.ts   all site content: edit this to update the portfolio
+  lib/github.ts        cached GitHub API client
+  components/          header, footer, GitHub repos section
+  app/                 page, layout, metadata routes (OG image, sitemap, robots)
+scripts/contrast.mjs   WCAG contrast check for the palette
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run it locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev          # http://localhost:3000
+npm run check        # lint + typecheck + contrast
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy `.env.example` to `.env.local` to add an optional `GITHUB_TOKEN`.
 
-## Learn More
+## Deploying
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed on Vercel from `main`. Every pull request gets a preview URL; CI must pass before merging.
