@@ -49,7 +49,7 @@ export const profile = {
   siteUrl: "https://auhbon.com",
   githubUser: "auhbz",
   intro:
-    "I build web products end to end: Java and Spring backends, REST APIs, cloud deployments, and TypeScript front ends. I've shipped scheduling systems used across a whole app, backend services at MGM Resorts, and an award-winning Flutter app, and I'm looking for a team where I can keep growing.",
+    "I build web products end to end: Java and Spring backends, REST APIs, cloud deployments, and TypeScript front ends. I've shipped the scheduling system at the core of a startup's app, backend services at MGM Resorts, and an award-winning Flutter app. AI is part of how I work: I use Claude Code to scaffold, refactor and test faster, and I own the design and review every line.",
   /** Shown as the primary contact link. Already public on Auhbon's resume. */
   email: "auhbon@gmail.com" as string,
   links: [
@@ -108,7 +108,7 @@ export const projects: Project[] = [
     name: "auhbon.com",
     summary:
       "This site. A portfolio that pulls my latest GitHub work in automatically, built to WCAG 2.2 AA with a strict security-header setup.",
-    role: "Designed and built it, including the CI pipeline that lints, type-checks and builds every change.",
+    role: "Designed and built it with Claude Code as a pair programmer: I set the architecture, accessibility and security requirements, and verified the result with automated axe-core audits and a CI pipeline that lints, type-checks and builds every change.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
     status: "Live",
     links: [{ label: "Source code", href: "https://github.com/auhbz/auhbon.com" }],
@@ -207,5 +207,6 @@ export const skills: { group: string; items: string[] }[] = [
   { group: "Backend", items: ["Spring Boot", "REST APIs", "Laravel", "Maven"] },
   { group: "Front end and mobile", items: ["Next.js", "React", "Vue.js", "Flutter"] },
   { group: "Cloud and data", items: ["Azure", "Docker", "Linux", "PostgreSQL", "MySQL", "Google Cloud"] },
-  { group: "Testing and tools", items: ["JUnit", "Postman", "JMeter", "Git", "Claude Code"] },
+  { group: "AI-assisted development", items: ["Claude Code", "agentic coding workflows", "AI-assisted testing and refactoring"] },
+  { group: "Testing and tools", items: ["JUnit", "Postman", "JMeter", "Git"] },
 ];
