@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.8.0 | Goblin, Flow & Cookies | [`release/1.8.0`](https://github.com/auhbz/auhbon.com/tree/release/1.8.0) |
 | 1.7.0 | Curious bats & still cursors | [`release/1.7.0`](https://github.com/auhbz/auhbon.com/tree/release/1.7.0) |
 | 1.6.0 | Secrets & achievements | [`release/1.6.0`](https://github.com/auhbz/auhbon.com/tree/release/1.6.0) |
 | 1.5.3 | Effect fixes & tweaks | [`release/1.5.3`](https://github.com/auhbz/auhbon.com/tree/release/1.5.3) |
@@ -15,11 +16,21 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 ---
 
-## 1.7.0 — Curious bats & still cursors
+## 1.8.0: Goblin, Flow & Cookies
 
-Branch: `release/1.7.0`
+**Added**
+- **The goblin** (Slingshot i-dots) (#13): the rock now sits on one i and a little goblin lives on the other. A launched rock lands on the bottom of the screen (bouncing off the sides instead of flying away), and the goblin scurries out, grabs it and carries it back over its head. Under reduced motion the rock simply regrows, as before.
+- **Flow** cursor trail (water): it streams off the cursor in the direction you move, drips when you hold still, and splashes with a ripple when you click.
+- **Cookie** buttons: chocolate-chip pills; each click takes a bite (with crumbs), and after three bites you get a fresh cookie. Bites are never shown while a button has keyboard focus, so the focus ring is never clipped. Text contrast 5.9:1 or better.
 
-### Added
+**Changed**
+- Slingshot has one rock instead of two (the second i is the goblin's home).
+
+---
+
+## 1.7.0: Curious bats & still cursors
+
+**Added**
 - **Curious bats** (Spooky theme): about half the bats now flutter over and hover near your cursor for a while before flying off; the rest fly past as before. Clicking scatters any bats nearby (#7). Curious bats are also easier targets for the *Batter up* secret.
 - **Still states for cursor trails** (mouse only; touch has no resting cursor) (#12):
   - *Sparkle*: hold still and a rainbow ring of sparkles circles the cursor.
@@ -28,11 +39,9 @@ Branch: `release/1.7.0`
 
 ---
 
-## 1.6.0 — Secrets & achievements
+## 1.6.0: Secrets & achievements
 
-Branch: `release/1.6.0`
-
-### Added
+**Added**
 - **Secrets progress** at the top of the Bells & whistles panel (shown while it's on): "Secrets found X of 10" with a bar, expanding to a grid of 10 badges. Unfound badges are blurred; tap one to peek at its icon as a hint (#8).
 - **Five new secrets** (10 total):
   - 🦇 *Batter up*: Spooky theme + slingshot, then hit a bat with a rock (#16).

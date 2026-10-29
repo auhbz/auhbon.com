@@ -9,7 +9,7 @@ The site is small on purpose, but it's built the way I'd build production softwa
 
 **Interactive, still static.** A variable-font hero name that reacts to the cursor, one-click project filtering by technology (shareable as `?stack=Java`, animated with the View Transitions API), a `⌘K` command palette, and a light/dark/system theme toggle that applies before first paint. Every interaction is keyboard- and screen-reader-accessible and respects `prefers-reduced-motion`. Verified during development with Playwright interaction tests and axe-core audits in both themes.
 
-**Bells and whistles (opt-in).** A header badge opens a panel of playful extras built on one shared store and a single canvas particle engine: emoji / slingshot / bubble i-dots (the slingshot knocks words around with physics, drawn on canvas so real page text is never touched), rainbow / electric / mercury buttons, sparkle / fire / cursed cursor trails, three synthesized Web Audio sound packs, five looks (Classic, Terminal, Pico-8, Nature, Spooky), shuffle, and a few hidden secrets. Off by default, works with touch, and respects reduced motion.
+**Bells and whistles (opt-in).** A header badge opens a panel of playful extras built on one shared store and a single canvas particle engine: fruit / slingshot / bubble i-dots (the slingshot knocks words around with physics, drawn on canvas so real page text is never touched, and a goblin fetches the rock), rainbow / electric / mercury / cookie buttons, sparkle / flow / fire / cursed cursor trails (each does something different when you hold still), four synthesized Web Audio sound packs, five themes (Classic, Terminal, Pico-8, Nature, Spooky), shuffle, and ten hidden secrets tracked like achievements. Off by default, works with touch, and respects reduced motion.
 
 **Live data, static speed.** The "On GitHub" section reads my latest public repositories from the GitHub REST API. It uses Next.js Cache Components (`"use cache"` + `cacheLife("hours")`), so the page is prerendered as static HTML and refreshes itself in the background about once an hour. If GitHub is unreachable, the section shows a plain fallback link instead of breaking the page.
 
@@ -32,11 +32,12 @@ The site is small on purpose, but it's built the way I'd build production softwa
 
 ## Versions
 
-Every version is saved as a `release/<version>` branch you can browse, compare, or restore. Full notes are in [CHANGELOG.md](CHANGELOG.md); what's next is in [ROADMAP.md](ROADMAP.md).
+Every version is saved as a `release/<version>` branch you can browse, compare, or restore. Full notes are in [CHANGELOG.md](CHANGELOG.md); a change report and what's next are in [ROADMAP.md](ROADMAP.md).
 
 <!-- versions:start -->
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.8.0 | Goblin, Flow & Cookies | [`release/1.8.0`](https://github.com/auhbz/auhbon.com/tree/release/1.8.0) |
 | 1.7.0 | Curious bats & still cursors | [`release/1.7.0`](https://github.com/auhbz/auhbon.com/tree/release/1.7.0) |
 | 1.6.0 | Secrets & achievements | [`release/1.6.0`](https://github.com/auhbz/auhbon.com/tree/release/1.6.0) |
 | 1.5.3 | Effect fixes & tweaks | [`release/1.5.3`](https://github.com/auhbz/auhbon.com/tree/release/1.5.3) |

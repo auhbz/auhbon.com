@@ -16,7 +16,7 @@ const SWAP_CLOSENESS = 0.72;
 /**
  * The name is set in a variable font. Letters near the pointer thicken and the
  * rest thin out, like a spotlight. With bells and whistles on, the dots on the
- * i's become emoji, slingshot rocks, or bubble makers. Purely decorative:
+ * i's become fruit, a slingshot rock (and the goblin who fetches it), or bubble makers. Purely decorative:
  * screen readers get the plain name, and nothing moves under reduced motion.
  */
 export function HeroName({ name, id }: { name: string; id: string }) {
@@ -116,6 +116,7 @@ export function HeroName({ name, id }: { name: string; id: string }) {
 
   const words = name.split(" ");
   let n = 0;
+  let dotCount = 0;
 
   return (
     <h1
@@ -130,6 +131,8 @@ export function HeroName({ name, id }: { name: string; id: string }) {
             {Array.from(word).map((char, i) => {
               const dotted = dots !== null && char === "i";
               const index = n++;
+              // Slingshot: one rock; every later i is home to the goblin who fetches it.
+              const goblin = dotted && dots === "slingshot" && dotCount++ > 0;
               return (
                 <span
                   key={i}
@@ -141,7 +144,8 @@ export function HeroName({ name, id }: { name: string; id: string }) {
                   {dotted ? "ı" : char}
                   {dotted && dots === "fruit" ? <span data-emoji className="hero-dot hero-emoji" /> : null}
                   {/* Slingshot: drag the rock (engine handles the physics); touch-action: none so it doesn't scroll. */}
-                  {dotted && dots === "slingshot" ? <span data-rock data-state="ready" className="hero-dot hero-rock" /> : null}
+                  {dotted && dots === "slingshot" && !goblin ? <span data-rock data-state="ready" className="hero-dot hero-rock" /> : null}
+                  {goblin ? <span data-goblin data-state="home" className="hero-dot hero-goblin" /> : null}
                   {/* Bubbles rise from here; the engine spawns and pops them. */}
                   {dotted && dots === "bubbles" ? <span data-bubble className="hero-dot hero-bubble" /> : null}
                 </span>

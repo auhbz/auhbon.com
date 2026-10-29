@@ -405,6 +405,61 @@ html[data-slinging] * {
   cursor: grabbing !important;
   user-select: none;
 }
+/* The goblin who lives on the other i and fetches the rock. Peeking eyes and pointy ears. */
+.hero-goblin {
+  top: 0.1em;
+  width: 0.13em;
+  height: 0.12em;
+  border-radius: 50% 50% 45% 45%;
+  background:
+    radial-gradient(circle at 34% 45%, #ffe14d 0 9%, transparent 11%),
+    radial-gradient(circle at 66% 45%, #ffe14d 0 9%, transparent 11%),
+    radial-gradient(circle at 40% 30%, #7cc653, #4d8f2c 70%);
+}
+.hero-goblin::before {
+  content: "";
+  position: absolute;
+  inset: 8% -45% 40%;
+  background: #5fa83a;
+  clip-path: polygon(0 0, 30% 55%, 30% 100%, 0 0, 100% 0, 70% 55%, 70% 100%);
+  z-index: -1;
+}
+.hero-goblin[data-state="out"] {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-goblin[data-state="home"] {
+    animation: regrow 300ms cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+}
+/* Cookie buttons: chocolate chip, and each click takes a bite (the engine counts). */
+html[data-fx-buttons="cookie"] .pill {
+  background:
+    radial-gradient(circle at 11% 32%, #3b2412 0 2.5px, transparent 3px),
+    radial-gradient(circle at 89% 68%, #3b2412 0 2.5px, transparent 3px),
+    radial-gradient(circle at 20% 80%, #4a2e17 0 2px, transparent 2.5px),
+    radial-gradient(circle at 82% 22%, #4a2e17 0 2px, transparent 2.5px),
+    radial-gradient(ellipse at 45% 35%, #e6b273, #c98a45 75%);
+  color: #2a1709;
+  border-color: #8a5a2b;
+}
+/* Bites are masked out, except while keyboard-focused so the focus ring is never clipped. */
+html[data-fx-buttons="cookie"] .pill[data-bites="1"]:not(:focus-visible) {
+  mask: radial-gradient(circle 13px at calc(100% + 3px) -3px, #0000 12.5px, #000 13px);
+}
+html[data-fx-buttons="cookie"] .pill[data-bites="2"]:not(:focus-visible) {
+  mask:
+    radial-gradient(circle 13px at calc(100% + 3px) -3px, #0000 12.5px, #000 13px),
+    radial-gradient(circle 11px at -2px calc(100% + 2px), #0000 10.5px, #000 11px);
+  mask-composite: intersect;
+}
+html[data-fx-buttons="cookie"] .pill[data-bites="3"]:not(:focus-visible) {
+  mask:
+    radial-gradient(circle 13px at calc(100% + 3px) -3px, #0000 12.5px, #000 13px),
+    radial-gradient(circle 11px at -2px calc(100% + 2px), #0000 10.5px, #000 11px),
+    radial-gradient(circle 10px at 58% -4px, #0000 9.5px, #000 10px);
+  mask-composite: intersect;
+}
 /* Cursed trail, mouse held still: the ghost takes the cursor; any movement gives it back. */
 html[data-possessed] * {
   cursor: none !important;

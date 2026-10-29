@@ -33,6 +33,7 @@ export const CATEGORIES: CategoryDef[] = [
       { id: "rainbow", label: "Rainbow", description: "A spinning rainbow outline on hover" },
       { id: "electric", label: "Electric", description: "Lightning crackles around them; sparks when pressed" },
       { id: "mercury", label: "Mercury", description: "Liquid metal, magnetically drawn to your cursor" },
+      { id: "cookie", label: "Cookie", description: "Chocolate chip. Click to take a bite" },
     ],
   },
   {
@@ -41,6 +42,7 @@ export const CATEGORIES: CategoryDef[] = [
     description: "What follows your cursor (or finger)",
     options: [
       { id: "sparkle", label: "Sparkle", description: "A little glitter; hold still for a rainbow ring" },
+      { id: "flow", label: "Flow", description: "Water: it streams, drips when you wait, and splashes when you click" },
       { id: "fire", label: "Fire", description: "Flames that scorch the words they pass, and grow if you wait" },
       { id: "cursed", label: "Cursed", description: "Something follows you. Don’t stand still." },
     ],

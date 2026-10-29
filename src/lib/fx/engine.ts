@@ -18,7 +18,7 @@ export type EngineSettings = {
 };
 
 type Particle = {
-  kind: "sparkle" | "flame" | "confetti" | "glyph" | "spark" | "droplet" | "wisp";
+  kind: "sparkle" | "flame" | "confetti" | "glyph" | "spark" | "droplet" | "wisp" | "ripple" | "crumb";
   x: number;
   y: number;
   vx: number;
@@ -55,6 +55,8 @@ type Knocked = {
 };
 
 type Rock = { el: HTMLElement; x: number; y: number; sx: number; sy: number; vx: number; vy: number; age: number; lastHit: string };
+/** The goblin on the right i: runs out to a landed rock and brings it back (page coords). */
+type Goblin = { el: HTMLElement; rock: HTMLElement; phase: "fetch" | "carry" | "home"; x: number; y: number; rx: number; ry: number; dir: number; t: number; age: number };
 type Drag = { el: HTMLElement; originX: number; originY: number; x: number; y: number; id: number };
 type Bubble = { x: number; y: number; r: number; maxR: number; vy: number; phase: number };
 type Ghost = { x: number; y: number; alpha: number; lastMove: number; dir: number; t: number };
@@ -77,6 +79,9 @@ export class FxEngine {
   private bubbles: Bubble[] = [];
   private drag: Drag | null = null;
   private ghost: Ghost | null = null;
+  private goblins: Goblin[] = [];
+  private lastDrip = 0;
+  private prev = { x: 0, y: 0 };
   private electric: { el: HTMLElement; until: number } | null = null;
   private pointer: { x: number; y: number; type: string } | null = null;
   private lastTrail = 0;
@@ -111,6 +116,8 @@ export class FxEngine {
     if (next.trail !== "cursed") this.ghost = null;
     if (next.trail !== "cursed") this.setPossessed(false);
     if (next.dots !== "bubbles") this.bubbles = [];
+    if (next.dots !== "slingshot") this.goblins = [];
+    if (next.buttons !== "cookie") for (const pill of document.querySelectorAll<HTMLElement>(".pill[data-bites]")) delete pill.dataset.bites;
     // Leaves and bats belong to their look; clear them when the look changes.
     if (prev.look !== next.look) this.particles = this.particles.filter((p) => !p.ambient);
     this.readColors();
@@ -127,7 +134,13 @@ export class FxEngine {
 
   // ---------------------------------------------------------------- public FX
 
-  burst(kind: "confetti" | "diamonds" | "sparks" | "droplets", x: number, y: number) {
+  burst(kind: "confetti" | "diamonds" | "sparks" | "droplets" | "crumbs", x: number, y: number) {
+    if (kind === "crumbs") {
+      for (let i = 0; i < 9; i++) {
+        this.add({ kind: "crumb", x, y, vx: (Math.random() - 0.5) * 3, vy: -1 - Math.random() * 2, life: 1, decay: 0.02 + Math.random() * 0.01, size: 2 + Math.random() * 3, hue: 26 + Math.random() * 12, gravity: 0.25, spin: (Math.random() - 0.5) * 0.4, angle: Math.random() * 6 });
+      }
+      return;
+    }
     if (this.settings.reduced && kind !== "droplets") return; // toasts still announce the moment
     const count = { confetti: 140, diamonds: 28, sparks: 22, droplets: 10 }[kind];
     for (let i = 0; i < count; i++) {
@@ -225,6 +238,7 @@ export class FxEngine {
   }
 
   private onMove(x: number, y: number, type: string) {
+    this.prev = this.pointer ? { x: this.pointer.x, y: this.pointer.y } : { x, y };
     this.pointer = { x, y, type };
     this.lastMoveAt = performance.now();
     this.stillMs = 0;
@@ -240,6 +254,7 @@ export class FxEngine {
       if (t === "sparkle") this.spawnSparkle(x, y, now);
       else if (t === "fire") this.spawnFire(x, y, now);
       else if (t === "cursed") this.moveGhost(x, y, now);
+      else if (t === "flow") this.spawnStream(x, y);
     }
     if (this.settings.buttons === "mercury") this.mercury(x, y);
     this.ensure();
@@ -289,6 +304,13 @@ export class FxEngine {
       this.burst("sparks", e.clientX, e.clientY);
       if (e.pointerType !== "mouse") this.electric = { el: pill, until: performance.now() + 1200 };
     }
+    // Cookie buttons: each press takes a bite; after three, a fresh cookie.
+    if (pill && this.settings.buttons === "cookie") {
+      const bites = Number(pill.dataset.bites ?? 0);
+      pill.dataset.bites = String((bites + 1) % 4);
+      this.burst("crumbs", e.clientX, e.clientY);
+    }
+    if (this.settings.trail === "flow") this.splash(e.clientX, e.clientY);
     if (this.settings.trail === "fire" && e.pointerType !== "mouse") this.spawnFire(e.clientX, e.clientY, performance.now());
   }
 
@@ -339,6 +361,25 @@ export class FxEngine {
   private moveGhost(x: number, y: number, now: number) {
     this.ghost ??= { x, y: y + 40, alpha: 0, lastMove: now, dir: 1, t: 0 };
     this.ghost.lastMove = now;
+  }
+
+  /** Flow: water streams off the cursor in the direction it moves. */
+  private spawnStream(x: number, y: number) {
+    const vx = (x - this.prev.x) * 0.25;
+    const vy = (y - this.prev.y) * 0.25;
+    for (let i = 0; i < 2; i++) {
+      this.add({ kind: "droplet", x: x + (Math.random() - 0.5) * 4, y: y + (Math.random() - 0.5) * 4, vx: vx + (Math.random() - 0.5) * 0.8, vy: vy + (Math.random() - 0.5) * 0.8, life: 1, decay: 0.035 + Math.random() * 0.02, size: 1.5 + Math.random() * 2.2, hue: 0, gravity: 0.22, spin: 0, angle: 0 });
+    }
+  }
+
+  private splash(x: number, y: number) {
+    this.add({ kind: "ripple", x, y, vx: 0, vy: 0, life: 1, decay: 0.03, size: 4, hue: 0, gravity: 0, spin: 0, angle: 0 });
+    if (this.settings.reduced) return;
+    for (let i = 0; i < 16; i++) {
+      const a = Math.PI + Math.random() * Math.PI; // upward half
+      const speed = 2 + Math.random() * 3.5;
+      this.add({ kind: "droplet", x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life: 1, decay: 0.022 + Math.random() * 0.015, size: 1.8 + Math.random() * 2.4, hue: 0, gravity: 0.3, spin: 0, angle: 0 });
+    }
   }
 
   // ---------------------------------------------------------------- buttons
@@ -412,13 +453,14 @@ export class FxEngine {
     this.updateAmbient(now);
     this.updateParticles(ctx, f);
     this.updateRocks(ctx, dt, f);
+    this.updateGoblins(ctx, dt, f);
     this.drawDrag(ctx);
     this.updateGhost(ctx, now, f);
     this.drawStill(ctx, now, dt);
     this.drawElectric(ctx, now);
 
     const busy =
-      this.particles.length || this.scorches.length || this.knocked.length || this.rocks.length || this.drag || this.ghost ||
+      this.particles.length || this.scorches.length || this.knocked.length || this.rocks.length || this.goblins.length || this.drag || this.ghost ||
       this.electric || (this.settings.trail && this.pointer?.type === "mouse") || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
     this.frame = busy ? requestAnimationFrame(this.tick) : 0;
     if (!busy) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -496,6 +538,19 @@ export class FxEngine {
         ctx.fill();
         break;
       }
+      case "ripple": {
+        const r = p.size + (1 - p.life) * 34;
+        ctx.strokeStyle = this.dark ? `rgba(200,235,255,${0.7 * p.life})` : `rgba(60,120,170,${0.7 * p.life})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, r, r * 0.4, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+      }
+      case "crumb":
+        ctx.fillStyle = `hsl(${p.hue} 55% ${this.dark ? 55 : 38}%)`;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.8);
+        break;
       case "confetti":
         ctx.fillStyle = `hsl(${p.hue} 95% 60%)`;
         ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
@@ -623,14 +678,134 @@ export class FxEngine {
           this.secret("bat");
         }
       }
-      const gone = r.age > 4500 || r.y > window.innerHeight + 60 || r.x < -60 || r.x > window.innerWidth + 60;
-      if (gone) {
+      // With a goblin to fetch it, the rock lands on the bottom of the screen
+      // (bouncing off the sides) instead of flying away.
+      const goblin = this.goblinEl();
+      if (goblin) {
+        const floor = window.innerHeight - 9;
+        if (r.y > floor) {
+          r.y = floor;
+          r.vy = Math.abs(r.vy) < 2.5 ? 0 : r.vy * -0.35;
+          r.vx *= 0.92 ** f;
+        }
+        if (r.x < 9 || r.x > window.innerWidth - 9) {
+          r.x = Math.min(window.innerWidth - 9, Math.max(9, r.x));
+          r.vx *= -0.5;
+        }
+        const resting = r.y >= floor && r.vy === 0 && Math.abs(r.vx) < 0.2;
+        if (resting || r.age > 6000) {
+          this.rocks.splice(i, 1);
+          this.fetch(goblin, r);
+          continue;
+        }
+      } else if (r.age > 4500 || r.y > window.innerHeight + 60 || r.x < -60 || r.x > window.innerWidth + 60) {
         this.rocks.splice(i, 1);
         r.el.dataset.state = "ready"; // the rock grows back on the i
         continue;
       }
       this.drawRock(ctx, r.x, r.y, r.age / 90);
     }
+  }
+
+  private goblinEl() {
+    if (this.settings.dots !== "slingshot" || this.settings.reduced) return null;
+    const el = document.querySelector<HTMLElement>("[data-goblin]");
+    return el && el.dataset.state === "home" && !this.goblins.length ? el : null;
+  }
+
+  private fetch(el: HTMLElement, r: Rock) {
+    const home = el.getBoundingClientRect();
+    el.dataset.state = "out";
+    this.goblins.push({ el, rock: r.el, phase: "fetch", x: home.left + home.width / 2 + scrollX, y: home.top + home.height / 2 + scrollY, rx: r.x + scrollX, ry: r.y + scrollY, dir: 1, t: 0, age: 0 });
+  }
+
+  private updateGoblins(ctx: CanvasRenderingContext2D, dt: number, f: number) {
+    for (let i = this.goblins.length - 1; i >= 0; i--) {
+      const g = this.goblins[i];
+      g.age += dt;
+      g.t += 0.35 * f;
+      const center = (el: HTMLElement) => {
+        const b = el.getBoundingClientRect();
+        return { x: b.left + b.width / 2 + scrollX, y: b.top + b.height / 2 + scrollY };
+      };
+      const target = g.phase === "fetch" ? { x: g.rx, y: g.ry - 10 } : center(g.phase === "carry" ? g.rock : g.el);
+      const dx = target.x - g.x;
+      const dy = target.y - g.y;
+      const d = Math.hypot(dx, dy);
+      const speed = (g.phase === "carry" ? 5 : 7) * f;
+      if (Math.abs(dx) > 1) g.dir = dx > 0 ? 1 : -1;
+      // Gives up and teleports if it somehow takes too long (say, the page scrolled a lot).
+      if (d <= speed || g.age > 12000) {
+        g.x = target.x;
+        g.y = target.y;
+        if (g.phase === "fetch") {
+          g.phase = "carry";
+          this.sound("pop");
+        } else if (g.phase === "carry") {
+          g.rock.dataset.state = "ready"; // the rock is back on the i
+          g.phase = "home";
+        } else {
+          g.el.dataset.state = "home";
+          this.goblins.splice(i, 1);
+          continue;
+        }
+      } else {
+        g.x += (dx / d) * speed;
+        g.y += (dy / d) * speed;
+      }
+      const x = g.x - scrollX;
+      const y = g.y - scrollY;
+      if (g.phase === "fetch") this.drawRock(ctx, g.rx - scrollX, g.ry - scrollY);
+      this.drawGoblin(ctx, x, y, g);
+      if (g.phase === "carry") this.drawRock(ctx, x, y - 17);
+    }
+  }
+
+  private drawGoblin(ctx: CanvasRenderingContext2D, x: number, y: number, g: Goblin) {
+    const bob = Math.abs(Math.sin(g.t)) * -3;
+    ctx.save();
+    ctx.translate(x, y + bob);
+    ctx.scale(g.dir, 1);
+    // Legs, scurrying.
+    ctx.strokeStyle = "#2f5e17";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-3, 9);
+    ctx.lineTo(-3 + Math.sin(g.t) * 4, 16);
+    ctx.moveTo(3, 9);
+    ctx.lineTo(3 - Math.sin(g.t) * 4, 16);
+    ctx.stroke();
+    // Body (a little brown tunic) and head with pointy ears.
+    ctx.fillStyle = "#7a4a22";
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 5.5, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#5fa83a";
+    ctx.beginPath();
+    ctx.moveTo(-6, -4);
+    ctx.lineTo(-14, -9);
+    ctx.lineTo(-5, -1);
+    ctx.moveTo(6, -4);
+    ctx.lineTo(14, -9);
+    ctx.lineTo(5, -1);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, -3, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffe14d";
+    for (const ex of [-1, 4.5]) {
+      ctx.beginPath();
+      ctx.arc(ex, -4, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // A toothy grin.
+    ctx.strokeStyle = "#1d3a0e";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(2, -1, 3, 0.2, Math.PI - 0.6);
+    ctx.stroke();
+    ctx.restore();
   }
 
   private drawRock(ctx: CanvasRenderingContext2D, x: number, y: number, angle = 0) {
@@ -866,6 +1041,12 @@ export class FxEngine {
       const grow = Math.min(1, t / 5000);
       for (let i = 0; i < 1 + Math.round(grow * 2); i++) {
         this.add({ kind: "flame", x: p.x + (Math.random() - 0.5) * (6 + grow * 10), y: p.y + 4, vx: (Math.random() - 0.5) * 0.6, vy: -(1 + grow * 1.8) - Math.random(), life: 1, decay: 0.035 + Math.random() * 0.02, size: 8 + grow * 24 + Math.random() * 6, hue: 0, gravity: -0.02, spin: 0, angle: 0 });
+      }
+    } else if (trail === "flow") {
+      // Hold still and it drips.
+      if (now - this.lastDrip > 420) {
+        this.lastDrip = now;
+        this.add({ kind: "droplet", x: p.x + 1, y: p.y + 6, vx: 0, vy: 0.2, life: 1, decay: 0.012, size: 2.6, hue: 0, gravity: 0.25, spin: 0, angle: 0 });
       }
     } else if (trail === "cursed" && this.possessed) {
       // The possessed cursor twitches on its own.
