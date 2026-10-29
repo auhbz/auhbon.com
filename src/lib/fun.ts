@@ -90,7 +90,25 @@ export const ALL_ON: Record<Category, Effect> = {
   sound: { on: true, variant: firstOption("sound") },
 };
 
-export const DEFAULT_FUN: FunState = { on: false, effects: ALL_ON, look: "classic", secrets: [] };
+/** Everything off (each remembers its first option for when it's switched on). */
+export const ALL_OFF: Record<Category, Effect> = {
+  dots: { ...ALL_ON.dots, on: false },
+  buttons: { ...ALL_ON.buttons, on: false },
+  trail: { ...ALL_ON.trail, on: false },
+  sound: { ...ALL_ON.sound, on: false },
+};
+
+export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [] };
+
+/**
+ * The master switch is a summary, not a separate layer: it's "on" whenever any
+ * effect is on or a non-Classic look is picked. That way no switch can change
+ * another switch (only the master switch, which sets them all).
+ */
+function withSummary(s: FunState): FunState {
+  const on = s.look !== "classic" || CATEGORIES.some((c) => s.effects[c.id].on);
+  return on === s.on ? s : { ...s, on };
+}
 
 function validVariant(c: Category, v: unknown) {
   return CATEGORIES.find((d) => d.id === c)!.options.some((o) => o.id === v);
@@ -103,17 +121,19 @@ function read(): FunState {
     const raw = localStorage.getItem(KEY);
     if (!raw) return DEFAULT_FUN;
     const p = JSON.parse(raw) as Partial<FunState>;
-    const effects = { ...ALL_ON };
+    const master = p.on === true;
+    const effects = { ...ALL_OFF };
     for (const c of CATEGORIES) {
       const e = p.effects?.[c.id];
-      if (e) effects[c.id] = { on: e.on !== false, variant: validVariant(c.id, e.variant) ? e.variant : firstOption(c.id) };
+      if (e) effects[c.id] = { on: master && e.on !== false, variant: validVariant(c.id, e.variant) ? e.variant : firstOption(c.id) };
     }
-    return {
-      on: p.on === true,
+    return withSummary({
+      on: master,
       effects,
-      look: LOOKS.some((l) => l.id === p.look) ? (p.look as Look) : "classic",
+      // Older saves kept a look while switched off; treat "off" as the clean site.
+      look: master && LOOKS.some((l) => l.id === p.look) ? (p.look as Look) : "classic",
       secrets: Array.isArray(p.secrets) ? p.secrets.filter((s) => SECRETS.includes(s as Secret)) : [],
-    };
+    });
   } catch {
     return DEFAULT_FUN;
   }
@@ -141,7 +161,7 @@ export function subscribeFun(onChange: () => void) {
 }
 
 export function updateFun(change: (s: FunState) => FunState) {
-  cache = change(getFun());
+  cache = withSummary(change(getFun()));
   try {
     localStorage.setItem(KEY, JSON.stringify(cache));
   } catch {
@@ -151,17 +171,23 @@ export function updateFun(change: (s: FunState) => FunState) {
   window.dispatchEvent(new Event(FUN_EVENT));
 }
 
-/** Master switch. Turning on always starts from "everything on, first options". */
+/**
+ * The master switch. On: every effect on with its first option (look unchanged).
+ * Off: every effect off and the look back to Classic, which is the clean site.
+ */
 export const setFunOn = (on: boolean) =>
-  updateFun((s) => ({ ...s, on, effects: on && !s.on ? ALL_ON : s.effects }));
+  updateFun((s) => (on ? { ...s, effects: ALL_ON } : { ...s, effects: ALL_OFF, look: "classic" }));
 
+/** One effect's switch. Touches nothing else. */
 export const setEffectOn = (c: Category, on: boolean) =>
-  updateFun((s) => ({ ...s, on: true, effects: { ...s.effects, [c]: { ...s.effects[c], on } } }));
+  updateFun((s) => ({ ...s, effects: { ...s.effects, [c]: { ...s.effects[c], on } } }));
 
+/** Picking a style switches that one effect on. Touches nothing else. */
 export const setVariant = (c: Category, variant: string) =>
-  updateFun((s) => ({ ...s, on: true, effects: { ...s.effects, [c]: { on: true, variant } } }));
+  updateFun((s) => ({ ...s, effects: { ...s.effects, [c]: { on: true, variant } } }));
 
-export const setLook = (look: Look) => updateFun((s) => ({ ...s, on: s.on || look !== "classic", look }));
+/** Picking a look. Touches nothing else. */
+export const setLook = (look: Look) => updateFun((s) => ({ ...s, look }));
 
 /** Everything on with random options; the look stays Classic. Returns the picks. */
 export function shuffle() {
@@ -170,7 +196,7 @@ export function shuffle() {
     const pick = c.options[Math.floor(Math.random() * c.options.length)];
     effects[c.id] = { on: true, variant: pick.id };
   }
-  updateFun((s) => ({ ...s, on: true, effects, look: "classic" }));
+  updateFun((s) => ({ ...s, effects, look: "classic" }));
   return CATEGORIES.map((c) => c.options.find((o) => o.id === effects[c.id].variant)!.label);
 }
 

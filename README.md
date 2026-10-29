@@ -30,6 +30,17 @@ The site is small on purpose, but it's built the way I'd build production softwa
 
 **Performance and SEO.** Static prerendering, self-hosted variable fonts with `font-display: swap`, generated Open Graph image, sitemap, robots.txt, canonical URL and schema.org `Person` structured data.
 
+## Versions
+
+Every version is saved as a `release/<version>` branch you can browse, compare, or restore. Full notes are in [CHANGELOG.md](CHANGELOG.md); what's next is in [ROADMAP.md](ROADMAP.md).
+
+<!-- versions:start -->
+| Version | Label | Checkpoint |
+|---|---|---|
+| 1.5.1 | Bells & whistles prototype | [`release/1.5.1`](https://github.com/auhbz/auhbon.com/tree/release/1.5.1) |
+| 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
+<!-- versions:end -->
+
 ## Stack
 
 Next.js 16 (App Router, Cache Components) · React 19 · TypeScript · Tailwind CSS 4 · Vercel

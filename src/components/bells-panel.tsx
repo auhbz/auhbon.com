@@ -99,7 +99,7 @@ export function BellsPanel() {
           <ShuffleIcon /> Shuffle everything
         </button>
 
-        <div className={`mt-4 space-y-1 ${fun.on ? "" : "opacity-60"}`}>
+        <div className="mt-4 space-y-1">
           {CATEGORIES.map((c) => (
             <EffectRow key={c.id} category={c.id} reduced={reduced} />
           ))}
@@ -118,7 +118,7 @@ export function BellsPanel() {
                   type="radio"
                   name="look"
                   value={l.id}
-                  checked={(fun.on ? fun.look : "classic") === l.id}
+                  checked={fun.look === l.id}
                   onChange={() => {
                     setLook(l.id as Look);
                     sound("toggle");
@@ -145,7 +145,7 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const def = CATEGORIES.find((c) => c.id === category)!;
   const effect = fun.effects[category];
-  const on = fun.on && effect.on;
+  const on = effect.on; // each switch reflects only itself
   const option = def.options.find((o) => o.id === effect.variant)!;
   const blocked = reduced && blockedByMotion(category, effect.variant);
   const groupId = useId();

@@ -62,7 +62,7 @@ export const projects: Project[] = [
   {
     name: "DomDom",
     summary: "Online storefront for a hair-products company, built on a Shopify integration.",
-    role: "Lead front-end developer. I own the Next.js and TypeScript front end and work against a Python API built with a collaborator.",
+    role: "Contributed to the front end: I set up the Next.js and TypeScript project, broke the work into tickets, and shipped a couple of them. A collaborator owns the Python API.",
     stack: ["Next.js", "TypeScript", "Shopify", "Python"],
     status: "In progress",
     featured: true,
