@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { DEFAULT_FUN, getFun, isActive, subscribeFun } from "@/lib/fun";
+import { activeVariant, DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
 import { HERO_WAVE_EVENT } from "@/components/easter-eggs";
 
 const REST = 700; // weight when the pointer is away
@@ -15,13 +15,14 @@ const SWAP_MS = 140;
 /**
  * The name is set in a variable font. Letters near the pointer thicken and the
  * rest thin out, like a spotlight. With bells and whistles on, the dots on the
- * i's become emoji that shuffle as the pointer gets close. Purely decorative:
+ * i's become emoji, slingshot rocks, or bubble makers. Purely decorative:
  * screen readers get the plain name, and nothing moves under reduced motion.
  */
 export function HeroName({ name, id }: { name: string; id: string }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  const emojiDots = isActive(fun, "emojiDots");
+  // "emoji" | "slingshot" | "bubbles" | null (regular dots)
+  const dots = activeVariant(fun, "dots");
 
   useEffect(() => {
     const heading = ref.current;
@@ -30,9 +31,9 @@ export function HeroName({ name, id }: { name: string; id: string }) {
 
     const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const letters = Array.from(heading.querySelectorAll<HTMLSpanElement>("[data-letter]"));
-    const dots = Array.from(heading.querySelectorAll<HTMLSpanElement>("[data-emoji]"));
+    const emojiEls = Array.from(heading.querySelectorAll<HTMLSpanElement>("[data-emoji]"));
     const lastSwap = new WeakMap<HTMLElement, number>();
-    dots.forEach((d, i) => {
+    emojiEls.forEach((d, i) => {
       d.dataset.index = String(i * 5);
       d.textContent = EMOJI[(i * 5) % EMOJI.length];
     });
@@ -71,7 +72,7 @@ export function HeroName({ name, id }: { name: string; id: string }) {
       if (!frame) frame = requestAnimationFrame(paint);
     };
     const onMove = (e: PointerEvent) => {
-      if (motion.matches && !dots.length) return;
+      if (motion.matches && !emojiEls.length) return;
       pointer = { x: e.clientX, y: e.clientY };
       schedule();
     };
@@ -110,7 +111,7 @@ export function HeroName({ name, id }: { name: string; id: string }) {
       area.removeEventListener("pointercancel", onLeave);
       window.removeEventListener(HERO_WAVE_EVENT, onWave);
     };
-  }, [emojiDots]);
+  }, [dots]);
 
   const words = name.split(" ");
   let n = 0;
@@ -126,7 +127,7 @@ export function HeroName({ name, id }: { name: string; id: string }) {
         {words.map((word, w) => (
           <span key={w} className="whitespace-nowrap">
             {Array.from(word).map((char, i) => {
-              const dotted = emojiDots && char === "i";
+              const dotted = dots !== null && char === "i";
               const index = n++;
               return (
                 <span
@@ -137,7 +138,11 @@ export function HeroName({ name, id }: { name: string; id: string }) {
                 >
                   {/* Dotless ı (U+0131) so the emoji can take the dot's place. */}
                   {dotted ? "ı" : char}
-                  {dotted ? <span data-emoji className="hero-emoji" /> : null}
+                  {dotted && dots === "emoji" ? <span data-emoji className="hero-dot hero-emoji" /> : null}
+                  {/* Slingshot: drag the rock (engine handles the physics); touch-action: none so it doesn't scroll. */}
+                  {dotted && dots === "slingshot" ? <span data-rock data-state="ready" className="hero-dot hero-rock" /> : null}
+                  {/* Bubbles rise from here; the engine spawns and pops them. */}
+                  {dotted && dots === "bubbles" ? <span data-bubble className="hero-dot hero-bubble" /> : null}
                 </span>
               );
             })}

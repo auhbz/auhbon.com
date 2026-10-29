@@ -3,6 +3,7 @@ import { education, experience, profile, projectFilters, projects, skills, type 
 import { GitHubRepos, GitHubReposSkeleton } from "@/components/github-repos";
 import { HeroName } from "@/components/hero-name";
 import { ProjectExplorer } from "@/components/project-explorer";
+import { ExternalLink } from "@/components/external-link";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 
@@ -86,22 +87,22 @@ export default function Home() {
           <ul className="flex flex-wrap gap-3" aria-label="Profiles">
             {profile.email ? (
               <li>
-                <a
+                <ExternalLink
                   href={`mailto:${profile.email}`}
                   className="pill pill-filled inline-flex min-h-11 items-center rounded-full bg-kelp px-5 font-medium text-kelp-ink hover:opacity-90"
                 >
                   Email me
-                </a>
+                </ExternalLink>
               </li>
             ) : null}
             {profile.links.map((link) => (
               <li key={link.href}>
-                <a
+                <ExternalLink
                   href={link.href}
                   className="pill inline-flex min-h-11 items-center rounded-full border border-ink/25 px-5 font-medium hover:border-ink"
                 >
                   {link.label}
-                </a>
+                </ExternalLink>
               </li>
             ))}
           </ul>
@@ -188,16 +189,16 @@ export default function Home() {
         <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2" aria-label="Ways to reach me">
           {profile.email ? (
             <li>
-              <a className="text-link" href={`mailto:${profile.email}`}>
+              <ExternalLink className="text-link" href={`mailto:${profile.email}`}>
                 {profile.email}
-              </a>
+              </ExternalLink>
             </li>
           ) : null}
           {profile.links.map((link) => (
             <li key={link.href}>
-              <a className="text-link" href={link.href}>
+              <ExternalLink className="text-link" href={link.href}>
                 {link.label}
-              </a>
+              </ExternalLink>
             </li>
           ))}
         </ul>

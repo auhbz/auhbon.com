@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { burst, playSound, toast } from "@/lib/fx";
-import { findSecret, getFun, isActive, SECRETS, setFunOn, type Secret } from "@/lib/fun";
+import { burst, sound, toast } from "@/lib/fx";
+import { findSecret, getFun, SECRETS, setFunOn, type Secret } from "@/lib/fun";
 
 export const HERO_WAVE_EVENT = "portfolio:hero-wave";
 
@@ -13,7 +13,7 @@ export function reveal(id: Secret, message: string) {
   const first = findSecret(id);
   const found = getFun().secrets.length;
   toast(first ? `${message} Secret ${found} of ${SECRETS.length} found.` : message);
-  if (isActive(getFun(), "sound")) playSound(first ? "fanfare" : "chime");
+  sound(first ? "secret" : "pop");
 }
 
 /**
@@ -78,11 +78,8 @@ export function EasterEggs({ email }: { email: string }) {
         const r = dot.getBoundingClientRect();
         burst("diamonds", r.left + r.width / 2, r.top + r.height / 2);
         if (dot.dataset.current === "true") reveal("diamond", "Shine bright.");
-        else if (isActive(getFun(), "sound")) playSound("chime");
+        else sound("pop");
       }
-
-      // Sound effects for ordinary clicks, when that switch is on.
-      if (isActive(getFun(), "sound") && target.closest("button, a, [role='option']")) playSound("click");
     };
 
     window.addEventListener("keydown", onKey);

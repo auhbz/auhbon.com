@@ -1,5 +1,6 @@
 import { getRecentRepos } from "@/lib/github";
 import { profile } from "@/content/profile";
+import { ExternalLink } from "@/components/external-link";
 
 const dateFormat = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -16,9 +17,9 @@ export async function GitHubRepos() {
     return (
       <p className="text-muted">
         GitHub didn&apos;t respond just now.{" "}
-        <a className="text-link" href={profileUrl}>
+        <ExternalLink className="text-link" href={profileUrl}>
           See my repositories on GitHub
-        </a>
+        </ExternalLink>
         .
       </p>
     );
@@ -29,10 +30,10 @@ export async function GitHubRepos() {
       {repos.map((repo) => (
         <li key={repo.name} className="flex flex-col gap-2 bg-surface p-5 sm:last:odd:col-span-2">
           <h3 className="font-display text-lg font-semibold tracking-tight">
-            <a className="text-link" href={repo.url}>
+            <ExternalLink className="text-link" href={repo.url}>
               {repo.name}
               <span className="sr-only"> on GitHub</span>
-            </a>
+            </ExternalLink>
           </h3>
           {repo.description ? (
             <p className="text-[0.975rem] text-muted">{repo.description}</p>

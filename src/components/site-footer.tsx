@@ -1,4 +1,5 @@
 import { profile } from "@/content/profile";
+import { ExternalLink } from "@/components/external-link";
 
 export function SiteFooter() {
   return (
@@ -7,9 +8,9 @@ export function SiteFooter() {
         <p>{profile.name}, {profile.location}</p>
         <p>
           Built with Next.js.{" "}
-          <a className="text-link" href={`https://github.com/${profile.githubUser}/${profile.domain}`}>
+          <ExternalLink className="text-link" href={`https://github.com/${profile.githubUser}/${profile.domain}`}>
             View the source
-          </a>
+          </ExternalLink>
         </p>
       </div>
     </footer>

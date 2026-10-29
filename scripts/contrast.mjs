@@ -8,6 +8,8 @@ const themes = {
   // Opt-in "bells and whistles" looks are held to the same bar.
   terminal: { paper: "#0a0f0a", surface: "#0f1710", ink: "#b6f7a2", muted: "#7fbf6a", kelp: "#3dff7a", kelpInk: "#0a0f0a", line: "#1f3320" },
   pico8: { paper: "#1d2b53", surface: "#000000", ink: "#fff1e8", muted: "#c2c3c7", kelp: "#ffec27", kelpInk: "#1d2b53", line: "#5f574f" },
+  nature: { paper: "#0e1f16", surface: "#13291d", ink: "#e4efd6", muted: "#a8c49a", kelp: "#9fdc6b", kelpInk: "#0e1f16", line: "#2c4a36" },
+  spooky: { paper: "#0c0812", surface: "#150e1f", ink: "#ece4f5", muted: "#ad9fc0", kelp: "#ff6b7f", kelpInk: "#0c0812", line: "#2e2240" },
 };
 
 // [foreground, background, minimum ratio, what it's used for]

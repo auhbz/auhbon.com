@@ -1,10 +1,10 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { getTheme, setTheme, THEME_EVENT, type Theme } from "@/lib/theme";
+import { DEFAULT_THEME, getTheme, setTheme, THEME_EVENT, type Theme } from "@/lib/theme";
 import { DEFAULT_FUN, getFun, LOOKS, subscribeFun } from "@/lib/fun";
 
-const ORDER: Theme[] = ["system", "light", "dark"];
+const ORDER: Theme[] = ["dark", "light", "system"];
 const LABEL: Record<Theme, string> = { system: "System", light: "Light", dark: "Dark" };
 
 function subscribe(onChange: () => void) {
@@ -18,7 +18,7 @@ function subscribe(onChange: () => void) {
 
 export function ThemeToggle() {
   // The saved theme lives in localStorage, outside React, so read it as an external store.
-  const current = useSyncExternalStore(subscribe, getTheme, () => "system" as Theme);
+  const current = useSyncExternalStore(subscribe, getTheme, () => DEFAULT_THEME);
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const next = ORDER[(ORDER.indexOf(current) + 1) % ORDER.length];
 

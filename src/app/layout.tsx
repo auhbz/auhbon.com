@@ -10,6 +10,7 @@ import { funInitScript } from "@/lib/fun";
 import { Toaster } from "@/components/toaster";
 import { FxCanvas } from "@/components/fx-canvas";
 import { EasterEggs } from "@/components/easter-eggs";
+import { SoundFx } from "@/components/fx-canvas";
 import "./globals.css";
 
 // Self-hosted fonts: no request to Google at runtime, which keeps the CSP to 'self'.
@@ -56,10 +57,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f7f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f1c22" },
-  ],
+  themeColor: "#0f1c22", // dark by default
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -96,6 +94,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <Toaster />
         <FxCanvas />
+        <SoundFx />
         <EasterEggs email={profile.email} />
       </body>
     </html>

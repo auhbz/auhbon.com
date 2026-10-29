@@ -85,7 +85,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
         label: `Open ${link.label}`,
         keywords: "profile social",
         run: () => {
-          window.location.assign(link.href);
+          window.open(link.href, "_blank", "noopener,noreferrer");
         },
       });
     }

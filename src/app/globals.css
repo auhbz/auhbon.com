@@ -197,7 +197,7 @@ section[id] {
   --focus: #ff77a8;
   color-scheme: dark;
 }
-html[data-look] {
+html:is([data-look="terminal"], [data-look="pico8"]) {
   --font-bricolage: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --font-plex: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 }
@@ -231,22 +231,213 @@ html[data-look="terminal"] .hero-name > span[aria-hidden]::after {
   }
 }
 
-/* --- Emoji i-dots --- */
-.hero-emoji {
+/* --- Nature and Spooky palettes --- */
+:root[data-look="nature"] {
+  --paper: #0e1f16;
+  --surface: #13291d;
+  --ink: #e4efd6;
+  --muted: #a8c49a;
+  --kelp: #9fdc6b;
+  --kelp-ink: #0e1f16;
+  --line: #2c4a36;
+  --focus: #7fd8e0;
+  color-scheme: dark;
+}
+:root[data-look="spooky"] {
+  --paper: #0c0812;
+  --surface: #150e1f;
+  --ink: #ece4f5;
+  --muted: #ad9fc0;
+  --kelp: #ff6b7f;
+  --kelp-ink: #0c0812;
+  --line: #2e2240;
+  --focus: #c8ff4d;
+  color-scheme: dark;
+}
+
+/* Nature: dappled canopy light, mossy edges, rivers between sections. */
+html[data-look="nature"] body {
+  isolation: isolate;
+}
+html[data-look="nature"] body::before {
+  content: "";
+  position: fixed;
+  inset: -15%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38rem 22rem at 18% 8%, rgba(190, 230, 120, 0.13), transparent 62%),
+    radial-gradient(30rem 20rem at 82% 22%, rgba(120, 210, 170, 0.1), transparent 60%),
+    radial-gradient(26rem 18rem at 55% 75%, rgba(160, 220, 110, 0.07), transparent 60%);
+}
+html[data-look="nature"] section[id] {
+  position: relative;
+  border-top-color: transparent;
+}
+html[data-look="nature"] section[id]::before {
+  content: "";
+  position: absolute;
+  inset: -7px 0 auto;
+  height: 14px;
+  pointer-events: none;
+  opacity: 0.8;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='14' viewBox='0 0 120 14'%3E%3Cpath d='M0 7 Q15 1 30 7 T60 7 T90 7 T120 7' fill='none' stroke='%237fd8e0' stroke-width='2'/%3E%3C/svg%3E") repeat-x 0 0 / 120px 14px,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='14' viewBox='0 0 90 14'%3E%3Cpath d='M0 9 Q11 4 22 9 T45 9 T67 9 T90 9' fill='none' stroke='%239fdc6b' stroke-width='1.2' opacity='.6'/%3E%3C/svg%3E") repeat-x 0 0 / 90px 14px;
+}
+html[data-look="nature"] .hero-name {
+  text-shadow: 0 0.035em 0 #2f5a2a, 0 0 0.35em rgba(150, 220, 110, 0.22);
+}
+html[data-look="nature"] :is(.rounded-lg, .rounded-xl).border {
+  box-shadow: inset 0 3px 0 0 rgba(130, 190, 80, 0.35);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-look="nature"] body::before {
+    animation: dapple 16s ease-in-out infinite alternate;
+  }
+  html[data-look="nature"] section[id]::before {
+    animation: river 5s linear infinite;
+  }
+}
+@keyframes dapple {
+  to {
+    transform: translate(3%, 2%) scale(1.04);
+  }
+}
+@keyframes river {
+  to {
+    background-position: 120px 0, -90px 0;
+  }
+}
+
+/* Spooky: fog rolling along the bottom, a vignette, a flickering name. */
+html[data-look="spooky"] body {
+  isolation: isolate;
+}
+html[data-look="spooky"] body::before {
+  content: "";
+  position: fixed;
+  inset: auto -20% 0;
+  height: 45vh;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 60% at 20% 100%, rgba(180, 165, 210, 0.16), transparent 70%),
+    radial-gradient(35% 55% at 65% 100%, rgba(160, 150, 200, 0.13), transparent 70%),
+    radial-gradient(30% 50% at 95% 100%, rgba(190, 175, 220, 0.12), transparent 70%);
+}
+html[data-look="spooky"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.5));
+}
+html[data-look="spooky"] .hero-name {
+  text-shadow: 0.025em 0 rgba(255, 70, 100, 0.55), -0.025em 0 rgba(90, 220, 255, 0.35);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-look="spooky"] body::before {
+    animation: fog 14s ease-in-out infinite alternate;
+  }
+  html[data-look="spooky"] .hero-name {
+    animation: flicker 7s steps(1) infinite;
+  }
+}
+@keyframes fog {
+  to {
+    transform: translateX(8%);
+  }
+}
+@keyframes flicker {
+  0%, 7%, 9%, 52%, 55%, 100% {
+    opacity: 1;
+  }
+  8%, 53% {
+    opacity: 0.35;
+  }
+  54% {
+    opacity: 0.8;
+  }
+}
+
+/* --- i-dots --- */
+.hero-dot {
   position: absolute;
   left: 50%;
   top: 0.11em;
   transform: translateX(-50%);
-  font-size: 0.2em;
   line-height: 1;
   font-weight: 400;
   letter-spacing: 0;
   text-shadow: none;
   pointer-events: none;
 }
+.hero-emoji {
+  font-size: 0.2em;
+}
+/* Slingshot rock: grab it, pull back, let go. */
+.hero-rock {
+  top: 0.14em;
+  width: 0.135em;
+  height: 0.115em;
+  border-radius: 46% 54% 50% 50%;
+  background: radial-gradient(circle at 35% 30%, #d6d1c8, #8a847b 60%, #4d4842);
+  box-shadow: 0 0.01em 0.02em rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+.hero-rock::before {
+  content: "";
+  position: absolute;
+  inset: -0.12em; /* a comfortably large target for fingers */
+}
+.hero-rock[data-state="out"] {
+  visibility: hidden;
+}
+html[data-slinging] * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+/* Bubble maker: bubbles rise from here. */
+.hero-bubble {
+  top: 0.14em;
+  width: 0.12em;
+  height: 0.12em;
+  border-radius: 50%;
+  border: 0.012em solid color-mix(in srgb, var(--ink) 55%, transparent);
+  background:
+    radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.9) 0 14%, transparent 30%),
+    color-mix(in srgb, #8fd3ff 18%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-rock[data-state="ready"] {
+    animation: regrow 360ms cubic-bezier(0.3, 1.5, 0.5, 1);
+  }
+  .hero-bubble {
+    animation: breathe 1.4s ease-in-out infinite;
+  }
+}
+@keyframes regrow {
+  from {
+    transform: translateX(-50%) scale(0);
+  }
+}
+@keyframes breathe {
+  50% {
+    transform: translateX(-50%) scale(1.25);
+  }
+}
 
-/* --- Rainbow outline on round buttons --- */
+/* --- Buttons --- */
 @property --rainbow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@property --ma {
   syntax: "<angle>";
   inherits: false;
   initial-value: 0deg;
@@ -254,33 +445,85 @@ html[data-look="terminal"] .hero-name > span[aria-hidden]::after {
 .pill {
   position: relative;
 }
-html[data-fx-rainbow] .pill::before {
+/* Shared ring geometry for rainbow and mercury outlines. */
+html:is([data-fx-buttons="rainbow"], [data-fx-buttons="mercury"]) .pill::before {
   content: "";
   position: absolute;
   inset: -3px;
   padding: 2px;
   border-radius: inherit;
-  background: conic-gradient(
-    from var(--rainbow-angle),
-    #ff004d, #ffa300, #ffec27, #00e436, #29adff, #83769c, #ff77a8, #ff004d
-  );
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 200ms;
   pointer-events: none;
 }
-html[data-fx-rainbow] .pill:is(:hover, :focus-visible)::before {
+
+/* Rainbow */
+html[data-fx-buttons="rainbow"] .pill::before {
+  background: conic-gradient(from var(--rainbow-angle), #ff004d, #ffa300, #ffec27, #00e436, #29adff, #83769c, #ff77a8, #ff004d);
+  opacity: 0;
+  transition: opacity 200ms;
+}
+html[data-fx-buttons="rainbow"] .pill:is(:hover, :focus-visible)::before {
   opacity: 1;
 }
 @media (prefers-reduced-motion: no-preference) {
-  html[data-fx-rainbow] .pill:is(:hover, :focus-visible)::before {
+  html[data-fx-buttons="rainbow"] .pill:is(:hover, :focus-visible)::before {
     animation: rainbow-spin 1.6s linear infinite;
   }
 }
 @keyframes rainbow-spin {
   to {
     --rainbow-angle: 360deg;
+  }
+}
+
+/* Electricity: a charged glow; the engine draws the lightning and sparks. */
+html[data-fx-buttons="electric"] .pill:is(:hover, :focus-visible) {
+  border-color: #43d9ff;
+  box-shadow: 0 0 14px rgba(67, 217, 255, 0.55), inset 0 0 10px rgba(67, 217, 255, 0.22);
+}
+
+/* Mercury: liquid-metal ring that wakes up and leans toward the cursor. */
+html[data-fx-buttons="mercury"] .pill {
+  transform: translate(var(--mx, 0px), var(--my, 0px));
+  transition: transform 140ms ease-out;
+}
+html[data-fx-buttons="mercury"] .pill::before {
+  padding: 2.5px;
+  background: conic-gradient(from var(--ma), #ffffff, #b9c1ca 10%, #6f7a85 22%, #eef2f6 34%, #8c96a1 48%, #fbfdff 60%, #737e89 76%, #d5dbe1 90%, #ffffff);
+  opacity: calc(var(--m, 0) * 1.15);
+  filter: drop-shadow(0 0 4px rgba(220, 232, 245, 0.5));
+  transition: opacity 160ms, --ma 260ms ease-out;
+}
+
+/* --- The bells & whistles button: a light orbits its outline to draw the eye. --- */
+@property --orbit {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 40deg;
+}
+.bells-button::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--orbit), transparent 0 86%, color-mix(in srgb, var(--kelp) 40%, transparent) 91%, var(--kelp) 96%, transparent 98%);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bells-button::after {
+    animation: orbit 3.4s linear infinite;
+  }
+  .bells-button[data-on]::after {
+    animation-duration: 1.8s;
+  }
+}
+@keyframes orbit {
+  to {
+    --orbit: 400deg;
   }
 }
 
