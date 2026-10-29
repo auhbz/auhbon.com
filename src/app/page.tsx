@@ -1,6 +1,8 @@
 import { Suspense } from "react";
-import { education, experience, profile, projects, skills, type Role } from "@/content/profile";
+import { education, experience, profile, projectFilters, projects, skills, type Role } from "@/content/profile";
 import { GitHubRepos, GitHubReposSkeleton } from "@/components/github-repos";
+import { HeroName } from "@/components/hero-name";
+import { ProjectExplorer } from "@/components/project-explorer";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 
@@ -34,7 +36,12 @@ function Section({
     <section id={id} aria-labelledby={headingId} className="border-t border-line">
       <div className="mx-auto grid max-w-5xl gap-6 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[13rem_1fr] lg:gap-12">
         <div>
-          <h2 id={headingId} className="font-display text-2xl font-semibold tracking-tight lg:sticky lg:top-24">
+          {/* tabIndex lets "jump to section" move focus here for keyboard and screen-reader users. */}
+          <h2
+            id={headingId}
+            tabIndex={-1}
+            className="font-display text-2xl font-semibold tracking-tight focus:outline-none lg:sticky lg:top-24"
+          >
             {title}
           </h2>
         </div>
@@ -68,12 +75,7 @@ export default function Home() {
       />
       {/* Hero: the one bold typographic moment on the page. */}
       <section aria-labelledby="hero-name" className="mx-auto max-w-5xl px-5 pt-16 pb-20 sm:px-8 sm:pt-24 sm:pb-28">
-        <h1
-          id="hero-name"
-          className="hero-name font-display text-[clamp(3.25rem,13vw,9.5rem)] leading-[0.88] font-bold tracking-[-0.045em] text-balance"
-        >
-          {profile.name}
-        </h1>
+        <HeroName id="hero-name" name={profile.name} />
         <div className="hero-rest mt-8 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
           <div className="max-w-[38rem]">
             <p className="font-display text-xl font-medium tracking-tight sm:text-2xl">
@@ -107,71 +109,7 @@ export default function Home() {
       </section>
 
       <Section id="work" title="Selected work">
-        <ul className="divide-y divide-line">
-          {projects.filter((p) => p.featured).map((project) => (
-            <li key={project.name} className="py-8 first:pt-0 last:pb-0">
-              <article aria-labelledby={`project-${slug(project.name)}`}>
-                <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                  <h3 id={`project-${slug(project.name)}`} className="font-display text-2xl font-semibold tracking-tight">
-                    {project.name}
-                  </h3>
-                  <p className="text-sm text-muted">{project.status}</p>
-                </div>
-                {project.recognition ? (
-                  <p className="mt-2 inline-block rounded-md bg-kelp px-2.5 py-0.5 text-sm font-medium text-kelp-ink">
-                    {project.recognition}
-                  </p>
-                ) : null}
-                <p className="mt-3 max-w-prose">{project.summary}</p>
-                {project.role ? <p className="mt-2 max-w-prose text-muted">{project.role}</p> : null}
-                <ul className="mt-4 flex flex-wrap gap-2" aria-label={`${project.name} tech stack`}>
-                  {project.stack.map((tech) => (
-                    <li key={tech} className="rounded-md bg-surface px-2.5 py-1 text-sm ring-1 ring-line">
-                      {tech}
-                    </li>
-                  ))}
-                </ul>
-                {project.links?.length ? (
-                  <p className="mt-4 flex flex-wrap gap-4">
-                    {project.links.map((link) => (
-                      <a key={link.href} className="text-link" href={link.href}>
-                        {link.label}
-                        <span className="sr-only"> for {project.name}</span>
-                      </a>
-                    ))}
-                  </p>
-                ) : null}
-              </article>
-            </li>
-          ))}
-        </ul>
-
-        <h3 className="mt-14 font-display text-xl font-semibold tracking-tight">More projects</h3>
-        <ul className="mt-4 divide-y divide-line border-y border-line">
-          {projects.filter((p) => !p.featured).map((project) => (
-            <li key={project.name} className="grid gap-1 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
-              <div>
-                <p className="font-medium">{project.name}</p>
-                <p className="text-sm text-muted">
-                  {project.stack.join(", ")}. {project.status}
-                </p>
-              </div>
-              <div>
-                <p className="text-muted">{project.summary}</p>
-                {project.links?.length ? (
-                  <p className="mt-1 flex flex-wrap gap-4">
-                    {project.links.map((link) => (
-                      <a key={link.href} className="text-link" href={link.href}>
-                        {link.label}
-                        <span className="sr-only"> for {project.name}</span>
-                      </a>
-                    ))}
-                  </p>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <ProjectExplorer projects={projects} filters={projectFilters} />
       </Section>
 
       <Section
@@ -262,11 +200,3 @@ export default function Home() {
   );
 }
 
-function slug(s: string) {
-  return s
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}

@@ -7,6 +7,8 @@ The site is small on purpose, but it's built the way I'd build production softwa
 
 ## Highlights
 
+**Interactive, still static.** A variable-font hero name that reacts to the cursor, one-click project filtering by technology (shareable as `?stack=Java`, animated with the View Transitions API), a `⌘K` command palette, and a light/dark/system theme toggle that applies before first paint. Every interaction is keyboard- and screen-reader-accessible and respects `prefers-reduced-motion`; a Playwright suite checks 30+ behaviors plus axe-core in both themes.
+
 **Live data, static speed.** The "On GitHub" section reads my latest public repositories from the GitHub REST API. It uses Next.js Cache Components (`"use cache"` + `cacheLife("hours")`), so the page is prerendered as static HTML and refreshes itself in the background about once an hour. If GitHub is unreachable, the section shows a plain fallback link instead of breaking the page.
 
 **Accessibility (WCAG 2.2 AA).**

@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
-import { profile } from "@/content/profile";
+import Script from "next/script";
+import { profile, projectFilters } from "@/content/profile";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { CommandPalette } from "@/components/command-palette";
+import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
 // Self-hosted fonts: no request to Google at runtime, which keeps the CSP to 'self'.
@@ -57,8 +60,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${bricolage.variable} ${plex.variable} antialiased`}>
+    // suppressHydrationWarning: the theme script sets data-theme on <html> before React hydrates.
+    <html lang="en" suppressHydrationWarning className={`${bricolage.variable} ${plex.variable} antialiased`}>
       <body className="flex min-h-dvh flex-col bg-paper text-ink">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
         <a
           href="#main"
           className="sr-only z-50 rounded bg-kelp px-4 py-2 font-medium text-kelp-ink focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
@@ -70,6 +77,19 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
         </main>
         <SiteFooter />
+        <CommandPalette
+          sections={[
+            { id: "work", label: "Selected work" },
+            { id: "github", label: "On GitHub" },
+            { id: "experience", label: "Experience" },
+            { id: "education", label: "Education" },
+            { id: "skills", label: "Skills" },
+            { id: "contact", label: "Contact" },
+          ]}
+          filters={projectFilters}
+          email={profile.email}
+          links={[...profile.links, { label: "site source code", href: `https://github.com/${profile.githubUser}/${profile.domain}` }]}
+        />
       </body>
     </html>
   );

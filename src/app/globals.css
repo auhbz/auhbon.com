@@ -16,8 +16,9 @@
   color-scheme: light;
 }
 
+/* Dark theme: follows the OS unless the visitor picked light, or forced via the toggle. */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --paper: #0f1c22;
     --surface: #142329;
     --ink: #e5ecea;
@@ -28,6 +29,18 @@
     --focus: #6cc7ae;
     color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --paper: #0f1c22;
+  --surface: #142329;
+  --ink: #e5ecea;
+  --muted: #9fb0b5;
+  --kelp: #6cc7ae;
+  --kelp-ink: #0f1c22;
+  --line: #24363e;
+  --focus: #6cc7ae;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -69,6 +82,11 @@ body {
   border-radius: 2px;
 }
 
+/* The palette's search row draws its own focus underline instead of an outline. */
+dialog.palette input:focus-visible {
+  outline: none;
+}
+
 ::selection {
   background: var(--kelp);
   color: var(--kelp-ink);
@@ -98,6 +116,43 @@ section[id] {
   }
   .hero-rest {
     animation: settle 700ms 120ms cubic-bezier(0.2, 0.7, 0.1, 1) both;
+  }
+}
+
+/* Hero letters ease between weights so the spotlight feels fluid, not jumpy. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-letter {
+    transition: font-weight 260ms cubic-bezier(0.2, 0.7, 0.1, 1);
+  }
+}
+
+/* Project filtering: a short, calm morph between layouts (View Transitions API). */
+::view-transition-group(*) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.1, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Command palette open + toast: answer the visitor's action, nothing more. */
+@media (prefers-reduced-motion: no-preference) {
+  dialog.palette[open] {
+    animation: pop 160ms cubic-bezier(0.2, 0.7, 0.1, 1);
+  }
+  .toast {
+    animation: settle 220ms cubic-bezier(0.2, 0.7, 0.1, 1);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
   }
 }
 

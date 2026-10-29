@@ -140,6 +140,9 @@ export const projects: Project[] = [
   },
 ];
 
+/** Technologies offered as one-click project filters (in this order). */
+export const projectFilters = ["TypeScript", "JavaScript", "Java", "Python", "Flutter", "Next.js", "React"];
+
 export const experience: Role[] = [
   {
     title: "Website Manager",

@@ -1,0 +1,98 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+const REST = 700; // weight when the pointer is away
+const MIN = 380; // letters far from the pointer
+const MAX = 820; // the letter under the pointer
+
+/**
+ * The name is set in a variable font. Letters near the pointer thicken and the
+ * rest thin out, like a spotlight. Purely decorative: screen readers get the
+ * plain name, and nothing moves for people who prefer reduced motion.
+ */
+export function HeroName({ name, id }: { name: string; id: string }) {
+  const ref = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    const heading = ref.current;
+    const area = heading?.closest("section");
+    if (!heading || !area) return;
+
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const letters = Array.from(heading.querySelectorAll<HTMLSpanElement>("[data-letter]"));
+    let frame = 0;
+    let pointer: { x: number; y: number } | null = null;
+
+    const paint = () => {
+      frame = 0;
+      const size = parseFloat(getComputedStyle(heading).fontSize);
+      const radius = size * 1.7;
+      for (const letter of letters) {
+        let weight = REST;
+        if (pointer) {
+          const r = letter.getBoundingClientRect();
+          const d = Math.hypot(pointer.x - (r.left + r.width / 2), pointer.y - (r.top + r.height / 2));
+          const closeness = Math.max(0, 1 - d / radius);
+          weight = MIN + (MAX - MIN) * closeness ** 1.4;
+        }
+        letter.style.fontWeight = String(Math.round(weight));
+      }
+    };
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(paint);
+    };
+    const onMove = (e: PointerEvent) => {
+      if (motion.matches) return;
+      pointer = { x: e.clientX, y: e.clientY };
+      schedule();
+    };
+    const onLeave = () => {
+      pointer = null;
+      schedule();
+    };
+
+    // Touch has no hover, so a tap/drag lights the name and lifting the finger resets it.
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") onLeave();
+    };
+
+    area.addEventListener("pointermove", onMove);
+    area.addEventListener("pointerdown", onMove);
+    area.addEventListener("pointerleave", onLeave);
+    area.addEventListener("pointerup", onUp);
+    area.addEventListener("pointercancel", onLeave);
+    return () => {
+      cancelAnimationFrame(frame);
+      area.removeEventListener("pointermove", onMove);
+      area.removeEventListener("pointerdown", onMove);
+      area.removeEventListener("pointerleave", onLeave);
+      area.removeEventListener("pointerup", onUp);
+      area.removeEventListener("pointercancel", onLeave);
+    };
+  }, []);
+
+  const words = name.split(" ");
+
+  return (
+    <h1
+      ref={ref}
+      id={id}
+      className="hero-name font-display text-[clamp(3.25rem,13vw,9.5rem)] leading-[0.88] font-bold tracking-[-0.045em]"
+    >
+      <span className="sr-only">{name}</span>
+      <span aria-hidden="true" className="flex flex-wrap gap-x-[0.22em]">
+        {words.map((word, w) => (
+          <span key={w} className="whitespace-nowrap">
+            {Array.from(word).map((char, i) => (
+              <span key={i} data-letter className="hero-letter inline-block">
+                {char}
+              </span>
+            ))}
+          </span>
+        ))}
+      </span>
+    </h1>
+  );
+}
