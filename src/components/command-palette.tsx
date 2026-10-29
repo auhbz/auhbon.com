@@ -92,12 +92,12 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
     for (const theme of ["light", "dark", "system"] as Theme[]) {
       list.push({
         id: `theme-${theme}`,
-        group: "Theme",
-        label: theme === "system" ? "Match system theme" : `Use ${theme} theme`,
+        group: "Color mode",
+        label: theme === "system" ? "Match system color mode" : `Use ${theme} mode`,
         keywords: "appearance color mode",
         run: () => {
           setTheme(theme);
-          notify(theme === "system" ? "Theme matches your system" : `${theme[0].toUpperCase()}${theme.slice(1)} theme on`);
+          notify(theme === "system" ? "Color mode matches your system" : `${theme[0].toUpperCase()}${theme.slice(1)} mode on`);
         },
       });
     }
@@ -116,11 +116,11 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
       list.push({
         id: `look-${look.id}`,
         group: "Bells and whistles",
-        label: `${look.label} look`,
+        label: `${look.label} theme`,
         keywords: `mode style skin ${look.description}`,
         run: () => {
           setLook(look.id);
-          notify(`${look.label} look on`);
+          notify(`${look.label} theme on`);
         },
       });
     }

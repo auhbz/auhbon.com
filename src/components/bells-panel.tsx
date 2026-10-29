@@ -10,6 +10,7 @@ import {
   SECRETS,
   setEffectOn,
   setFunOn,
+  setSoundHover,
   setLook,
   setVariant,
   shuffle,
@@ -106,7 +107,7 @@ export function BellsPanel() {
         </div>
 
         <fieldset className="mt-4">
-          <legend className="text-sm text-muted">Look</legend>
+          <legend className="text-sm text-muted">Theme</legend>
           <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-5">
             {LOOKS.map((l) => (
               <label
@@ -162,7 +163,11 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
         }}
       />
       {on ? (
-        <div role="radiogroup" aria-labelledby={groupId} className="mt-2 grid grid-cols-3 gap-1.5">
+        <div
+          role="radiogroup"
+          aria-labelledby={groupId}
+          className={`mt-2 grid gap-1.5 ${def.options.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+        >
           <span id={groupId} className="sr-only">
             {def.label} style
           </span>
@@ -186,6 +191,15 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
             );
           })}
         </div>
+      ) : null}
+      {on && category === "sound" ? (
+        <Switch
+          label="Hover sounds"
+          description="Off keeps sounds for presses, pops and launches only"
+          checked={effect.hover !== false}
+          onChange={() => setSoundHover(effect.hover === false)}
+          className="mt-2 pl-3 text-sm"
+        />
       ) : null}
     </div>
   );

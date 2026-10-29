@@ -4,11 +4,30 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.5.3 | Effect fixes & tweaks | [`release/1.5.3`](https://github.com/auhbz/auhbon.com/tree/release/1.5.3) |
 | 1.5.2 | Updating text | [`release/1.5.2`](https://github.com/auhbz/auhbon.com/tree/release/1.5.2) |
 | 1.5.1 | Bells & whistles prototype | [`release/1.5.1`](https://github.com/auhbz/auhbon.com/tree/release/1.5.1) |
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.5.3: Effect fixes & tweaks
+
+Polish for existing effects, plus one new sound pack. No new categories.
+
+**Added**
+- **Birds** sound pack: chirps on hover, a whistled two-note call on press, trills on launch.
+- A **Hover sounds** switch inside Sound effects. Turning it off silences hover sounds but keeps sounds for presses, pops, launches and hits.
+
+**Changed**
+- **Cereal** rebuilt from scratch: finger snaps on press, bubble-wrap pops, and a soft crunch on hover. Every sound is now filtered (no raw noise), and a gentle master low-pass and level keep all packs from getting sharp.
+- **Clown**: a bulb-horn honk on press with a round of applause every fifth press; hover plays a random slide whistle, kazoo, boing, or (rarely) a whoopee-cushion toot.
+- i-dots **Emoji → Fruit** (fruit only), and less twitchy: the pointer has to be closer, and the fruit changes at most about three times a second.
+- Buttons **Electricity → Electric** (name only).
+- The panel's **Look** section is now **Theme**. To avoid two things called "theme", the header's light/dark button is now **Color mode**.
+- **Slingshot**: rocks float well above the letters (except in Terminal and Pico-8, where they already had room), launches ignore anything within the first 44px, and hits barely slow the rock, so it follows the aimed path and the aim preview is honest.
 
 ---
 

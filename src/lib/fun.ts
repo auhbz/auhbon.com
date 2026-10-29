@@ -20,7 +20,7 @@ export const CATEGORIES: CategoryDef[] = [
     label: "i-dots",
     description: "The dots on the i's in my name",
     options: [
-      { id: "emoji", label: "Emoji", description: "They shuffle as you get close" },
+      { id: "fruit", label: "Fruit", description: "Fruit that changes as you get close" },
       { id: "slingshot", label: "Slingshot", description: "Pull a rock back, let go, knock words around" },
       { id: "bubbles", label: "Bubbles", description: "They float away; pop them" },
     ],
@@ -31,7 +31,7 @@ export const CATEGORIES: CategoryDef[] = [
     description: "The round buttons react to you",
     options: [
       { id: "rainbow", label: "Rainbow", description: "A spinning rainbow outline on hover" },
-      { id: "electric", label: "Electricity", description: "Lightning crackles around them; sparks when pressed" },
+      { id: "electric", label: "Electric", description: "Lightning crackles around them; sparks when pressed" },
       { id: "mercury", label: "Mercury", description: "Liquid metal, magnetically drawn to your cursor" },
     ],
   },
@@ -51,8 +51,9 @@ export const CATEGORIES: CategoryDef[] = [
     description: "Synthesized, no audio files",
     options: [
       { id: "chimes", label: "Bells & whistles", description: "Wind chimes on hover, a whistle on press" },
-      { id: "cereal", label: "Cereal", description: "Snap, crackle, pop" },
-      { id: "clown", label: "Clown", description: "Slide whistles and honks" },
+      { id: "cereal", label: "Cereal", description: "Finger snaps, bubble-wrap pops, and crunch" },
+      { id: "clown", label: "Clown", description: "Honks, slide whistles, kazoos, applause (and the odd toot)" },
+      { id: "birds", label: "Birds", description: "Chirps on hover, a whistled call on press" },
     ],
   },
 ];
@@ -69,7 +70,8 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
 export const SECRETS = ["konami", "hire", "name", "diamond", "sudo"] as const;
 export type Secret = (typeof SECRETS)[number];
 
-export type Effect = { on: boolean; variant: string };
+/** `hover` only applies to sound effects: whether hovering plays sounds. */
+export type Effect = { on: boolean; variant: string; hover?: boolean };
 export type FunState = {
   on: boolean;
   effects: Record<Category, Effect>;
@@ -87,7 +89,7 @@ export const ALL_ON: Record<Category, Effect> = {
   dots: { on: true, variant: firstOption("dots") },
   buttons: { on: true, variant: firstOption("buttons") },
   trail: { on: true, variant: firstOption("trail") },
-  sound: { on: true, variant: firstOption("sound") },
+  sound: { on: true, variant: firstOption("sound"), hover: true },
 };
 
 /** Everything off (each remembers its first option for when it's switched on). */
@@ -125,7 +127,10 @@ function read(): FunState {
     const effects = { ...ALL_OFF };
     for (const c of CATEGORIES) {
       const e = p.effects?.[c.id];
-      if (e) effects[c.id] = { on: master && e.on !== false, variant: validVariant(c.id, e.variant) ? e.variant : firstOption(c.id) };
+      if (e) {
+        effects[c.id] = { on: master && e.on !== false, variant: validVariant(c.id, e.variant) ? e.variant : firstOption(c.id) };
+        if (c.id === "sound") effects.sound.hover = e.hover !== false;
+      }
     }
     return withSummary({
       on: master,
@@ -184,9 +189,13 @@ export const setEffectOn = (c: Category, on: boolean) =>
 
 /** Picking a style switches that one effect on. Touches nothing else. */
 export const setVariant = (c: Category, variant: string) =>
-  updateFun((s) => ({ ...s, effects: { ...s.effects, [c]: { on: true, variant } } }));
+  updateFun((s) => ({ ...s, effects: { ...s.effects, [c]: { ...s.effects[c], on: true, variant } } }));
 
-/** Picking a look. Touches nothing else. */
+/** The "hover sounds" sub-switch inside Sound effects. Touches nothing else. */
+export const setSoundHover = (hover: boolean) =>
+  updateFun((s) => ({ ...s, effects: { ...s.effects, sound: { ...s.effects.sound, hover } } }));
+
+/** Picking a look (shown as "Theme" in the panel). Touches nothing else. */
 export const setLook = (look: Look) => updateFun((s) => ({ ...s, look }));
 
 /** Everything on with random options; the look stays Classic. Returns the picks. */
@@ -194,7 +203,7 @@ export function shuffle() {
   const effects = {} as Record<Category, Effect>;
   for (const c of CATEGORIES) {
     const pick = c.options[Math.floor(Math.random() * c.options.length)];
-    effects[c.id] = { on: true, variant: pick.id };
+    effects[c.id] = { on: true, variant: pick.id, ...(c.id === "sound" ? { hover: true } : {}) };
   }
   updateFun((s) => ({ ...s, effects, look: "classic" }));
   return CATEGORIES.map((c) => c.options.find((o) => o.id === effects[c.id].variant)!.label);

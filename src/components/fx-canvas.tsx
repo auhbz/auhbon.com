@@ -10,8 +10,11 @@ import { prefersReducedMotion } from "@/lib/events";
 const noSubscribe = () => () => {};
 
 function playIfOn(event: SoundEvent) {
-  const pack = activeVariant(getFun(), "sound") as SoundPack | null;
-  if (pack) play(pack, event);
+  const fun = getFun();
+  const pack = activeVariant(fun, "sound") as SoundPack | null;
+  if (!pack) return;
+  if (event === "hover" && fun.effects.sound.hover === false) return; // "Hover sounds" switched off
+  play(pack, event);
 }
 
 /**

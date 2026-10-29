@@ -8,9 +8,10 @@ const REST = 700; // weight when the pointer is away
 const MIN = 380; // letters far from the pointer
 const MAX = 820; // the letter under the pointer
 
-// Things I'm into: games, cards, code, LA, coffee.
-const EMOJI = ["✨", "🎮", "🃏", "⚡", "🌴", "🎲", "🧩", "🚀", "☕", "🔥", "🎯", "💎"];
-const SWAP_MS = 140;
+const EMOJI = ["🍓", "🍊", "🍋", "🍉", "🍇", "🍒", "🍑", "🍍", "🥝", "🍌", "🍐", "🫐", "🥭", "🍎"];
+// Less twitchy: the pointer has to be quite close, and fruit changes at most ~3x a second.
+const SWAP_MS = 340;
+const SWAP_CLOSENESS = 0.72;
 
 /**
  * The name is set in a variable font. Letters near the pointer thicken and the
@@ -21,7 +22,7 @@ const SWAP_MS = 140;
 export function HeroName({ name, id }: { name: string; id: string }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  // "emoji" | "slingshot" | "bubbles" | null (regular dots)
+  // "fruit" | "slingshot" | "bubbles" | null (regular dots)
   const dots = activeVariant(fun, "dots");
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export function HeroName({ name, id }: { name: string; id: string }) {
 
         // Emoji dots shuffle while the pointer is near (a content swap, not motion).
         const dot = letter.querySelector<HTMLSpanElement>("[data-emoji]");
-        if (dot && closeness > 0.45 && now - (lastSwap.get(dot) ?? 0) > SWAP_MS) {
+        if (dot && closeness > SWAP_CLOSENESS && now - (lastSwap.get(dot) ?? 0) > SWAP_MS) {
           lastSwap.set(dot, now);
           const next = (Number(dot.dataset.index) + 1) % EMOJI.length;
           dot.dataset.index = String(next);
@@ -138,7 +139,7 @@ export function HeroName({ name, id }: { name: string; id: string }) {
                 >
                   {/* Dotless ı (U+0131) so the emoji can take the dot's place. */}
                   {dotted ? "ı" : char}
-                  {dotted && dots === "emoji" ? <span data-emoji className="hero-dot hero-emoji" /> : null}
+                  {dotted && dots === "fruit" ? <span data-emoji className="hero-dot hero-emoji" /> : null}
                   {/* Slingshot: drag the rock (engine handles the physics); touch-action: none so it doesn't scroll. */}
                   {dotted && dots === "slingshot" ? <span data-rock data-state="ready" className="hero-dot hero-rock" /> : null}
                   {/* Bubbles rise from here; the engine spawns and pops them. */}

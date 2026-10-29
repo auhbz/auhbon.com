@@ -22,11 +22,12 @@ export function ThemeToggle() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const next = ORDER[(ORDER.indexOf(current) + 1) % ORDER.length];
 
-  // Terminal and Pico-8 looks bring their own colors, so light/dark is paused meanwhile.
+  // Bells-and-whistles themes (Terminal, Nature...) bring their own colors, so
+  // the light/dark color mode is paused while one is on.
   const look = fun.on && fun.look !== "classic" ? LOOKS.find((l) => l.id === fun.look)?.label : undefined;
   const label = look
-    ? `Theme: set by the ${look} look`
-    : `Theme: ${LABEL[current]}. Switch to ${LABEL[next]}`;
+    ? `Color mode: set by the ${look} theme`
+    : `Color mode: ${LABEL[current]}. Switch to ${LABEL[next]}`;
 
   return (
     <button
@@ -34,7 +35,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(next)}
       disabled={Boolean(look)}
       aria-label={label}
-      title={look ? `Colors come from the ${look} look` : `Theme: ${LABEL[current]}`}
+      title={look ? `Colors come from the ${look} theme` : `Color mode: ${LABEL[current]}`}
       className="inline-flex size-11 items-center justify-center rounded-full text-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
     >
       <ThemeIcon theme={current} />

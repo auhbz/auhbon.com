@@ -377,9 +377,10 @@ html[data-look="spooky"] .hero-name {
 .hero-emoji {
   font-size: 0.2em;
 }
-/* Slingshot rock: grab it, pull back, let go. */
+/* Slingshot rock: grab it, pull back, let go. It floats well above the letter so
+ * a launch has room to fly before it meets anything. */
 .hero-rock {
-  top: 0.14em;
+  top: -0.16em;
   width: 0.135em;
   height: 0.115em;
   border-radius: 46% 54% 50% 50%;
@@ -388,6 +389,9 @@ html[data-look="spooky"] .hero-name {
   pointer-events: auto;
   cursor: grab;
   touch-action: none;
+}
+html:is([data-look="terminal"], [data-look="pico8"]) .hero-rock {
+  top: 0.14em; /* the monospace letters already leave room */
 }
 .hero-rock::before {
   content: "";

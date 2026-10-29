@@ -571,13 +571,14 @@ export class FxEngine {
       r.vy += 0.32 * f;
       r.x += r.vx * f;
       r.y += r.vy * f;
-      // Ignore the first few pixels so a rock doesn't hit whatever it was launched from.
-      const hit = Math.hypot(r.x - r.sx, r.y - r.sy) > 28 ? wordAt(r.x, r.y) : null;
+      // Ignore the first stretch so a rock doesn't hit whatever it was launched from.
+      const hit = Math.hypot(r.x - r.sx, r.y - r.sy) > 44 ? wordAt(r.x, r.y) : null;
       if (hit && hit.key !== r.lastHit) {
         r.lastHit = hit.key;
         this.knock(hit, r.vx, r.vy);
-        r.vx *= 0.65;
-        r.vy *= 0.65;
+        // Hits barely slow the rock, so it keeps to the path you aimed.
+        r.vx *= 0.94;
+        r.vy *= 0.94;
       }
       const gone = r.age > 4500 || r.y > window.innerHeight + 60 || r.x < -60 || r.x > window.innerWidth + 60;
       if (gone) {
