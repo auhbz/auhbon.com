@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import type { Project } from "@/content/profile";
 import { FILTER_EVENT, prefersReducedMotion } from "@/lib/events";
@@ -8,6 +8,7 @@ import { ExternalLink } from "@/components/external-link";
 
 /** The active filter lives in the URL (?stack=Java), so filtered views can be shared. */
 const PARAM = "stack";
+const VISIBLE_CHIPS = 8;
 const URL_EVENT = "portfolio:url";
 
 function subscribe(onChange: () => void) {
@@ -31,11 +32,22 @@ export function ProjectExplorer({ projects, filters }: { projects: Project[]; fi
   const active = param && counts.has(param) ? param : null;
 
   // Curated chips first; a tech picked from a card that isn't curated gets appended.
+  // Every technology used by any project becomes a filter: the preferred ones
+  // first, then the rest by how many projects use them.
+  const allChips = useMemo(() => {
+    const first = filters.filter((f) => counts.has(f));
+    const rest = [...counts.keys()]
+      .filter((t) => !first.includes(t))
+      .sort((a, b) => counts.get(b)! - counts.get(a)! || a.localeCompare(b));
+    return [...first, ...rest];
+  }, [filters, counts]);
+  const [showAll, setShowAll] = useState(false);
   const chips = useMemo(() => {
-    const list = filters.filter((f) => counts.has(f));
-    if (active && !list.includes(active)) list.push(active);
+    const list = showAll ? allChips : allChips.slice(0, VISIBLE_CHIPS);
+    if (active && !list.includes(active)) return [...list, active];
     return list;
-  }, [filters, counts, active]);
+  }, [allChips, showAll, active]);
+  const hidden = allChips.length - VISIBLE_CHIPS;
 
   const choose = useCallback(
     (tech: string | null) => {
@@ -82,6 +94,17 @@ export function ProjectExplorer({ projects, filters }: { projects: Project[]; fi
             onClick={() => choose(active === tech ? null : tech)}
           />
         ))}
+        {hidden > 0 ? (
+          <button
+            type="button"
+            aria-expanded={showAll}
+            onClick={() => setShowAll((v) => !v)}
+            className="inline-flex min-h-11 items-center rounded-full px-3 text-[0.95rem] font-medium text-kelp underline underline-offset-4 hover:no-underline"
+          >
+            {showAll ? "Show fewer" : `${hidden} more`}
+            <span className="sr-only"> technologies</span>
+          </button>
+        ) : null}
       </div>
       <p role="status" className="sr-only">
         {summary}

@@ -4,10 +4,34 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.5.2 | Updating text | [`release/1.5.2`](https://github.com/auhbz/auhbon.com/tree/release/1.5.2) |
 | 1.5.1 | Bells & whistles prototype | [`release/1.5.1`](https://github.com/auhbz/auhbon.com/tree/release/1.5.1) |
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.5.2: Updating text
+
+Copy and content only; no new features.
+
+**Added**
+- Every project from my portfolio document is on the site: Flabby is now featured, and Board Games and Their Designers, FiFi Robo, Music Bot, Tabletop Simulator scripting and Ponk join the "More projects" list.
+- Technology filters are generated from every project's stack (26 technologies), so every project can be found by filter. The first 8 show by default, with a "more" toggle for the rest.
+- An "Archived" status for projects that are no longer hosted.
+
+**Changed**
+- Project copy rewritten to lead with outcomes and my actual role, using facts from my portfolio document, Devpost and GitHub.
+- BeeSafe: badge reads "Grand prize winner"; summary reads "A Flutter app built on Google Cloud Vision for the 2020 CSUN Cloud Jam."; my role matches my Devpost note (most of the Flutter front end, plus the Google Vision training dataset).
+- DomDom moved from featured to "More projects", matching its smaller scope.
+- Space Panic no longer wears an award-style badge (it was a jam entry, which the copy now says).
+
+**Fixed (links)**
+- BeeSafe's dead "Project overview" link (buildforcovid19.io no longer exists) is replaced with Devpost; added BeeSafe's GitHub.
+- Flabby's play link uses the original `flabbby` address (the `flabby` spelling is a 404).
+- Removed Space Panic's demo video: YouTube reports it unavailable.
+- Every remaining link was opened and checked in a real browser.
 
 ---
 
