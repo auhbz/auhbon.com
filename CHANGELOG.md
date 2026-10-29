@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.7.0 | Curious bats & still cursors | [`release/1.7.0`](https://github.com/auhbz/auhbon.com/tree/release/1.7.0) |
 | 1.6.0 | Secrets & achievements | [`release/1.6.0`](https://github.com/auhbz/auhbon.com/tree/release/1.6.0) |
 | 1.5.3 | Effect fixes & tweaks | [`release/1.5.3`](https://github.com/auhbz/auhbon.com/tree/release/1.5.3) |
 | 1.5.2 | Updating text | [`release/1.5.2`](https://github.com/auhbz/auhbon.com/tree/release/1.5.2) |
@@ -11,6 +12,19 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.7.0 — Curious bats & still cursors
+
+Branch: `release/1.7.0`
+
+### Added
+- **Curious bats** (Spooky theme): about half the bats now flutter over and hover near your cursor for a while before flying off; the rest fly past as before. Clicking scatters any bats nearby (#7). Curious bats are also easier targets for the *Batter up* secret.
+- **Still states for cursor trails** (mouse only; touch has no resting cursor) (#12):
+  - *Sparkle*: hold still and a rainbow ring of sparkles circles the cursor.
+  - *Fire*: hold still and the flame catches on the cursor and grows.
+  - *Cursed*: hold still and the ghost possesses your cursor. The real cursor is hidden and a twitching one takes its place; any movement gives it back instantly.
 
 ---
 

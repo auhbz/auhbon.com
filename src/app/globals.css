@@ -405,6 +405,10 @@ html[data-slinging] * {
   cursor: grabbing !important;
   user-select: none;
 }
+/* Cursed trail, mouse held still: the ghost takes the cursor; any movement gives it back. */
+html[data-possessed] * {
+  cursor: none !important;
+}
 /* Bubble maker: bubbles rise from here. */
 .hero-bubble {
   top: 0.14em;

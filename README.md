@@ -37,6 +37,7 @@ Every version is saved as a `release/<version>` branch you can browse, compare, 
 <!-- versions:start -->
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.7.0 | Curious bats & still cursors | [`release/1.7.0`](https://github.com/auhbz/auhbon.com/tree/release/1.7.0) |
 | 1.6.0 | Secrets & achievements | [`release/1.6.0`](https://github.com/auhbz/auhbon.com/tree/release/1.6.0) |
 | 1.5.3 | Effect fixes & tweaks | [`release/1.5.3`](https://github.com/auhbz/auhbon.com/tree/release/1.5.3) |
 | 1.5.2 | Updating text | [`release/1.5.2`](https://github.com/auhbz/auhbon.com/tree/release/1.5.2) |

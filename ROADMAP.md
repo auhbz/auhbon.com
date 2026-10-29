@@ -4,4 +4,4 @@ What's planned, what's waiting on a decision, and what's been set aside (with wh
 
 ## In progress
 
-- **1.7.0 New effects:** bats that follow the cursor, still-cursor states for trails, a goblin that fetches slingshot rocks, Flow (water) trail, Cookie buttons.
+- **1.8.0 More effects:** a goblin that fetches slingshot rocks, Flow (water) trail, Cookie buttons.

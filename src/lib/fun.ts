@@ -40,9 +40,9 @@ export const CATEGORIES: CategoryDef[] = [
     label: "Cursor trail",
     description: "What follows your cursor (or finger)",
     options: [
-      { id: "sparkle", label: "Sparkle", description: "A little glitter" },
-      { id: "fire", label: "Fire", description: "Flames that scorch the words they pass" },
-      { id: "cursed", label: "Cursed", description: "Something follows you" },
+      { id: "sparkle", label: "Sparkle", description: "A little glitter; hold still for a rainbow ring" },
+      { id: "fire", label: "Fire", description: "Flames that scorch the words they pass, and grow if you wait" },
+      { id: "cursed", label: "Cursed", description: "Something follows you. Don’t stand still." },
     ],
   },
   {
@@ -63,7 +63,7 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
   { id: "terminal", label: "Terminal", description: "Green phosphor, monospace, blinking cursor" },
   { id: "pico8", label: "Pico-8", description: "The 16-color fantasy-console palette I made Flabby in" },
   { id: "nature", label: "Nature", description: "Moss, dappled canopy light, flowing water, falling leaves" },
-  { id: "spooky", label: "Spooky", description: "Fog, flicker, and things that fly at night" },
+  { id: "spooky", label: "Spooky", description: "Fog, flicker, and curious things that fly at night" },
 ];
 
 /**

@@ -34,6 +34,8 @@ type Particle = {
   /** Removed when off-screen instead of by life (ambient leaves). */
   ambient?: boolean;
   flap?: boolean;
+  /** Curious bats drift toward the cursor until this time (ms), then fly off. */
+  curious?: number;
 };
 
 type Scorch = { x: number; y: number; r: number; life: number };
@@ -79,6 +81,10 @@ export class FxEngine {
   private pointer: { x: number; y: number; type: string } | null = null;
   private lastTrail = 0;
   private lastScorch = 0;
+  /** When the pointer last moved, and how long it has been still (for still states). */
+  private lastMoveAt = 0;
+  private stillMs = 0;
+  private possessed = false;
   private nextBubble = new WeakMap<Element, number>();
   private nextAmbient = 0;
   private boltSeed = 0;
@@ -103,6 +109,7 @@ export class FxEngine {
     this.settings = next;
     if (prev.buttons === "mercury" && next.buttons !== "mercury") this.clearMercury();
     if (next.trail !== "cursed") this.ghost = null;
+    if (next.trail !== "cursed") this.setPossessed(false);
     if (next.dots !== "bubbles") this.bubbles = [];
     // Leaves and bats belong to their look; clear them when the look changes.
     if (prev.look !== next.look) this.particles = this.particles.filter((p) => !p.ambient);
@@ -114,6 +121,7 @@ export class FxEngine {
     cancelAnimationFrame(this.frame);
     this.cleanup.forEach((f) => f());
     this.clearMercury();
+    this.setPossessed(false);
     for (const k of this.knocked) if (k.hit.letter) k.hit.letter.style.transform = "";
   }
 
@@ -218,6 +226,9 @@ export class FxEngine {
 
   private onMove(x: number, y: number, type: string) {
     this.pointer = { x, y, type };
+    this.lastMoveAt = performance.now();
+    this.stillMs = 0;
+    this.setPossessed(false);
     if (this.drag) {
       this.drag.x = x;
       this.drag.y = y;
@@ -236,6 +247,7 @@ export class FxEngine {
 
   private onLeave(type: string) {
     if (this.pointer?.type === type) this.pointer = null;
+    this.setPossessed(false);
     if (type === "touch" && this.settings.buttons === "mercury") this.clearMercury();
   }
 
@@ -254,6 +266,18 @@ export class FxEngine {
       document.documentElement.dataset.slinging = "true";
       this.ensure();
       return;
+    }
+
+    // Curious bats scatter from a click.
+    for (const bat of this.particles) {
+      if (!bat.flap || !bat.ambient) continue;
+      const dx = bat.x - e.clientX;
+      const dy = bat.y - e.clientY;
+      const d = Math.hypot(dx, dy) || 1;
+      if (d > 260) continue;
+      bat.curious = undefined;
+      bat.vx = (dx / d) * 6;
+      bat.vy = (dy / d) * 6 - 1;
     }
 
     // Bubbles pop on tap/click.
@@ -390,11 +414,12 @@ export class FxEngine {
     this.updateRocks(ctx, dt, f);
     this.drawDrag(ctx);
     this.updateGhost(ctx, now, f);
+    this.drawStill(ctx, now, dt);
     this.drawElectric(ctx, now);
 
     const busy =
       this.particles.length || this.scorches.length || this.knocked.length || this.rocks.length || this.drag || this.ghost ||
-      this.electric || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
+      this.electric || (this.settings.trail && this.pointer?.type === "mouse") || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
     this.frame = busy ? requestAnimationFrame(this.tick) : 0;
     if (!busy) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   };
@@ -407,6 +432,7 @@ export class FxEngine {
       p.x += p.vx * f;
       p.y += p.vy * f;
       p.angle += p.spin * f;
+      if (p.curious) this.steerBat(p, f);
       if (p.ambient) {
         p.x += Math.sin(p.y / 40 + p.hue) * 0.6 * f;
         if (p.y > window.innerHeight + 40 || p.x < -80 || p.x > window.innerWidth + 80) this.particles.splice(i, 1);
@@ -716,14 +742,17 @@ export class FxEngine {
     g.t += 0.05 * f;
     const idle = now - g.lastMove > 2200;
     const target = this.pointer ?? { x: g.x, y: g.y };
-    // It hangs back behind you, and drifts a little when you stop.
-    const tx = target.x - 34 * g.dir + (idle ? Math.sin(g.t) * 30 : 0);
-    const ty = target.y + 26 + (idle ? Math.cos(g.t * 0.7) * 14 : 0);
+    // Hold still with a mouse and it possesses your cursor.
+    const possess = this.pointer?.type === "mouse" && !this.drag && now - g.lastMove > 1400;
+    // Otherwise it hangs back behind you, and drifts a little when you stop.
+    const tx = possess ? target.x + 2 : target.x - 34 * g.dir + (idle ? Math.sin(g.t) * 30 : 0);
+    const ty = possess ? target.y - 4 : target.y + 26 + (idle ? Math.cos(g.t * 0.7) * 14 : 0);
     const nx = g.x + (tx - g.x) * 0.06 * f;
     if (Math.abs(nx - g.x) > 0.4) g.dir = nx > g.x ? 1 : -1;
     g.x = nx;
     g.y += (ty - g.y) * 0.06 * f;
-    g.alpha += ((idle ? 0.25 : 0.85) - g.alpha) * 0.05 * f;
+    g.alpha += ((possess ? 0.45 : idle ? 0.25 : 0.85) - g.alpha) * 0.05 * f;
+    this.setPossessed(possess && Math.hypot(g.x - tx, g.y - ty) < 10);
     if (Math.random() < 0.25 * f) {
       this.add({ kind: "wisp", x: g.x - g.dir * 6, y: g.y + 14, vx: -g.dir * 0.3, vy: 0.2, life: 1, decay: 0.02, size: 10 + Math.random() * 8, hue: 0, gravity: -0.01, spin: 0, angle: 0 });
     }
@@ -797,6 +826,97 @@ export class FxEngine {
     }
   }
 
+  // ---------------------------------------------------------------- still states
+
+  /** The real cursor is hidden while the ghost holds it; a wiggling fake takes its place. */
+  private setPossessed(on: boolean) {
+    if (on === this.possessed) return;
+    this.possessed = on;
+    if (on) document.documentElement.dataset.possessed = "true";
+    else delete document.documentElement.dataset.possessed;
+  }
+
+  /** What each trail does when the mouse holds still. */
+  private drawStill(ctx: CanvasRenderingContext2D, now: number, dt: number) {
+    const p = this.pointer;
+    const trail = this.settings.trail;
+    if (!trail || !p || p.type !== "mouse" || this.drag || now - this.lastMoveAt < 600) {
+      this.stillMs = 0;
+      return;
+    }
+    this.stillMs += dt;
+    const t = this.stillMs;
+    if (trail === "sparkle") {
+      // A rainbow ring of sparkles circles the cursor.
+      const n = 12;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, t / 400);
+      ctx.font = `11px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + now / 900;
+        const r = 22 + Math.sin(now / 260 + i) * 2;
+        ctx.fillStyle = `hsl(${(i * (360 / n) + now / 12) % 360} 95% 62%)`;
+        ctx.fillText(i % 2 ? "·" : "✦", p.x + Math.cos(a) * r, p.y + Math.sin(a) * r);
+      }
+      ctx.restore();
+    } else if (trail === "fire") {
+      // The flame catches and grows the longer you wait.
+      const grow = Math.min(1, t / 5000);
+      for (let i = 0; i < 1 + Math.round(grow * 2); i++) {
+        this.add({ kind: "flame", x: p.x + (Math.random() - 0.5) * (6 + grow * 10), y: p.y + 4, vx: (Math.random() - 0.5) * 0.6, vy: -(1 + grow * 1.8) - Math.random(), life: 1, decay: 0.035 + Math.random() * 0.02, size: 8 + grow * 24 + Math.random() * 6, hue: 0, gravity: -0.02, spin: 0, angle: 0 });
+      }
+    } else if (trail === "cursed" && this.possessed) {
+      // The possessed cursor twitches on its own.
+      const wx = Math.sin(now / 90) * 3 + Math.sin(now / 37) * 1.5;
+      const wy = Math.cos(now / 110) * 2.5;
+      ctx.save();
+      ctx.translate(p.x + wx, p.y + wy);
+      ctx.rotate(Math.sin(now / 140) * 0.18);
+      ctx.shadowColor = "rgba(170,150,255,0.9)";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, 17);
+      ctx.lineTo(4.2, 13);
+      ctx.lineTo(7, 19.5);
+      ctx.lineTo(9.6, 18.4);
+      ctx.lineTo(6.8, 12);
+      ctx.lineTo(12, 12);
+      ctx.closePath();
+      ctx.fillStyle = this.dark ? "#f4f1ff" : "#ffffff";
+      ctx.strokeStyle = "#1a1024";
+      ctx.lineWidth = 1.2;
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  /** Curious bats flutter over to hover near the cursor. */
+  private steerBat(p: Particle, f: number) {
+    const ptr = this.pointer;
+    if (!ptr || performance.now() > (p.curious ?? 0)) {
+      p.curious = undefined;
+      p.vx = (p.vx >= 0 ? 1 : -1) * 3;
+      p.vy = -0.6;
+      return;
+    }
+    const dx = ptr.x - p.x;
+    const dy = ptr.y - 46 - p.y; // hang just above the cursor
+    const d = Math.hypot(dx, dy) || 1;
+    const pull = Math.min(1, d / 120) * 0.1;
+    p.vx += ((dx / d) * pull + (Math.random() - 0.5) * 0.35) * f;
+    p.vy += ((dy / d) * pull + (Math.random() - 0.5) * 0.35) * f;
+    const speed = Math.hypot(p.vx, p.vy);
+    const max = 1.7;
+    if (speed > max) {
+      p.vx *= max / speed;
+      p.vy *= max / speed;
+    }
+  }
+
   // ---------------------------------------------------------------- ambient looks
 
   private ambientOn() {
@@ -813,7 +933,9 @@ export class FxEngine {
     } else {
       this.nextAmbient = now + 5000 + Math.random() * 5000;
       const fromLeft = Math.random() < 0.5;
-      this.add({ kind: "glyph", ambient: true, flap: true, x: fromLeft ? -30 : W + 30, y: 60 + Math.random() * window.innerHeight * 0.35, vx: (fromLeft ? 1 : -1) * (2.2 + Math.random() * 1.5), vy: (Math.random() - 0.5) * 0.4, life: 1, decay: 0, size: 22 + Math.random() * 10, hue: Math.random() * 10, glyph: "🦇", gravity: 0, spin: 0, angle: 0 });
+      this.add({ kind: "glyph", ambient: true, flap: true, x: fromLeft ? -30 : W + 30, y: 60 + Math.random() * window.innerHeight * 0.35, vx: (fromLeft ? 1 : -1) * (2.2 + Math.random() * 1.5), vy: (Math.random() - 0.5) * 0.4, life: 1, decay: 0, size: 22 + Math.random() * 10, hue: Math.random() * 10, glyph: "🦇", gravity: 0, spin: 0, angle: 0,
+        // Some bats are curious: they come over to the cursor for a while.
+        curious: Math.random() < 0.45 ? now + 9000 + Math.random() * 7000 : undefined });
     }
   }
 }
