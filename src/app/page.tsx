@@ -108,7 +108,7 @@ export default function Home() {
 
       <Section id="work" title="Selected work">
         <ul className="divide-y divide-line">
-          {projects.map((project) => (
+          {projects.filter((p) => p.featured).map((project) => (
             <li key={project.name} className="py-8 first:pt-0 last:pb-0">
               <article aria-labelledby={`project-${slug(project.name)}`}>
                 <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -117,8 +117,13 @@ export default function Home() {
                   </h3>
                   <p className="text-sm text-muted">{project.status}</p>
                 </div>
+                {project.recognition ? (
+                  <p className="mt-2 inline-block rounded-md bg-kelp px-2.5 py-0.5 text-sm font-medium text-kelp-ink">
+                    {project.recognition}
+                  </p>
+                ) : null}
                 <p className="mt-3 max-w-prose">{project.summary}</p>
-                <p className="mt-2 max-w-prose text-muted">{project.role}</p>
+                {project.role ? <p className="mt-2 max-w-prose text-muted">{project.role}</p> : null}
                 <ul className="mt-4 flex flex-wrap gap-2" aria-label={`${project.name} tech stack`}>
                   {project.stack.map((tech) => (
                     <li key={tech} className="rounded-md bg-surface px-2.5 py-1 text-sm ring-1 ring-line">
@@ -137,6 +142,33 @@ export default function Home() {
                   </p>
                 ) : null}
               </article>
+            </li>
+          ))}
+        </ul>
+
+        <h3 className="mt-14 font-display text-xl font-semibold tracking-tight">More projects</h3>
+        <ul className="mt-4 divide-y divide-line border-y border-line">
+          {projects.filter((p) => !p.featured).map((project) => (
+            <li key={project.name} className="grid gap-1 py-4 sm:grid-cols-[12rem_1fr] sm:gap-6">
+              <div>
+                <p className="font-medium">{project.name}</p>
+                <p className="text-sm text-muted">
+                  {project.stack.join(", ")}. {project.status}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted">{project.summary}</p>
+                {project.links?.length ? (
+                  <p className="mt-1 flex flex-wrap gap-4">
+                    {project.links.map((link) => (
+                      <a key={link.href} className="text-link" href={link.href}>
+                        {link.label}
+                        <span className="sr-only"> for {project.name}</span>
+                      </a>
+                    ))}
+                  </p>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>

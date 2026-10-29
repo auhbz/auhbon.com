@@ -2,8 +2,8 @@
  * Single source of truth for the site's content.
  * Edit this file to update the portfolio; components only render what's here.
  *
- * Anything marked TODO is a gap only Auhbon can fill — the site hides empty
- * optional fields rather than showing placeholder text.
+ * Sources: Auhbon's current resume (Oct 2026), his "portfolio content" document,
+ * and his LinkedIn profile. Optional fields left empty are hidden on the site.
  */
 
 export type Link = { label: string; href: string };
@@ -13,20 +13,23 @@ export type Project = {
   /** One or two sentences: what it is and who it's for. */
   summary: string;
   /** What Auhbon specifically did on it. */
-  role: string;
+  role?: string;
   stack: string[];
-  status: "Live" | "In progress" | "In design";
+  status: "Live" | "Shipped" | "In progress" | "In design";
+  /** Awards, events or context worth calling out. */
+  recognition?: string;
   links?: Link[];
+  /** Featured projects get the full treatment; the rest go in a compact list. */
+  featured: boolean;
 };
 
 export type Role = {
   title: string;
   org: string;
   location?: string;
-  /** ISO month strings, e.g. "2021-12". `end` omitted means "Present". */
+  /** ISO month strings, e.g. "2021-12". `end` omitted means "present". */
   start: string;
   end?: string;
-  /** Optional bullet points — TODO: add 2–3 concrete outcomes per role. */
   highlights?: string[];
 };
 
@@ -45,13 +48,10 @@ export const profile = {
   domain: "auhbon.com",
   siteUrl: "https://auhbon.com",
   githubUser: "auhbz",
-  /**
-   * Shown in the hero. Kept factual — rewrite in your own voice.
-   */
   intro:
-    "I build web products end to end, from TypeScript front ends to the APIs behind them. Right now that means a Next.js storefront for a hair-care brand and a market-analytics platform for Pokémon trading cards.",
-  /** Optional — set to show an email link. Left empty so nothing personal is published by default. */
-  email: "" as string,
+    "I build web products end to end: Java and Spring backends, REST APIs, cloud deployments, and TypeScript front ends. I've shipped scheduling systems used across a whole app, backend services at MGM Resorts, and an award-winning Flutter app, and I'm looking for a team where I can keep growing.",
+  /** Shown as the primary contact link. Already public on Auhbon's resume. */
+  email: "auhbon@gmail.com" as string,
   links: [
     { label: "GitHub", href: "https://github.com/auhbz" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/auhbon" },
@@ -61,19 +61,48 @@ export const profile = {
 export const projects: Project[] = [
   {
     name: "DomDom",
-    summary:
-      "Online storefront for a hair-products company, built on a Shopify integration.",
+    summary: "Online storefront for a hair-products company, built on a Shopify integration.",
     role: "Lead front-end developer. I own the Next.js and TypeScript front end and work against a Python API built with a collaborator.",
     stack: ["Next.js", "TypeScript", "Shopify", "Python"],
     status: "In progress",
+    featured: true,
   },
   {
-    name: "PokéPulse Analytics",
+    name: "BeeSafe",
+    summary: "A Flutter app built on Google Cloud Vision for the Build for COVID-19 challenge.",
+    role: "Team project. I built with Flutter and learned Google Cloud Vision along the way.",
+    stack: ["Flutter", "Google Cloud Vision"],
+    status: "Shipped",
+    recognition: "Grand prize, CSUN Cloud Jam",
+    links: [
+      { label: "Project overview", href: "https://buildforcovid19.io/beesafe/" },
+      { label: "Demo video", href: "https://youtu.be/1iCwulnJjKo" },
+    ],
+    featured: true,
+  },
+  {
+    name: "Space Panic",
     summary:
-      "A market-analytics platform for the Pokémon Trading Card Game: price history, a daily movers dashboard, and signals for cards that are starting to break out.",
-    role: "Sole designer and developer. Wrote the system design and a five-phase build roadmap, including a Species Index that tracks combined market value across every printing of a Pokémon.",
-    stack: ["FastAPI", "React", "TypeScript", "Recharts", "DuckDB", "PostgreSQL"],
-    status: "In design",
+      "A frantic real-time co-op browser game about teamwork and communication, built under game-jam time pressure.",
+    role: "Team project for the Hack the Midlands 2020 game jam.",
+    stack: ["JavaScript", "Phaser"],
+    status: "Live",
+    recognition: "Hack the Midlands 2020 entry",
+    links: [
+      { label: "Play it", href: "https://mac15001900.github.io/powerPanic/" },
+      { label: "Source code", href: "https://github.com/Mac15001900/powerPanic" },
+      { label: "Demo video", href: "https://youtu.be/qkYqH_80lNI" },
+    ],
+    featured: true,
+  },
+  {
+    name: "Off-Top",
+    summary: "A real-time productivity mobile app that helps people stay on topic.",
+    role: "CSUN senior design project. I worked mainly in Flutter; the project also used Java.",
+    stack: ["Flutter", "Java"],
+    status: "Shipped",
+    links: [{ label: "Demo video", href: "https://www.youtube.com/watch?v=aIdvYbYuoE4" }],
+    featured: true,
   },
   {
     name: "auhbon.com",
@@ -83,15 +112,57 @@ export const projects: Project[] = [
     stack: ["Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
     status: "Live",
     links: [{ label: "Source code", href: "https://github.com/auhbz/auhbon.com" }],
+    featured: true,
+  },
+  {
+    name: "PokéPulse Analytics",
+    summary:
+      "Market analytics for the Pokémon Trading Card Game: price history, a daily movers dashboard, and breakout signals.",
+    stack: ["FastAPI", "React", "TypeScript", "PostgreSQL"],
+    status: "In design",
+    featured: false,
+  },
+  {
+    name: "Discord Motivator Bot",
+    summary: "A Discord bot that watches conversation and responds with encouragement when it's needed.",
+    stack: ["Python"],
+    status: "Shipped",
+    links: [{ label: "Source code", href: "https://github.com/auhbz/MotivatorDiscordBot" }],
+    featured: false,
+  },
+  {
+    name: "Flabby",
+    summary: "A helicopter-cave game in the spirit of Flappy Bird. Code, art, animation and sound all made by me.",
+    stack: ["Pico-8", "Lua"],
+    status: "Live",
+    links: [{ label: "Play it", href: "https://auhbz.github.io/flabbby/" }],
+    featured: false,
   },
 ];
 
 export const experience: Role[] = [
   {
-    title: "Software Engineer",
+    title: "Website Manager",
+    org: "EstateDiamondJewelry.com",
+    start: "2022-08",
+    highlights: [
+      "Built a diamond price calculator with JavaScript and Google Cloud pipelines",
+      "Maintain the WordPress site, extending it with plugins and custom code integrations",
+      "Publish in-depth, research-based articles and product guides",
+      "Work remotely and independently, coordinating across the business",
+    ],
+  },
+  {
+    title: "Backend Software Engineer",
     org: "MGM Resorts International",
     start: "2021-12",
     end: "2022-06",
+    highlights: [
+      "Developed and maintained Java-based backend services and REST APIs",
+      "Tested and validated services with JUnit and Postman",
+      "Streamlined deployments using Azure Pipelines",
+      "Ran performance testing with JMeter",
+    ],
   },
   {
     title: "Tutor and grader: combinatorial algorithms, discrete structures, automata",
@@ -100,11 +171,18 @@ export const experience: Role[] = [
     end: "2020-05",
   },
   {
-    title: "Software Engineer",
+    title: "Full Stack Software Engineer",
     org: "Groomer.io",
     location: "Westlake Village, California",
     start: "2018-04",
     end: "2020-03",
+    highlights: [
+      "Owned core functionality, including the scheduling and availability system used throughout the app",
+      "Built and maintained backend features with Laravel and SQL",
+      "Built the customer-facing web app with Vue.js and Vuex",
+      "Wrote unit and integration tests using a test-driven approach",
+      "Shipped 180+ features and bug fixes in an Agile team",
+    ],
   },
 ];
 
@@ -116,7 +194,8 @@ export const education: Education[] = [
     end: "2020",
     notes: [
       "Magna Cum Laude, 3.91 GPA",
-      "Dean's List every semester",
+      "Dean's List four times",
+      "Grand prize winner, CSUN Cloud Jam",
       "Layer8 Cyber Security Club",
     ],
   },
@@ -124,9 +203,9 @@ export const education: Education[] = [
 
 /** Grouped so the page reads as a skill map, not a keyword dump. */
 export const skills: { group: string; items: string[] }[] = [
-  { group: "Languages", items: ["TypeScript", "JavaScript", "Python", "Java", "PHP", "C++", "C#", "Objective-C"] },
-  { group: "Web", items: ["Next.js", "React", "Tailwind CSS", "Laravel", "FastAPI"] },
-  { group: "Mobile", items: ["Flutter", "iOS (Objective-C)"] },
-  { group: "Data", items: ["PostgreSQL", "DuckDB"] },
-  { group: "Practice", items: ["User experience design", "Leadership"] },
+  { group: "Languages", items: ["Java", "JavaScript", "TypeScript", "Python", "SQL", "PHP"] },
+  { group: "Backend", items: ["Spring Boot", "REST APIs", "Laravel", "Maven"] },
+  { group: "Front end and mobile", items: ["Next.js", "React", "Vue.js", "Flutter"] },
+  { group: "Cloud and data", items: ["Azure", "Docker", "Linux", "PostgreSQL", "MySQL", "Google Cloud"] },
+  { group: "Testing and tools", items: ["JUnit", "Postman", "JMeter", "Git", "Claude Code"] },
 ];
