@@ -81,6 +81,7 @@ export const projects: Project[] = [
     status: "Live",
     links: [
       { label: "Play it", href: "https://mac15001900.github.io/powerPanic/" },
+      { label: "Demo video", href: "https://youtu.be/qkYgH_80INI" },
       { label: "Source code", href: "https://github.com/Mac15001900/powerPanic" },
     ],
     featured: true,

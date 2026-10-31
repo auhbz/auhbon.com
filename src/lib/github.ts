@@ -24,6 +24,9 @@ type GitHubRepo = {
   private: boolean;
 };
 
+/** Repos to leave out of the section ("me" was an early attempt at this site). */
+const HIDDEN_REPOS = new Set(["me"]);
+
 const USERNAME_RE = /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i;
 
 /**
@@ -61,7 +64,7 @@ export async function getRecentRepos(username: string, limit = 6): Promise<Repo[
     if (!Array.isArray(data)) return null;
 
     return data
-      .filter((r) => !r.fork && !r.archived && !r.private)
+      .filter((r) => !r.fork && !r.archived && !r.private && !HIDDEN_REPOS.has(r.name))
       .sort((a, b) => Date.parse(b.pushed_at) - Date.parse(a.pushed_at))
       .slice(0, limit)
       .map((r) => ({

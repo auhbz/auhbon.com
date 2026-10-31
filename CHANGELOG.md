@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.8.1 | Content fixes | [`release/1.8.1`](https://github.com/auhbz/auhbon.com/tree/release/1.8.1) |
 | 1.8.0 | Goblin, Flow & Cookies | [`release/1.8.0`](https://github.com/auhbz/auhbon.com/tree/release/1.8.0) |
 | 1.7.0 | Curious bats & still cursors | [`release/1.7.0`](https://github.com/auhbz/auhbon.com/tree/release/1.7.0) |
 | 1.6.0 | Secrets & achievements | [`release/1.6.0`](https://github.com/auhbz/auhbon.com/tree/release/1.6.0) |
@@ -13,6 +14,16 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.8.1: Content fixes
+
+**Added**
+- Space Panic's demo video is back, at its new address (youtu.be/qkYgH_80INI).
+
+**Changed**
+- The "On GitHub" section no longer shows the `me` repo (an early attempt at this site).
 
 ---
 
