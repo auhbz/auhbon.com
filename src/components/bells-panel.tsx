@@ -341,7 +341,7 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
         <div
           role="radiogroup"
           aria-labelledby={groupId}
-          className={`mt-2 grid gap-1.5 ${def.options.length > 3 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+          className={`mt-2 grid gap-1.5 ${def.options.length === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
         >
           <span id={groupId} className="sr-only">
             {def.label} style

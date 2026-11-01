@@ -8,7 +8,7 @@ let ctx: AudioContext | null = null;
 let noise: AudioBuffer | null = null;
 let master: GainNode | null = null;
 /** Per-pack loudness trim, so every pack sits at about the same level. */
-const LEVEL: Record<string, number> = { chimes: 1, birds: 1, cereal: 1.8, clown: 1.7 };
+const LEVEL: Record<string, number> = { chimes: 1, birds: 1, cereal: 1.8, clown: 1.7, jungle: 1.3 };
 let level = 1;
 
 function audio() {
@@ -106,6 +106,42 @@ function hiss(o: { at?: number; peak?: number; attack?: number; decay?: number; 
 }
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
+
+/**
+ * A voiced sound: a buzzy source through parallel formant filters, which is how
+ * vowels are shaped. Used for monkey "ooh"s and "aah"s and the elephant.
+ */
+function vowel(f0: number, formants: [number, number][], o: { at?: number; peak?: number; attack?: number; decay?: number; glideTo?: number; vibrato?: number; vibratoRate?: number } = {}) {
+  const c = audio();
+  const start = c.currentTime + (o.at ?? 0);
+  const attack = o.attack ?? 0.03;
+  const decay = o.decay ?? 0.2;
+  const osc = c.createOscillator();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(f0, start);
+  if (o.glideTo) osc.frequency.exponentialRampToValueAtTime(o.glideTo, start + attack + decay);
+  if (o.vibrato) {
+    const lfo = c.createOscillator();
+    const depth = c.createGain();
+    lfo.frequency.value = o.vibratoRate ?? 8;
+    depth.gain.value = o.vibrato;
+    lfo.connect(depth).connect(osc.frequency);
+    lfo.start(start);
+    lfo.stop(start + attack + decay + 0.1);
+  }
+  const env = envelope(c, start, o.peak ?? 0.08, attack, decay);
+  for (const [freq, q] of formants) {
+    const f = c.createBiquadFilter();
+    f.type = "bandpass";
+    f.frequency.value = freq;
+    f.Q.value = q;
+    osc.connect(f).connect(env);
+  }
+  osc.start(start);
+  osc.stop(start + attack + decay + 0.05);
+}
+const OOH: [number, number][] = [[320, 6], [800, 7]];
+const AAH: [number, number][] = [[760, 5], [1150, 6], [2500, 8]];
 const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 
 // ----------------------------------------------------------------- sound kits
@@ -199,9 +235,56 @@ const birds = {
   },
 };
 
+const jungle = {
+  /** A monkey: two rising "ooh"s, then two higher "aah"s. */
+  monkey() {
+    const base = rand(380, 460);
+    vowel(base, OOH, { attack: 0.03, decay: 0.14, peak: 0.12, glideTo: base * 1.35 });
+    vowel(base * 1.05, OOH, { at: 0.17, attack: 0.03, decay: 0.14, peak: 0.12, glideTo: base * 1.45 });
+    vowel(base * 1.6, AAH, { at: 0.36, attack: 0.02, decay: 0.16, peak: 0.1, glideTo: base * 1.9 });
+    vowel(base * 1.7, AAH, { at: 0.55, attack: 0.02, decay: 0.2, peak: 0.1, glideTo: base * 1.3 });
+  },
+  /** A single curious "ooh?" (rising), for hovering. */
+  ooh() {
+    const base = rand(400, 520);
+    vowel(base, OOH, { attack: 0.03, decay: 0.16, peak: 0.08, glideTo: base * 1.4 });
+  },
+  /** The elephant: a brassy, rough trumpet that swells and bends. */
+  trumpet() {
+    const f = rand(480, 560);
+    vowel(f, [[900, 3], [1700, 4], [2600, 6]], { attack: 0.08, decay: 0.6, peak: 0.1, glideTo: f * 1.25, vibrato: 30, vibratoRate: 27 });
+    hiss({ attack: 0.08, decay: 0.55, peak: 0.05, freq: 2200, q: 1.5 });
+  },
+  /** A tropical bird: a liquid two-tone whistle. */
+  toucan() {
+    const f = rand(1300, 1700);
+    tone(f, { attack: 0.01, decay: 0.09, peak: 0.05, glideTo: f * 1.6 });
+    tone(f * 1.5, { at: 0.11, attack: 0.01, decay: 0.14, peak: 0.045, glideTo: f * 0.9, vibrato: 30, vibratoRate: 20 });
+  },
+  /** A frog's ribbit: two quick, croaky pulses. */
+  ribbit() {
+    for (const at of [0, 0.09]) {
+      tone(rand(110, 140), { type: "square", at, attack: 0.005, decay: 0.06, peak: 0.07, vibrato: 40, vibratoRate: 70, filter: { type: "bandpass", freq: 600, q: 3 } });
+    }
+  },
+  /** Insects in the canopy: a short, rhythmic chirr. */
+  cricket() {
+    for (let i = 0; i < 4; i++) tone(4300, { at: i * 0.035, attack: 0.002, decay: 0.022, peak: 0.02 });
+  },
+  /** A parrot's squawk. */
+  squawk() {
+    vowel(rand(700, 850), AAH, { attack: 0.01, decay: 0.2, peak: 0.08, glideTo: 520, vibrato: 90, vibratoRate: 45 });
+  },
+  /** Hand drums: two bongo hits. */
+  bongo() {
+    tone(330, { attack: 0.002, decay: 0.12, peak: 0.12, glideTo: 260 });
+    tone(220, { at: 0.11, attack: 0.002, decay: 0.16, peak: 0.12, glideTo: 170 });
+  },
+};
+
 // ----------------------------------------------------------------- dispatcher
 
-export type SoundPack = "chimes" | "cereal" | "clown" | "birds";
+export type SoundPack = "chimes" | "cereal" | "clown" | "birds" | "jungle";
 export type SoundEvent = "hover" | "press" | "pop" | "launch" | "hit" | "secret" | "toggle";
 
 let presses = 0;
@@ -243,6 +326,19 @@ export function play(pack: SoundPack, event: SoundEvent) {
         } else if (event === "pop") clown.boing();
         else if (event === "launch") clown.slideWhistle();
         else if (event === "hit") clown.honk();
+        break;
+      case "jungle":
+        if (event === "hover") {
+          const r = Math.random();
+          if (r < 0.3) jungle.toucan();
+          else if (r < 0.55) jungle.ooh();
+          else if (r < 0.8) jungle.ribbit();
+          else jungle.cricket();
+        } else if (event === "press") jungle.monkey();
+        else if (event === "toggle") jungle.bongo();
+        else if (event === "pop") jungle.ribbit();
+        else if (event === "launch") jungle.squawk();
+        else if (event === "hit") jungle.trumpet();
         break;
       case "birds":
         if (event === "hover") birds.chirp();

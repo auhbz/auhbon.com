@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.13.0 | Jungle sounds | [`release/1.13.0`](https://github.com/auhbz/auhbon.com/tree/release/1.13.0) |
 | 1.12.0 | The farm story | [`release/1.12.0`](https://github.com/auhbz/auhbon.com/tree/release/1.12.0) |
 | 1.11.0 | Secrets beside the badge | [`release/1.11.0`](https://github.com/auhbz/auhbon.com/tree/release/1.11.0) |
 | 1.10.0 | Goblin guide, hide-and-seek & milestones | [`release/1.10.0`](https://github.com/auhbz/auhbon.com/tree/release/1.10.0) |
@@ -18,6 +19,16 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.13.0: Jungle sounds
+
+**Added**
+- **Jungle** sound pack, still fully synthesized (no audio files): monkeys "ooh-ooh-aah-aah" when you press a button; hovering plays a toucan whistle, a curious "ooh?", a frog's ribbit or a cricket; switches play bongos; slingshot launches get a parrot squawk, and when a rock hits something, an elephant trumpets. The monkey and elephant voices are shaped with vowel formant filters.
+
+**Changed**
+- The style grid in the panel lays out five options as rows of three.
 
 ---
 

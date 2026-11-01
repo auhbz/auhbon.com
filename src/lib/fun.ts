@@ -57,6 +57,7 @@ export const CATEGORIES: CategoryDef[] = [
       { id: "cereal", label: "Cereal", description: "Finger snaps, bubble-wrap pops, and crunch" },
       { id: "clown", label: "Clown", description: "Honks, slide whistles, kazoos, applause (and the odd toot)" },
       { id: "birds", label: "Birds", description: "Chirps on hover, a whistled call on press" },
+      { id: "jungle", label: "Jungle", description: "Monkeys, frogs, toucans, bongos, and an elephant when a rock hits" },
     ],
   },
 ];
