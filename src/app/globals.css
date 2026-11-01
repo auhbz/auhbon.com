@@ -377,10 +377,10 @@ html[data-look="spooky"] .hero-name {
 .hero-emoji {
   font-size: 0.2em;
 }
-/* Slingshot rock: grab it, pull back, let go. It floats well above the letter so
+/* Slingshot rock: grab it, pull back, let go. It sits a little above the letter so
  * a launch has room to fly before it meets anything. */
 .hero-rock {
-  top: -0.16em;
+  top: -0.03em;
   width: 0.135em;
   height: 0.115em;
   border-radius: 46% 54% 50% 50%;
@@ -443,22 +443,41 @@ html[data-fx-buttons="cookie"] .pill {
   color: #2a1709;
   border-color: #8a5a2b;
 }
-/* Bites are masked out, except while keyboard-focused so the focus ring is never clipped. */
+/* Bites are scalloped, like real teeth marks, taken from the edges in turn. They're never
+ * shown while a button has keyboard focus, so the focus ring is never clipped. */
 html[data-fx-buttons="cookie"] .pill[data-bites="1"]:not(:focus-visible) {
-  mask: radial-gradient(circle 13px at calc(100% + 3px) -3px, #0000 12.5px, #000 13px);
+  mask: radial-gradient(circle 7px at calc(70% - 9px) -1px, #0000 6.5px, #000 7px),
+    radial-gradient(circle 8.5px at 70% -3px, #0000 8px, #000 8.5px),
+    radial-gradient(circle 7px at calc(70% + 9px) -1px, #0000 6.5px, #000 7px);
+  mask-composite: intersect;
 }
 html[data-fx-buttons="cookie"] .pill[data-bites="2"]:not(:focus-visible) {
   mask:
-    radial-gradient(circle 13px at calc(100% + 3px) -3px, #0000 12.5px, #000 13px),
-    radial-gradient(circle 11px at -2px calc(100% + 2px), #0000 10.5px, #000 11px);
+    radial-gradient(circle 7px at calc(70% - 9px) -1px, #0000 6.5px, #000 7px),
+    radial-gradient(circle 8.5px at 70% -3px, #0000 8px, #000 8.5px),
+    radial-gradient(circle 7px at calc(70% + 9px) -1px, #0000 6.5px, #000 7px),
+    radial-gradient(circle 7px at calc(26% - 9px) calc(100% + 1px), #0000 6.5px, #000 7px),
+    radial-gradient(circle 8.5px at 26% calc(100% + 3px), #0000 8px, #000 8.5px),
+    radial-gradient(circle 7px at calc(26% + 9px) calc(100% + 1px), #0000 6.5px, #000 7px);
   mask-composite: intersect;
 }
 html[data-fx-buttons="cookie"] .pill[data-bites="3"]:not(:focus-visible) {
   mask:
-    radial-gradient(circle 13px at calc(100% + 3px) -3px, #0000 12.5px, #000 13px),
-    radial-gradient(circle 11px at -2px calc(100% + 2px), #0000 10.5px, #000 11px),
-    radial-gradient(circle 10px at 58% -4px, #0000 9.5px, #000 10px);
+    radial-gradient(circle 7px at calc(70% - 9px) -1px, #0000 6.5px, #000 7px),
+    radial-gradient(circle 8.5px at 70% -3px, #0000 8px, #000 8.5px),
+    radial-gradient(circle 7px at calc(70% + 9px) -1px, #0000 6.5px, #000 7px),
+    radial-gradient(circle 7px at calc(26% - 9px) calc(100% + 1px), #0000 6.5px, #000 7px),
+    radial-gradient(circle 8.5px at 26% calc(100% + 3px), #0000 8px, #000 8.5px),
+    radial-gradient(circle 7px at calc(26% + 9px) calc(100% + 1px), #0000 6.5px, #000 7px),
+    radial-gradient(circle 7px at calc(100% + 1px) calc(50% - 8px), #0000 6.5px, #000 7px),
+    radial-gradient(circle 8.5px at calc(100% + 3px) 50%, #0000 8px, #000 8.5px),
+    radial-gradient(circle 7px at calc(100% + 1px) calc(50% + 8px), #0000 6.5px, #000 7px);
   mask-composite: intersect;
+}
+/* A pressed chip stays recognizable as pressed when it's a cookie. */
+html[data-fx-buttons="cookie"] .pill[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 2px #2a1709;
+  font-weight: 700;
 }
 /* Cursed trail, mouse held still: the ghost takes the cursor; any movement gives it back. */
 html[data-possessed] * {

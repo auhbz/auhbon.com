@@ -7,6 +7,9 @@
 let ctx: AudioContext | null = null;
 let noise: AudioBuffer | null = null;
 let master: GainNode | null = null;
+/** Per-pack loudness trim, so every pack sits at about the same level. */
+const LEVEL: Record<string, number> = { chimes: 1, birds: 1, cereal: 1.8, clown: 1.7 };
+let level = 1;
 
 function audio() {
   if (!ctx) {
@@ -39,7 +42,7 @@ function noiseBuffer(c: AudioContext) {
 function envelope(c: AudioContext, start: number, peak: number, attack: number, decay: number) {
   const g = c.createGain();
   g.gain.setValueAtTime(0.0001, start);
-  g.gain.exponentialRampToValueAtTime(peak, start + attack);
+  g.gain.exponentialRampToValueAtTime(Math.min(0.9, peak * level), start + attack);
   g.gain.exponentialRampToValueAtTime(0.0001, start + attack + decay);
   g.connect(out());
   return g;
@@ -206,6 +209,7 @@ let presses = 0;
 /** Play a site event in the chosen pack. Never throws. */
 export function play(pack: SoundPack, event: SoundEvent) {
   try {
+    level = event === "secret" ? 1 : (LEVEL[pack] ?? 1);
     if (event === "secret") {
       [523, 659, 784, 1047].forEach((f, i) => tone(f, { at: i * 0.09, decay: 0.25, peak: 0.07 }));
       return;

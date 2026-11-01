@@ -28,7 +28,7 @@ export const CATEGORIES: CategoryDef[] = [
   {
     id: "buttons",
     label: "Buttons",
-    description: "The round buttons react to you",
+    description: "Buttons and project tags react to you",
     options: [
       { id: "rainbow", label: "Rainbow", description: "A spinning rainbow outline on hover" },
       { id: "electric", label: "Electric", description: "Lightning crackles around them; sparks when pressed" },

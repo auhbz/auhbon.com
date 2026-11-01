@@ -139,7 +139,7 @@ export function ProjectExplorer({ projects, filters }: { projects: Project[]; fi
                       aria-pressed={active === tech}
                       aria-label={`${tech}: show projects built with ${tech}`}
                       onClick={() => choose(active === tech ? null : tech)}
-                      className="min-h-8 rounded-md bg-surface px-2.5 py-1 text-sm ring-1 ring-line hover:ring-ink/40 aria-pressed:bg-kelp aria-pressed:text-kelp-ink aria-pressed:ring-kelp"
+                      className="pill min-h-8 rounded-md bg-surface px-2.5 py-1 text-sm ring-1 ring-line hover:ring-ink/40 aria-pressed:bg-kelp aria-pressed:text-kelp-ink aria-pressed:ring-kelp"
                     >
                       {tech}
                     </button>

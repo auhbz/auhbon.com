@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.9.0 | Feedback fixes | [`release/1.9.0`](https://github.com/auhbz/auhbon.com/tree/release/1.9.0) |
 | 1.8.1 | Content fixes | [`release/1.8.1`](https://github.com/auhbz/auhbon.com/tree/release/1.8.1) |
 | 1.8.0 | Goblin, Flow & Cookies | [`release/1.8.0`](https://github.com/auhbz/auhbon.com/tree/release/1.8.0) |
 | 1.7.0 | Curious bats & still cursors | [`release/1.7.0`](https://github.com/auhbz/auhbon.com/tree/release/1.7.0) |
@@ -14,6 +15,20 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.9.0: Feedback fixes
+
+**Added**
+- **Project tags** (like Lua and Pico-8 under each project) get the button effects too (#1).
+- **Every cursor trail reacts to clicks**, anywhere on the page, the way Flow splashes (#7): Sparkle pops a rainbow ring, Fire throws a puff of flame and leaves a scorch mark, and the Cursed ghost lunges at the spot in a puff of ectoplasm.
+- **Slingshot**: click the landed rock to roll it toward the goblin, and click the goblin to make him hurry (with dust), whether or not he has the rock yet (#6).
+
+**Changed**
+- **Cookie buttons** now visibly work (#4): bites are scalloped teeth marks taken from the top, then bottom, then the end (the old bites sat in the rounded corners, where they cut away nothing). Crumbs are bigger, lighter and more plentiful. A pressed filter chip keeps a clear outline while it's a cookie.
+- **Slingshot**: the rock sits closer to its i (it was floating awkwardly high), and the goblin runs about 60% faster (#6).
+- **Cereal and Clown** sound packs are louder, to match Birds and Bells & whistles (#8).
 
 ---
 

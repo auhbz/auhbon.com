@@ -56,7 +56,22 @@ type Knocked = {
 
 type Rock = { el: HTMLElement; x: number; y: number; sx: number; sy: number; vx: number; vy: number; age: number; lastHit: string };
 /** The goblin on the right i: runs out to a landed rock and brings it back (page coords). */
-type Goblin = { el: HTMLElement; rock: HTMLElement; phase: "fetch" | "carry" | "home"; x: number; y: number; rx: number; ry: number; dir: number; t: number; age: number };
+type Goblin = {
+  el: HTMLElement;
+  rock: HTMLElement;
+  phase: "fetch" | "carry" | "home";
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+  dir: number;
+  t: number;
+  age: number;
+  /** Set when the visitor clicks the landed rock: it rolls toward the goblin. */
+  rolling?: boolean;
+  /** Set when the visitor clicks the goblin: he hurries. */
+  boost?: number;
+};
 type Drag = { el: HTMLElement; originX: number; originY: number; x: number; y: number; id: number };
 type Bubble = { x: number; y: number; r: number; maxR: number; vy: number; phase: number };
 type Ghost = { x: number; y: number; alpha: number; lastMove: number; dir: number; t: number };
@@ -136,8 +151,8 @@ export class FxEngine {
 
   burst(kind: "confetti" | "diamonds" | "sparks" | "droplets" | "crumbs", x: number, y: number) {
     if (kind === "crumbs") {
-      for (let i = 0; i < 9; i++) {
-        this.add({ kind: "crumb", x, y, vx: (Math.random() - 0.5) * 3, vy: -1 - Math.random() * 2, life: 1, decay: 0.02 + Math.random() * 0.01, size: 2 + Math.random() * 3, hue: 26 + Math.random() * 12, gravity: 0.25, spin: (Math.random() - 0.5) * 0.4, angle: Math.random() * 6 });
+      for (let i = 0; i < 16; i++) {
+        this.add({ kind: "crumb", x, y, vx: (Math.random() - 0.5) * 4, vy: -1.5 - Math.random() * 2.5, life: 1, decay: 0.014 + Math.random() * 0.01, size: 3 + Math.random() * 4, hue: 26 + Math.random() * 12, gravity: 0.25, spin: (Math.random() - 0.5) * 0.4, angle: Math.random() * 6 });
       }
       return;
     }
@@ -270,6 +285,12 @@ export class FxEngine {
     const target = e.target as Element;
     this.pointer = { x: e.clientX, y: e.clientY, type: e.pointerType };
 
+    // Slingshot: click the landed rock to roll it to the goblin, or the goblin to hurry him.
+    if (this.goblinClick(e.clientX, e.clientY)) {
+      e.preventDefault();
+      return;
+    }
+
     // Slingshot: grab a rock.
     const rock = target.closest<HTMLElement>("[data-rock]");
     if (rock && this.settings.dots === "slingshot" && rock.dataset.state !== "out") {
@@ -310,8 +331,12 @@ export class FxEngine {
       pill.dataset.bites = String((bites + 1) % 4);
       this.burst("crumbs", e.clientX, e.clientY);
     }
-    if (this.settings.trail === "flow") this.splash(e.clientX, e.clientY);
-    if (this.settings.trail === "fire" && e.pointerType !== "mouse") this.spawnFire(e.clientX, e.clientY, performance.now());
+    // Every trail reacts to a click or tap, anywhere on the page.
+    const trail = this.settings.trail;
+    if (trail === "flow") this.splash(e.clientX, e.clientY);
+    else if (trail === "sparkle") this.sparkleBurst(e.clientX, e.clientY);
+    else if (trail === "fire") this.fireBurst(e.clientX, e.clientY);
+    else if (trail === "cursed") this.boo(e.clientX, e.clientY);
   }
 
   private onUp(e: PointerEvent) {
@@ -379,6 +404,41 @@ export class FxEngine {
       const a = Math.PI + Math.random() * Math.PI; // upward half
       const speed = 2 + Math.random() * 3.5;
       this.add({ kind: "droplet", x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life: 1, decay: 0.022 + Math.random() * 0.015, size: 1.8 + Math.random() * 2.4, hue: 0, gravity: 0.3, spin: 0, angle: 0 });
+    }
+  }
+
+  /** Sparkle click: a ring of rainbow glitter pops outward. */
+  private sparkleBurst(x: number, y: number) {
+    const n = this.settings.reduced ? 8 : 18;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2;
+      const speed = this.settings.reduced ? 0.6 : 2.4 + Math.random();
+      this.add({ kind: "sparkle", x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed, life: 1, decay: 0.022, size: 11 + Math.random() * 6, hue: (i / n) * 360, glyph: "✦", gravity: 0.03, spin: 0, angle: 0 });
+    }
+  }
+
+  /** Fire click: a puff of flame, and it scorches what it lands on. */
+  private fireBurst(x: number, y: number) {
+    for (let i = 0; i < 16; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const speed = 0.8 + Math.random() * 2.6;
+      this.add({ kind: "flame", x, y, vx: Math.cos(a) * speed, vy: Math.sin(a) * speed - 1.2, life: 1, decay: 0.025 + Math.random() * 0.02, size: 12 + Math.random() * 12, hue: 0, gravity: -0.03, spin: 0, angle: 0 });
+    }
+    if (this.scorches.length > 220) this.scorches.shift();
+    this.scorches.push({ x: x + scrollX, y: y + scrollY, r: 18, life: 1 });
+  }
+
+  /** Cursed click: the ghost lunges at the spot, in a puff of ectoplasm. */
+  private boo(x: number, y: number) {
+    this.ghost ??= { x, y: y + 40, alpha: 0, lastMove: performance.now(), dir: 1, t: 0 };
+    const g = this.ghost;
+    g.x += (x - g.x) * 0.8;
+    g.y += (y - g.y) * 0.8;
+    g.alpha = 1;
+    g.lastMove = performance.now();
+    for (let i = 0; i < 12; i++) {
+      const a = Math.random() * Math.PI * 2;
+      this.add({ kind: "wisp", x, y, vx: Math.cos(a) * 1.6, vy: Math.sin(a) * 1.6, life: 1, decay: 0.02, size: 14 + Math.random() * 10, hue: 0, gravity: -0.01, spin: 0, angle: 0 });
     }
   }
 
@@ -713,6 +773,25 @@ export class FxEngine {
     return el && el.dataset.state === "home" && !this.goblins.length ? el : null;
   }
 
+  /** Handles clicks on the landed rock or the goblin. Returns true if it used the click. */
+  private goblinClick(cx: number, cy: number) {
+    const x = cx + scrollX;
+    const y = cy + scrollY;
+    for (const g of this.goblins) {
+      if (Math.hypot(g.x - x, g.y - y) < 22) {
+        g.boost = 2;
+        this.sound("pop");
+        return true;
+      }
+      if (g.phase === "fetch" && Math.hypot(g.rx - x, g.ry - y) < 20) {
+        g.rolling = true;
+        this.sound("launch");
+        return true;
+      }
+    }
+    return false;
+  }
+
   private fetch(el: HTMLElement, r: Rock) {
     const home = el.getBoundingClientRect();
     el.dataset.state = "out";
@@ -732,7 +811,16 @@ export class FxEngine {
       const dx = target.x - g.x;
       const dy = target.y - g.y;
       const d = Math.hypot(dx, dy);
-      const speed = (g.phase === "carry" ? 5 : 7) * f;
+      const speed = (g.phase === "carry" ? 8 : 11) * (g.boost ?? 1) * f;
+      // A clicked rock rolls toward the goblin until he reaches it.
+      if (g.phase === "fetch" && g.rolling) {
+        const rdx = g.x - g.rx;
+        const rdy = g.y - g.ry;
+        const rd = Math.hypot(rdx, rdy) || 1;
+        const step = Math.min(rd, 9 * f);
+        g.rx += (rdx / rd) * step;
+        g.ry += (rdy / rd) * step;
+      }
       if (Math.abs(dx) > 1) g.dir = dx > 0 ? 1 : -1;
       // Gives up and teleports if it somehow takes too long (say, the page scrolled a lot).
       if (d <= speed || g.age > 12000) {
@@ -755,7 +843,11 @@ export class FxEngine {
       }
       const x = g.x - scrollX;
       const y = g.y - scrollY;
-      if (g.phase === "fetch") this.drawRock(ctx, g.rx - scrollX, g.ry - scrollY);
+      if (g.phase === "fetch") this.drawRock(ctx, g.rx - scrollX, g.ry - scrollY, g.rolling ? g.age / 60 : 0);
+      if (g.boost && Math.random() < 0.6 * f) {
+        // Dust kicked up while he hurries.
+        this.add({ kind: "crumb", x: x - g.dir * 8, y: y + 14, vx: -g.dir * (1 + Math.random()), vy: -Math.random(), life: 0.7, decay: 0.04, size: 1.5 + Math.random() * 1.5, hue: 35, gravity: 0.05, spin: 0, angle: 0 });
+      }
       this.drawGoblin(ctx, x, y, g);
       if (g.phase === "carry") this.drawRock(ctx, x, y - 17);
     }
