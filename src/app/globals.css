@@ -377,6 +377,28 @@ html[data-look="spooky"] .hero-name {
 .hero-emoji {
   font-size: 0.2em;
 }
+/* Farm story dots: clickable, and each new character pops in. */
+.hero-farm {
+  pointer-events: auto;
+  cursor: pointer;
+  top: 0.04em;
+}
+.hero-farm.is-chocolate {
+  filter: sepia(1) saturate(2.6) hue-rotate(-18deg) brightness(0.55);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-farm {
+    animation: farm-pop 380ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+}
+@keyframes farm-pop {
+  from {
+    transform: translateX(-50%) scale(0.2);
+  }
+  to {
+    transform: translateX(-50%) scale(1);
+  }
+}
 /* Slingshot rock: grab it, pull back, let go. It sits a little above the letter so
  * a launch has room to fly before it meets anything. */
 .hero-rock {

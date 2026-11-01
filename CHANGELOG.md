@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.12.0 | The farm story | [`release/1.12.0`](https://github.com/auhbz/auhbon.com/tree/release/1.12.0) |
 | 1.11.0 | Secrets beside the badge | [`release/1.11.0`](https://github.com/auhbz/auhbon.com/tree/release/1.11.0) |
 | 1.10.0 | Goblin guide, hide-and-seek & milestones | [`release/1.10.0`](https://github.com/auhbz/auhbon.com/tree/release/1.10.0) |
 | 1.9.0 | Feedback fixes | [`release/1.9.0`](https://github.com/auhbz/auhbon.com/tree/release/1.9.0) |
@@ -20,9 +21,19 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 ---
 
+## 1.12.0: The farm story
+
+**Added**
+- **Farm** i-dots: the dots on the i's tell a tiny branching story. A hungry chick and a worm; feed the chick and it grows into a hen, and the farmer arrives with two friends who could help.
+  - **The chef** has a recipe in mind, and asks "Are you sure? She's so young." Say yes and… fried chicken. Say no and the hen is saved.
+  - **The painter** paints the hen's egg chocolate brown, and a rabbit hops over to deliver it: the new secret 🐰 *Easter egg easter egg* (12 secrets in total).
+  - Either ending loops back to a new chick. Clicking a dot moves the story along (except "Are you sure?", which only the buttons can answer), and a line of narration with real buttons under the name makes it work by keyboard and screen reader too.
+
+---
+
 ## 1.11.0: Secrets beside the badge
 
-An experiment (#5): restore 1.10.0 to put the secrets back inside the panel.
+An experiment (#5). To put the secrets back inside the panel, revert just this version's commit; later versions don't depend on it.
 
 **Changed**
 - The secrets progress bar and badges moved out of the Bells & whistles panel into their own small trophy button, right beside the Bells & whistles badge. It shows how many secrets you've found and opens the same progress bar, milestones and badges (already expanded). It only appears once someone has opened Bells & whistles and either has it on or has found a secret, so first-time visitors see a clean header.

@@ -23,6 +23,7 @@ export const CATEGORIES: CategoryDef[] = [
       { id: "fruit", label: "Fruit", description: "Fruit that changes as you get close" },
       { id: "slingshot", label: "Slingshot", description: "Pull a rock back, let go, knock words around" },
       { id: "bubbles", label: "Bubbles", description: "They float away; pop them" },
+      { id: "farm", label: "Farm", description: "A little story: feed the chick and see what happens" },
     ],
   },
   {
@@ -84,6 +85,7 @@ export const SECRET_LIST = [
   { id: "elements", title: "Elementalist", icon: "⚗️", how: "Electric buttons, Fire trail and Bubbles together" },
   { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit" },
   { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds" },
+  { id: "bunny", title: "Easter egg easter egg", icon: "🐰", how: "Had the painter paint the egg in the Farm story" },
   { id: "goblin", title: "Hide and seek", icon: "🧌", how: "Found the goblin in all three of his hiding places" },
 ] as const;
 export type Secret = (typeof SECRET_LIST)[number]["id"];
