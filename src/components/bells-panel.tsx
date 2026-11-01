@@ -29,6 +29,7 @@ import { GoblinGuide } from "@/components/goblin";
 import { celebrate } from "@/components/celebrations";
 
 const PANEL_ID = "bells-panel";
+const SECRETS_ID = "secrets-panel";
 const noSubscribe = () => () => {};
 
 /**
@@ -72,6 +73,7 @@ export function BellsPanel() {
         </button>
         <GoblinGuide />
       </span>
+      <SecretsChip />
 
       <div
         id={PANEL_ID}
@@ -99,8 +101,6 @@ export function BellsPanel() {
             </svg>
           </button>
         </div>
-
-        {fun.on ? <SecretsProgress found={fun.secrets} peeked={fun.peeked} /> : null}
 
         <div className="mt-4 flex items-center gap-2 rounded-lg bg-paper p-3">
           <Switch label="Enable bells and whistles" checked={fun.on} onChange={toggleAll} className="flex-1 font-medium" />
@@ -151,11 +151,72 @@ export function BellsPanel() {
 }
 
 /**
+ * The secrets tracker lives beside the Bells & whistles badge (not inside its
+ * panel). It appears once someone has opened Bells & whistles and either has it
+ * on or has found a secret, so first-time visitors see a clean header.
+ */
+function SecretsChip() {
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
+  const headingId = useId();
+  if (!mounted || !fun.welcomed || (!fun.on && !fun.secrets.length)) return null;
+  const n = fun.secrets.length;
+  return (
+    <>
+      <button
+        type="button"
+        popoverTarget={SECRETS_ID}
+        aria-label={`Secrets: ${n} of ${SECRET_GOAL} found`}
+        title="Secrets"
+        data-secrets-chip
+        className="pill inline-flex h-11 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-medium tabular-nums hover:border-ink/40"
+      >
+        <TrophyIcon />
+        {n}
+      </button>
+      <div
+        id={SECRETS_ID}
+        popover="auto"
+        role="dialog"
+        aria-labelledby={headingId}
+        className="bells-panel fixed inset-auto top-16 right-4 m-0 max-h-[calc(100dvh-5rem)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl"
+      >
+        <div className="flex items-start justify-between gap-3">
+          <h2 id={headingId} className="font-display text-xl font-semibold tracking-tight">
+            Secrets
+          </h2>
+          <button
+            type="button"
+            popoverTarget={SECRETS_ID}
+            popoverTargetAction="hide"
+            aria-label="Close secrets"
+            className="-mt-1 -mr-2 inline-flex size-11 shrink-0 items-center justify-center rounded-full text-muted hover:text-ink"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+        <SecretsProgress found={fun.secrets} peeked={fun.peeked} />
+      </div>
+    </>
+  );
+}
+
+function TrophyIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 4h8v5a4 4 0 0 1-8 0V4ZM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4" />
+    </svg>
+  );
+}
+
+/**
  * Achievements: a progress bar that opens into a badge list. Locked badges are
  * blurred; tapping one reveals its icon as a hint (the title stays hidden).
  */
 function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [detail, setDetail] = useState<string | null>(null);
   const listId = useId();
   const selected = SECRET_LIST.find((x) => x.id === detail);

@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.11.0 | Secrets beside the badge | [`release/1.11.0`](https://github.com/auhbz/auhbon.com/tree/release/1.11.0) |
 | 1.10.0 | Goblin guide, hide-and-seek & milestones | [`release/1.10.0`](https://github.com/auhbz/auhbon.com/tree/release/1.10.0) |
 | 1.9.0 | Feedback fixes | [`release/1.9.0`](https://github.com/auhbz/auhbon.com/tree/release/1.9.0) |
 | 1.8.1 | Content fixes | [`release/1.8.1`](https://github.com/auhbz/auhbon.com/tree/release/1.8.1) |
@@ -16,6 +17,15 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.11.0: Secrets beside the badge
+
+An experiment (#5): restore 1.10.0 to put the secrets back inside the panel.
+
+**Changed**
+- The secrets progress bar and badges moved out of the Bells & whistles panel into their own small trophy button, right beside the Bells & whistles badge. It shows how many secrets you've found and opens the same progress bar, milestones and badges (already expanded). It only appears once someone has opened Bells & whistles and either has it on or has found a secret, so first-time visitors see a clean header.
 
 ---
 

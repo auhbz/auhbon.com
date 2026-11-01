@@ -37,6 +37,7 @@ Every version is saved as a `release/<version>` branch you can browse, compare, 
 <!-- versions:start -->
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.11.0 | Secrets beside the badge | [`release/1.11.0`](https://github.com/auhbz/auhbon.com/tree/release/1.11.0) |
 | 1.10.0 | Goblin guide, hide-and-seek & milestones | [`release/1.10.0`](https://github.com/auhbz/auhbon.com/tree/release/1.10.0) |
 | 1.9.0 | Feedback fixes | [`release/1.9.0`](https://github.com/auhbz/auhbon.com/tree/release/1.9.0) |
 | 1.8.1 | Content fixes | [`release/1.8.1`](https://github.com/auhbz/auhbon.com/tree/release/1.8.1) |
