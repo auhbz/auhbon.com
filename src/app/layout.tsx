@@ -11,6 +11,7 @@ import { Toaster } from "@/components/toaster";
 import { FxCanvas } from "@/components/fx-canvas";
 import { EasterEggs } from "@/components/easter-eggs";
 import { Celebrations } from "@/components/celebrations";
+import { GameLayer } from "@/components/game-layer";
 import { SoundFx } from "@/components/fx-canvas";
 import "./globals.css";
 
@@ -98,6 +99,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SoundFx />
         <EasterEggs email={profile.email} />
         <Celebrations />
+        <GameLayer />
       </body>
     </html>
   );

@@ -270,6 +270,12 @@ export function advanceHide() {
   return getFun().hideSpot;
 }
 
+/** The favorite-number unlock: every secret found at once. */
+export const unlockAllSecrets = () => updateFun((s) => ({ ...s, secrets: [...SECRETS] }));
+
+/** Game modes open up once every secret hidden so far has been found. */
+export const modesUnlocked = (s: FunState) => SECRETS.every((id) => s.secrets.includes(id));
+
 /** Milestones reached but not yet celebrated (normally zero or one). */
 export function dueMilestones(s: FunState) {
   return MILESTONES.filter((m) => s.secrets.length >= m.at && !s.celebrated.includes(m.at));

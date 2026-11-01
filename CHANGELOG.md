@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.14.0 | Game modes & leaderboards | [`release/1.14.0`](https://github.com/auhbz/auhbon.com/tree/release/1.14.0) |
 | 1.13.0 | Jungle sounds | [`release/1.13.0`](https://github.com/auhbz/auhbon.com/tree/release/1.13.0) |
 | 1.12.0 | The farm story | [`release/1.12.0`](https://github.com/auhbz/auhbon.com/tree/release/1.12.0) |
 | 1.11.0 | Secrets beside the badge | [`release/1.11.0`](https://github.com/auhbz/auhbon.com/tree/release/1.11.0) |
@@ -19,6 +20,19 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.14.0: Game modes & leaderboards
+
+**Added**
+- **Game modes**, in a new **Mode** section of the Bells & whistles panel. They unlock once every secret hidden so far has been found:
+  - **Asteroids**: the page breaks apart. Headings, buttons, tags and the letters of my name drift around as asteroids (with their text on them). Turn with ← → or A D, thrust with ↑ or W, fire with Space. Big pieces split in two. Two hits and it's over. Touch screens get on-screen controls.
+  - **Keepy Uppy**: keep the volleyball in the air by clicking or tapping it (or Space). At 10 it gets faster, at 20 windy, at 30 the ball shrinks, and at 40 there are two balls.
+  - **Stacker**: the page blurs and blocks labeled with my projects and skills slide in; drop each onto the stack with a click, tap or Space. Only the overlap stays; land it perfectly to keep the full width.
+- **Unlock all secrets** (with the 137 unlock): a switch in the secrets panel asks "What's my favorite number?" on a numpad (buttons or keyboard). The right answer unlocks every secret, and with them the game modes. A wrong one gets a "Nope".
+- **Leaderboards**: after each game, enter three initials to save a score. "This browser" keeps the top 10 per game locally. "Everyone" is a global board, built and ready, that turns on once Upstash Redis storage is connected in Vercel; until then it says it isn't connected yet. Server-side guards: three-letter initials only (with a blocklist), per-game score caps, a minimum play time per point, same-origin posting, and a rate limit per visitor.
+- While a game is on screen, the page is blurred and inert and its own cursor effects pause. Esc (or Exit) returns to the site at any time.
 
 ---
 

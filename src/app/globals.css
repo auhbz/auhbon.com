@@ -855,3 +855,159 @@ html[data-disco] :is(main, footer) {
     filter: hue-rotate(360deg);
   }
 }
+
+/* --- Game modes --- */
+html[data-game] :is(main, footer, header) {
+  filter: blur(5px) brightness(0.7);
+  pointer-events: none;
+  user-select: none;
+}
+html[data-game] {
+  overflow: hidden;
+}
+/* The page's own cursor effects pause while a game is on screen. */
+html[data-game] canvas:not(.game-canvas) {
+  visibility: hidden;
+}
+.game-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+}
+.game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  outline: none;
+  cursor: crosshair;
+}
+.game-hud {
+  position: absolute;
+  top: max(0.75rem, env(safe-area-inset-top, 0px));
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+  pointer-events: none;
+}
+.game-hud > * {
+  pointer-events: auto;
+}
+.game-hud > button {
+  margin-left: auto;
+}
+.game-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 500;
+}
+.game-button:hover {
+  border-color: var(--ink);
+}
+.game-button-primary {
+  background: var(--kelp);
+  border-color: var(--kelp);
+  color: var(--kelp-ink);
+}
+.game-banner {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: var(--kelp);
+  color: var(--kelp-ink);
+  font: 700 1.25rem/1.2 var(--font-display);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.game-pad {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+.game-pad button {
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: var(--ink);
+  font-size: 1.4rem;
+  touch-action: none;
+  user-select: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .game-pad {
+    display: none;
+  }
+}
+.game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.4);
+}
+.game-tab {
+  min-height: 2.25rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+.game-tab[aria-selected="true"] {
+  background: var(--kelp);
+  border-color: var(--kelp);
+  color: var(--kelp-ink);
+}
+.numpad-key {
+  min-height: 3rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--line);
+  font: 600 1.15rem/1 var(--font-display);
+}
+.numpad-key:hover {
+  border-color: color-mix(in srgb, var(--ink) 40%, transparent);
+}
+.numpad-enter {
+  background: var(--kelp);
+  border-color: var(--kelp);
+  color: var(--kelp-ink);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .numpad-wrong {
+    animation: numpad-shake 0.35s;
+  }
+}
+@keyframes numpad-shake {
+  25% {
+    transform: translateX(-6px);
+  }
+  75% {
+    transform: translateX(6px);
+  }
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useSyncExternalStore } from "react";
+import { useId, useRef, useState, useSyncExternalStore } from "react";
 import {
   blockedByMotion,
   CATEGORIES,
@@ -9,6 +9,10 @@ import {
   LOOKS,
   markWelcomed,
   MILESTONES,
+  modesUnlocked,
+  unlockAllSecrets,
+  dueMilestones,
+  markCelebrated,
   peekSecret,
   SECRET_GOAL,
   SECRET_LIST,
@@ -27,6 +31,8 @@ import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
 import { GoblinGuide } from "@/components/goblin";
 import { celebrate } from "@/components/celebrations";
+import { startGame } from "@/components/game-layer";
+import { GAMES } from "@/lib/games";
 
 const PANEL_ID = "bells-panel";
 const SECRETS_ID = "secrets-panel";
@@ -145,8 +151,45 @@ export function BellsPanel() {
           </div>
         </fieldset>
 
+        <ModeSection />
       </div>
     </>
+  );
+}
+
+/** Game modes: locked until every secret is found (or unlocked with my favorite number). */
+function ModeSection() {
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const unlocked = modesUnlocked(fun);
+  return (
+    <fieldset className="mt-4" data-modes={unlocked ? "unlocked" : "locked"}>
+      <legend className="text-sm text-muted">Mode</legend>
+      {unlocked ? (
+        <div className="mt-1 grid grid-cols-2 gap-2">
+          <button type="button" aria-pressed="true" className="min-h-11 rounded-lg border border-kelp bg-kelp px-2 text-sm text-kelp-ink">
+            Standard
+          </button>
+          {GAMES.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              title={g.how}
+              onClick={() => {
+                document.getElementById(PANEL_ID)?.hidePopover();
+                startGame(g.id);
+              }}
+              className="min-h-11 rounded-lg border border-line px-2 text-sm hover:border-ink/40"
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-1 rounded-lg border border-dashed border-line p-3 text-sm text-muted">
+          <span aria-hidden="true">🔒 </span>Find every secret to unlock three game modes. Know my favorite number? Try the trophy button.
+        </p>
+      )}
+    </fieldset>
   );
 }
 
@@ -198,8 +241,98 @@ function SecretsChip() {
           </button>
         </div>
         <SecretsProgress found={fun.secrets} peeked={fun.peeked} />
+        <UnlockAll />
       </div>
     </>
+  );
+}
+
+/** "Unlock all secrets", behind a numpad: only for people who know my favorite number. */
+function UnlockAll() {
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const all = modesUnlocked(fun);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [code, setCode] = useState("");
+  const [wrong, setWrong] = useState(false);
+  const titleId = useId();
+
+  const press = (d: string) => {
+    setWrong(false);
+    setCode((c) => (c + d).slice(0, 6));
+  };
+  const submit = () => {
+    if (code === "137") {
+      dialog.current?.close();
+      unlockAllSecrets();
+      burst("confetti");
+      sound("secret");
+      toast("You know my favorite number. Every secret unlocked, and the game modes too.");
+      for (const m of dueMilestones(getFun())) {
+        markCelebrated(m.at);
+        window.setTimeout(() => celebrate(m.at), 1400);
+      }
+    } else {
+      setWrong(true);
+      setCode("");
+      sound("hit");
+    }
+  };
+
+  return (
+    <div className="mt-4 border-t border-line pt-3">
+      <Switch
+        label="Unlock all secrets"
+        description={all ? "Everything's unlocked" : "If you know my favorite number"}
+        checked={all}
+        disabled={all}
+        onChange={() => {
+          setCode("");
+          setWrong(false);
+          dialog.current?.showModal();
+        }}
+        className="text-sm"
+      />
+      <dialog
+        ref={dialog}
+        aria-labelledby={titleId}
+        onClick={(e) => e.target === e.currentTarget && dialog.current?.close()}
+        onKeyDown={(e) => {
+          if (/^[0-9]$/.test(e.key)) press(e.key);
+          else if (e.key === "Backspace") setCode((c) => c.slice(0, -1));
+          else if (e.key === "Enter") {
+            e.preventDefault();
+            submit();
+          }
+        }}
+        className="numpad m-auto w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
+      >
+        <h2 id={titleId} className="font-display text-lg font-semibold tracking-tight">
+          What&apos;s my favorite number?
+        </h2>
+        <output
+          aria-live="polite"
+          className={`mt-3 flex h-12 items-center justify-center rounded-lg bg-paper font-mono text-2xl tracking-[0.4em] tabular-nums ${wrong ? "numpad-wrong" : ""}`}
+        >
+          {wrong ? "Nope" : code || "\u00a0"}
+        </output>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
+            <button key={d} type="button" onClick={() => press(d)} className="numpad-key">
+              {d}
+            </button>
+          ))}
+          <button type="button" onClick={() => setCode("")} className="numpad-key text-sm" aria-label="Clear">
+            Clear
+          </button>
+          <button type="button" onClick={() => press("0")} className="numpad-key">
+            0
+          </button>
+          <button type="button" onClick={submit} className="numpad-key numpad-enter text-sm">
+            Enter
+          </button>
+        </div>
+      </dialog>
+    </div>
   );
 }
 
