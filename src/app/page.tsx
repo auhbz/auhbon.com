@@ -4,6 +4,7 @@ import { GitHubRepos, GitHubReposSkeleton } from "@/components/github-repos";
 import { HeroName } from "@/components/hero-name";
 import { ProjectExplorer } from "@/components/project-explorer";
 import { HiddenEgg } from "@/components/hidden-egg";
+import { GoblinSpot } from "@/components/goblin";
 import { ExternalLink } from "@/components/external-link";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
@@ -119,12 +120,18 @@ export default function Home() {
         title="On GitHub"
         intro="My most recently updated public repositories, pulled from GitHub and refreshed every hour."
       >
-        <Suspense fallback={<GitHubReposSkeleton />}>
-          <GitHubRepos />
-        </Suspense>
+        <div className="relative">
+          <GoblinSpot spot={2} />
+          <Suspense fallback={<GitHubReposSkeleton />}>
+            <GitHubRepos />
+          </Suspense>
+        </div>
       </Section>
 
       <Section id="experience" title="Experience">
+        <div className="relative">
+          <GoblinSpot spot={0} />
+        </div>
         <ol className="relative border-l border-line">
           {experience.map((role) => (
             <li key={`${role.org}-${role.start}`} className="relative pb-10 pl-6 last:pb-0">
@@ -173,6 +180,9 @@ export default function Home() {
       </Section>
 
       <Section id="skills" title="Skills">
+        <div className="relative">
+          <GoblinSpot spot={1} />
+        </div>
         <dl className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
           {skills.map((s) => (
             <div key={s.group}>

@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.10.0 | Goblin guide, hide-and-seek & milestones | [`release/1.10.0`](https://github.com/auhbz/auhbon.com/tree/release/1.10.0) |
 | 1.9.0 | Feedback fixes | [`release/1.9.0`](https://github.com/auhbz/auhbon.com/tree/release/1.9.0) |
 | 1.8.1 | Content fixes | [`release/1.8.1`](https://github.com/auhbz/auhbon.com/tree/release/1.8.1) |
 | 1.8.0 | Goblin, Flow & Cookies | [`release/1.8.0`](https://github.com/auhbz/auhbon.com/tree/release/1.8.0) |
@@ -15,6 +16,15 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.10.0: Goblin guide, hide-and-seek & milestones
+
+**Added**
+- **The goblin guide** (#2): until a visitor opens Bells & whistles for the first time, a goblin stands under the button, pointing at it, with a speech bubble: "Click it!!!!". The first click sends him running off. Anyone who has used Bells & whistles before never sees him.
+- **Hide and seek** (#2): after that, while Bells & whistles is on, the goblin peeks out from one of three hiding places around the page. Click him and he runs off to the next one; find him in all three for a new secret, 🧌 *Hide and seek* (11 secrets in total).
+- **100 secrets as the goal, with milestones** (#3): progress now counts toward 100, with notches on the bar at 10, 20, 40 and 70 and a "Next celebration at…" line. Each milestone throws a quick party rather than unlocking a feature, so nothing important is gated: an animal parade along the bottom of the screen (10), confetti cannons (20), fireworks (40), a disco (70), and all of them at once (100). Celebrated milestones can be replayed from the secrets list. Under reduced motion, a milestone is a toast and a sound only.
 
 ---
 

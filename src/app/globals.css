@@ -663,3 +663,173 @@ html[data-fx-buttons="mercury"] .pill::before {
     transform: rotate(9deg);
   }
 }
+
+/* --- The goblin guide: points at Bells & whistles until it's first opened. --- */
+.goblin-guide {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.goblin-guide-art {
+  width: 4.2rem;
+  height: 4.2rem;
+  flex: none;
+}
+.goblin-bubble {
+  position: relative;
+  margin-top: 0.9rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 0.9rem;
+  background: #ffffff;
+  color: #13232c;
+  font: 700 0.95rem/1.2 var(--font-display, system-ui), system-ui, sans-serif;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.25);
+}
+.goblin-bubble::after {
+  content: "";
+  position: absolute;
+  right: -0.4rem;
+  top: 0.55rem;
+  border: 0.4rem solid transparent;
+  border-right: 0;
+  border-left-color: #ffffff;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .goblin-guide:not(.is-leaving) {
+    animation: goblin-bob 0.9s ease-in-out infinite alternate;
+  }
+  .goblin-bubble {
+    animation: goblin-shout 1.8s ease-in-out infinite;
+  }
+}
+.goblin-guide.is-leaving {
+  animation: goblin-run 0.9s ease-in forwards;
+}
+.goblin-guide.is-leaving .goblin-bubble {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  .goblin-guide.is-leaving {
+    animation-duration: 0.01s;
+  }
+}
+@keyframes goblin-bob {
+  to {
+    transform: translateY(-4px);
+  }
+}
+@keyframes goblin-shout {
+  0%, 70%, 100% {
+    transform: none;
+  }
+  78% {
+    transform: rotate(-4deg) scale(1.06);
+  }
+  86% {
+    transform: rotate(4deg) scale(1.06);
+  }
+}
+@keyframes goblin-run {
+  20% {
+    transform: translate(10px, -12px) scaleX(-1);
+  }
+  100% {
+    transform: translate(-70vw, 30vh) scaleX(-1);
+    opacity: 0;
+  }
+}
+
+/* --- The goblin's hiding places: he peeks over an edge, ducks, and peeks again. --- */
+.goblin-spot {
+  position: absolute;
+  right: 0.75rem;
+  top: 0;
+  z-index: 1;
+  width: 3.6rem;
+  height: 2.5rem;
+  transform: translateY(-100%);
+  overflow: hidden;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+.goblin-spot:focus-visible {
+  overflow: visible;
+}
+.goblin-spot-art {
+  display: block;
+  width: 3.6rem;
+  height: 3.6rem;
+  transform: translateY(18%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .goblin-spot-art {
+    animation: goblin-peek 4.5s ease-in-out infinite;
+  }
+}
+@keyframes goblin-peek {
+  0%, 55% {
+    transform: translateY(18%);
+  }
+  62%, 80% {
+    transform: translateY(75%);
+  }
+  88% {
+    transform: translateY(12%) rotate(-6deg);
+  }
+  94% {
+    transform: translateY(18%) rotate(5deg);
+  }
+}
+
+/* --- Milestone celebrations --- */
+.parade {
+  position: fixed;
+  inset: auto 0 env(safe-area-inset-bottom, 0px) 0;
+  height: 5rem;
+  z-index: 60;
+  overflow: hidden;
+  pointer-events: none;
+}
+.parade-animal {
+  position: absolute;
+  bottom: 0.3rem;
+  left: 0;
+  font-size: var(--size);
+  line-height: 1;
+  animation: parade-walk var(--duration) linear var(--delay) both;
+}
+.parade-hop {
+  display: inline-block;
+  transform: scaleX(-1);
+  animation: parade-hop var(--hop) ease-in-out infinite alternate;
+}
+@keyframes parade-walk {
+  from {
+    transform: translateX(-12vw);
+  }
+  to {
+    transform: translateX(112vw);
+  }
+}
+@keyframes parade-hop {
+  to {
+    transform: scaleX(-1) translateY(-0.3em) rotate(6deg);
+  }
+}
+/* Filter the page content only: a filter on <body> would detach fixed layers like the canvas. */
+html[data-disco] :is(main, footer) {
+  animation: disco 1.6s linear infinite;
+}
+@keyframes disco {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}

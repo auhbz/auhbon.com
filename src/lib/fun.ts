@@ -84,9 +84,23 @@ export const SECRET_LIST = [
   { id: "elements", title: "Elementalist", icon: "⚗️", how: "Electric buttons, Fire trail and Bubbles together" },
   { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit" },
   { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds" },
+  { id: "goblin", title: "Hide and seek", icon: "🧌", how: "Found the goblin in all three of his hiding places" },
 ] as const;
 export type Secret = (typeof SECRET_LIST)[number]["id"];
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
+
+/** The long-term goal. Progress counts toward it, with a celebration at each milestone. */
+export const SECRET_GOAL = 100;
+export const MILESTONES = [
+  { at: 10, name: "Animal parade", icon: "🐘" },
+  { at: 20, name: "Confetti cannons", icon: "🎉" },
+  { at: 40, name: "Fireworks", icon: "🎆" },
+  { at: 70, name: "Disco", icon: "🪩" },
+  { at: 100, name: "Grand finale", icon: "🏆" },
+] as const;
+
+/** How many places the goblin hides before he gives up. */
+export const HIDE_SPOTS = 3;
 
 /** `hover` only applies to sound effects: whether hovering plays sounds. */
 export type Effect = { on: boolean; variant: string; hover?: boolean };
@@ -97,6 +111,12 @@ export type FunState = {
   secrets: string[];
   /** Locked secrets whose hint icon the visitor chose to reveal. */
   peeked: string[];
+  /** Has the visitor ever opened Bells & whistles? Until then, the goblin points at it. */
+  welcomed: boolean;
+  /** Which hiding place the goblin is in (HIDE_SPOTS once he's been found everywhere). */
+  hideSpot: number;
+  /** Milestones already celebrated. */
+  celebrated: number[];
 };
 
 export const FUN_EVENT = "portfolio:fun";
@@ -120,7 +140,7 @@ export const ALL_OFF: Record<Category, Effect> = {
   sound: { ...ALL_ON.sound, on: false },
 };
 
-export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [] };
+export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [], welcomed: false, hideSpot: 0, celebrated: [] };
 
 /**
  * The master switch is a summary, not a separate layer: it's "on" whenever any
@@ -159,6 +179,10 @@ function read(): FunState {
       look: master && LOOKS.some((l) => l.id === p.look) ? (p.look as Look) : "classic",
       secrets: Array.isArray(p.secrets) ? p.secrets.filter((s) => SECRETS.includes(s as Secret)) : [],
       peeked: Array.isArray(p.peeked) ? p.peeked.filter((s) => SECRETS.includes(s as Secret)) : [],
+      // Anyone who used bells & whistles before this existed has already been welcomed.
+      welcomed: p.welcomed === true || master || (Array.isArray(p.secrets) && p.secrets.length > 0),
+      hideSpot: Number.isInteger(p.hideSpot) ? Math.min(HIDE_SPOTS, Math.max(0, p.hideSpot as number)) : 0,
+      celebrated: Array.isArray(p.celebrated) ? p.celebrated.filter((n) => MILESTONES.some((m) => m.at === n)) : [],
     });
   } catch {
     return DEFAULT_FUN;
@@ -233,6 +257,22 @@ export function shuffle() {
 /** Reveal a locked secret's hint icon (its title stays hidden until found). */
 export const peekSecret = (id: Secret) =>
   updateFun((s) => (s.peeked.includes(id) ? s : { ...s, peeked: [...s.peeked, id] }));
+
+/** The first time the visitor opens Bells & whistles, the guide goblin runs off to hide. */
+export const markWelcomed = () => updateFun((s) => (s.welcomed ? s : { ...s, welcomed: true }));
+
+/** The goblin was found: he moves to the next hiding place. Returns the new spot. */
+export function advanceHide() {
+  updateFun((s) => ({ ...s, hideSpot: Math.min(HIDE_SPOTS, s.hideSpot + 1) }));
+  return getFun().hideSpot;
+}
+
+/** Milestones reached but not yet celebrated (normally zero or one). */
+export function dueMilestones(s: FunState) {
+  return MILESTONES.filter((m) => s.secrets.length >= m.at && !s.celebrated.includes(m.at));
+}
+export const markCelebrated = (at: number) =>
+  updateFun((s) => (s.celebrated.includes(at) ? s : { ...s, celebrated: [...s.celebrated, at] }));
 
 /** Which combination secret, if any, the current settings unlock. */
 export function comboSecret(s: FunState): Secret | null {

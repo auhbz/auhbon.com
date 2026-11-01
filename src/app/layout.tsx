@@ -10,6 +10,7 @@ import { funInitScript } from "@/lib/fun";
 import { Toaster } from "@/components/toaster";
 import { FxCanvas } from "@/components/fx-canvas";
 import { EasterEggs } from "@/components/easter-eggs";
+import { Celebrations } from "@/components/celebrations";
 import { SoundFx } from "@/components/fx-canvas";
 import "./globals.css";
 
@@ -96,6 +97,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <FxCanvas />
         <SoundFx />
         <EasterEggs email={profile.email} />
+        <Celebrations />
       </body>
     </html>
   );

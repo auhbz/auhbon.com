@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 import { burst, sound, toast } from "@/lib/fx";
-import { comboSecret, findSecret, FUN_EVENT, getFun, SECRETS, setFunOn, type Secret } from "@/lib/fun";
+import { comboSecret, dueMilestones, findSecret, FUN_EVENT, getFun, markCelebrated, SECRET_GOAL, SECRETS, setFunOn, type Secret } from "@/lib/fun";
+import { celebrate } from "@/components/celebrations";
 
 export const HERO_WAVE_EVENT = "portfolio:hero-wave";
 
@@ -12,8 +13,15 @@ const KONAMI = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "Ar
 export function reveal(id: Secret, message: string) {
   const first = findSecret(id);
   const found = getFun().secrets.length;
-  toast(first ? `${message} Secret ${found} of ${SECRETS.length} found.` : message);
+  toast(first ? `${message} Secret ${found} of ${SECRET_GOAL} found.` : message);
   sound(first ? "secret" : "pop");
+  // Crossing a milestone throws a little party (once each; they can be replayed from the panel).
+  if (first) {
+    for (const m of dueMilestones(getFun())) {
+      markCelebrated(m.at);
+      window.setTimeout(() => celebrate(m.at), 1200);
+    }
+  }
 }
 
 /**

@@ -7,7 +7,10 @@ import {
   DEFAULT_FUN,
   getFun,
   LOOKS,
+  markWelcomed,
+  MILESTONES,
   peekSecret,
+  SECRET_GOAL,
   SECRET_LIST,
   type Secret,
   setEffectOn,
@@ -22,6 +25,8 @@ import {
 } from "@/lib/fun";
 import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
+import { GoblinGuide } from "@/components/goblin";
+import { celebrate } from "@/components/celebrations";
 
 const PANEL_ID = "bells-panel";
 const noSubscribe = () => () => {};
@@ -53,16 +58,20 @@ export function BellsPanel() {
 
   return (
     <>
-      <button
-        type="button"
-        popoverTarget={PANEL_ID}
-        aria-label="Bells and whistles"
-        title="Bells and whistles"
-        data-on={fun.on || undefined}
-        className="bells-button relative inline-flex h-11 items-center justify-center rounded-full border border-line px-2 text-ink hover:border-ink/40"
-      >
-        <BellsAndWhistlesIcon />
-      </button>
+      <span className="relative inline-flex">
+        <button
+          type="button"
+          popoverTarget={PANEL_ID}
+          aria-label="Bells and whistles"
+          title="Bells and whistles"
+          data-on={fun.on || undefined}
+          onClick={markWelcomed}
+          className="bells-button relative inline-flex h-11 items-center justify-center rounded-full border border-line px-2 text-ink hover:border-ink/40"
+        >
+          <BellsAndWhistlesIcon />
+        </button>
+        <GoblinGuide />
+      </span>
 
       <div
         id={PANEL_ID}
@@ -150,8 +159,10 @@ function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] 
   const [detail, setDetail] = useState<string | null>(null);
   const listId = useId();
   const selected = SECRET_LIST.find((x) => x.id === detail);
-  const total = SECRET_LIST.length;
-  const pct = Math.round((found.length / total) * 100);
+  const total = SECRET_GOAL;
+  const pct = Math.min(100, (found.length / total) * 100);
+  const next = MILESTONES.find((m) => found.length < m.at);
+  const reached = MILESTONES.filter((m) => found.length >= m.at);
 
   return (
     <div className="mt-4">
@@ -171,8 +182,20 @@ function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] 
             </svg>
           </span>
         </span>
-        <span aria-hidden="true" className="mt-2 block h-2 overflow-hidden rounded-full bg-paper">
+        {/* Notches mark each milestone, so it's clear there's something to reach. */}
+        <span aria-hidden="true" className="relative mt-2 block h-2 rounded-full bg-paper">
           <span className="block h-full rounded-full bg-kelp transition-[width] duration-500" style={{ width: `${pct}%` }} />
+          {MILESTONES.slice(0, -1).map((m) => (
+            <span
+              key={m.at}
+              data-notch={m.at}
+              className={`absolute -top-0.5 h-3 w-0.5 -translate-x-1/2 rounded-full ${found.length >= m.at ? "bg-kelp-ink/70" : "bg-muted"}`}
+              style={{ left: `${m.at}%` }}
+            />
+          ))}
+        </span>
+        <span className="mt-1.5 block text-xs text-muted">
+          {next ? `Next celebration at ${next.at}` : "Every celebration unlocked"}
         </span>
       </button>
       {open ? (
@@ -210,8 +233,23 @@ function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] 
               : "Still locked. The icon is your hint."
             : found.length === total
               ? "You found them all. Nice."
-              : "Tap a locked badge to peek at its hint; tap a found one to see how you got it."}
+              : `Tap a locked badge to peek at its hint; tap a found one to see how you got it. ${SECRET_LIST.length} secrets are hidden so far, with more on the way.`}
         </p>
+      ) : null}
+      {open && reached.length ? (
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted">Replay:</span>
+          {reached.map((m) => (
+            <button
+              key={m.at}
+              type="button"
+              onClick={() => celebrate(m.at)}
+              className="min-h-9 rounded-full border border-line px-3 hover:border-ink/40"
+            >
+              <span aria-hidden="true">{m.icon}</span> {m.name}
+            </button>
+          ))}
+        </div>
       ) : null}
     </div>
   );
