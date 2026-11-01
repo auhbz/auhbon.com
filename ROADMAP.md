@@ -1,6 +1,57 @@
 # Roadmap and change report
 
-This file covers what changed from 1.0.0 to 1.8.0, sorted by the numbered notes it answers. It also lists what was skipped and why, and what's still to do. Exact per-version details are in [CHANGELOG.md](CHANGELOG.md), and every version has its own `release/<version>` branch.
+What's planned, what's waiting on a decision, and what changed in each round of feedback, sorted by the numbered notes it answers. Exact per-version details are in [CHANGELOG.md](CHANGELOG.md), and every version has its own `release/<version>` branch.
+
+## Roadmap
+
+| Item | Status |
+|---|---|
+| Clown click sound (#9): eight options in a test page | Waiting on a pick |
+| Copy editing across the site, resume, LinkedIn and GitHub | Suggestions listed, waiting on approval |
+| Global leaderboards | Built; turns on when storage is connected |
+| Version URLs (e.g. `1-0-0.auhbon.com`, one per checkpoint) | Proposed, waiting on approval |
+| More effects, options and categories (#11) | WIP |
+| 100 secrets (12 hidden so far) | WIP |
+| Better mobile experience | WIP (ideas: bottom-sheet panel, one-row header, long-press "hold still", tilt, haptics, shake to shuffle) |
+| GitHub activity graph | Planned |
+| Outcome numbers in the copy | Planned (needs figures) |
+| Recorded sounds (clown laughter) | Skipped for now: laughter doesn't synthesize well, and the site ships no audio files |
+
+## Change report: 1.8.0 → 1.14.0
+
+### Added
+
+| Note | What | Version |
+|---|---|---|
+| 1 | Project tags get the button effects | 1.9.0 |
+| 6 | Click the landed rock to roll it to the goblin; click the goblin to hurry him | 1.9.0 |
+| 7 | Every cursor trail reacts to clicks (sparkle ring, fire puff with scorch, ghost lunge) | 1.9.0 |
+| 2 | Goblin guide pointing at Bells & whistles until it's first opened, then hide-and-seek in three spots (a new secret) | 1.10.0 |
+| 3 | Progress toward 100 secrets with notches at 10/20/40/70 and a party at each milestone (replayable) | 1.10.0 |
+| — | The farm story i-dots (chick, worm, farmer; chef or painter ending; a new secret) | 1.12.0 |
+| — | Jungle sound pack, fully synthesized | 1.13.0 |
+| — | Game modes (Asteroids, Keepy Uppy, Stacker), the "favorite number" numpad unlock, local leaderboards and a storage-ready global one | 1.14.0 |
+
+### Changed
+
+| Note | What | Version |
+|---|---|---|
+| 23 | Space Panic demo video restored at its new address | 1.8.1 |
+| — | The `me` repo no longer appears in the "On GitHub" section | 1.8.1 |
+| 4 | Cookie bites are visible scalloped teeth marks, with bigger crumbs | 1.9.0 |
+| 6 | Slingshot rock sits closer to its i; the goblin runs about 60% faster | 1.9.0 |
+| 8 | Cereal and Clown packs are louder, level with the others | 1.9.0 |
+| 5 | Secrets tracker moved out of the panel into a trophy button beside the badge (an experiment; revert just 1.11.0 to undo) | 1.11.0 |
+
+### Removed
+
+Nothing this round.
+
+### Skipped or partly done, and why
+
+- **Clown click sound (#9):** not changed yet, by design. It ships once a test-page option is picked.
+- **Global leaderboard storage:** the code is done; it needs a storage connection in Vercel.
+- **Version URLs:** each version needs its own domain set up in Vercel, so this waits on approval of the approach.
 
 ## Change report: 1.0.0 → 1.8.0
 
@@ -51,27 +102,6 @@ This file covers what changed from 1.0.0 to 1.8.0, sorted by the numbered notes 
 - **Nature sound pack** (monkeys, elephants). Same reason: animal calls need recordings. Birds shipped because birdsong synthesizes convincingly.
 - **#11 more options and categories.** Waiting on your list. Flow and Cookie, from your other notes, are in.
 - **Still states on touch** (#12). A finger has no resting cursor, so these only happen with a mouse.
-
-## Still to do
-
-- **#11**: your list of new options and categories.
-- **Chick, farmer and worm i-dots story**: the feed chain; chef → fried chicken with "are you sure?"; painter → chocolate + rabbit → "easter egg easter egg"; then the loop resets. It's a big piece, so it's planned as its own version.
-- **Modes**, unlocked by finding every secret: Standard, Asteroids, Keepy Uppy and Stacker. They come with the "unlock all secrets" numpad prompt.
-  - The code lives in the page's JavaScript, so it's a fun gate, not real security.
-- **Leaderboards** (global and local). Global boards need a small backend (for example Upstash or Vercel KV) with rate limiting, basic anti-cheat and name moderation. Local boards can use browser storage.
-- **GitHub activity graph** (saved for later earlier on).
-- **Laughter and Nature sounds**, once there are recordings to use.
-- **Outcome numbers**: users, downloads, performance, team size. Concrete figures would make the project copy stronger.
-
-## Waiting on you
-
-- **LinkedIn About** says "I'm building a Next.js storefront." That may overclaim now that DomDom says "contributed to".
-- **www redirect**: in Vercel, set `www.auhbon.com` to redirect to `auhbon.com`.
-- **GitHub section**: hide the profile `README` repo ("me")?
-- **Repo description** has a typo: "TypeScrpt".
-- **BeeSafe**: Devpost lists the hackathon as LA Hacks 2020, but you said CSUN Cloud Jam 2020. The site uses your wording; worth confirming.
-- **Space Panic video**: re-upload it if you'd like it back.
-- **Slideshow links** from the portfolio document weren't added, because they couldn't be verified from the PDF.
 
 ## Testing notes
 
