@@ -13,8 +13,18 @@ function GoblinArt({ pointing = false, className = "" }: { pointing?: boolean; c
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
       {pointing ? (
-        // One arm stretched up and to the right, toward the Bells & whistles button.
-        <path d="M40 40 L56 14" stroke="#4d8f2c" strokeWidth="5" strokeLinecap="round" />
+        // Two arms; CSS shows the one that points at the button for this screen width:
+        // straight left on wide screens, up and to the left on narrow ones.
+        <>
+          <g className="goblin-arm-left">
+            <path d="M24 42 L3 36" stroke="#4d8f2c" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="3" cy="36" r="3.6" fill="#6cb447" />
+          </g>
+          <g className="goblin-arm-up">
+            <path d="M24 40 L9 10" stroke="#4d8f2c" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="9" cy="10" r="3.6" fill="#6cb447" />
+          </g>
+        </>
       ) : null}
       {/* Body: a little brown tunic. */}
       <ellipse cx="32" cy="50" rx="11" ry="10" fill="#7a4a22" />
@@ -29,14 +39,13 @@ function GoblinArt({ pointing = false, className = "" }: { pointing?: boolean; c
       {/* A toothy grin. */}
       <path d="M25 34 Q32 40 39 34" fill="none" stroke="#1d3a0e" strokeWidth="1.8" strokeLinecap="round" />
       <path d="M29 35.6 L30 38 L31 36.2 M33 36.2 L34 38 L35 35.6" fill="#fff" stroke="#fff" strokeWidth="0.8" />
-      {pointing ? <circle cx="56.5" cy="13.5" r="3.4" fill="#6cb447" /> : null}
     </svg>
   );
 }
 
 /**
- * Before anyone has opened Bells & whistles, a goblin stands under the button
- * pointing at it. The first click sends him running off to hide.
+ * Before anyone has opened Bells & whistles, a goblin stands right of the button
+ * (or under it, on narrower screens) pointing at it. The first click sends him running off to hide.
  * Decorative: the button itself already has its name.
  */
 export function GoblinGuide() {
@@ -56,8 +65,8 @@ export function GoblinGuide() {
         if (e.animationName === "goblin-run") setGone(true);
       }}
     >
-      <span className="goblin-bubble">Click it!!!!</span>
       <GoblinArt pointing className="goblin-guide-art" />
+      <span className="goblin-bubble">Click it!!!!</span>
     </div>
   );
 }

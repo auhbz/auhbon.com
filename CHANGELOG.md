@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.15.0 | Feedback fixes, round 3 | [`release/1.15.0`](https://github.com/auhbz/auhbon.com/tree/release/1.15.0) |
 | 1.14.0 | Game modes & leaderboards | [`release/1.14.0`](https://github.com/auhbz/auhbon.com/tree/release/1.14.0) |
 | 1.13.0 | Jungle sounds | [`release/1.13.0`](https://github.com/auhbz/auhbon.com/tree/release/1.13.0) |
 | 1.12.0 | The farm story | [`release/1.12.0`](https://github.com/auhbz/auhbon.com/tree/release/1.12.0) |
@@ -20,6 +21,26 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.15.0: Feedback fixes, round 3
+
+**Added**
+- **Reactive electricity** (#5): with Electric buttons, nearby buttons throw arcs of lightning toward the cursor, reaching it when it gets close. Hovering a button sends ripples around its outline, spreading out from under the cursor.
+- **Reset all secrets** (#6) in the secrets panel. It explains exactly what it clears (secrets, peeked hints, milestone parties, the goblin's hiding place) and asks before doing it.
+- **The 137 unlock asks first** (#7): after the right number, it spells out what will happen (how many secrets get marked found, game modes unlock, milestone parties play, how to undo) before anything changes.
+- A CI check that fails if the site uses emoji newer than Emoji 11 (2018).
+
+**Changed**
+- The **secrets trophy** is always in the header, even on a first visit with Bells & whistles off (#1). It now sits left of the Bells & whistles badge.
+- The **guide goblin** stands right of the Bells & whistles badge and points straight at it, with his speech bubble below; on narrower screens he stands under it and points up (#2). The badge pulses while he's pointing.
+- **Clown clicks** rotate between your three picks from the Clown Click Lab: pie splat (G), rimshot (D) and honk-honk (B). Hover sounds are unchanged (#8).
+- A click with the **Cursed** trail now shoos the ghost back a little instead of pulling it in (#9).
+
+**Fixed**
+- **Effects were drawn slightly off-center** (#4). The effects canvas was sized to the window including its scrollbar but displayed without it, which squeezed every drawing a little toward the left. It now matches the visible page exactly, and also follows scrollbar changes.
+- **Missing emoji** (#10). Some emoji are too new for older systems (Windows 10 especially), which show an empty box: the worm, troll, blueberries, mirror ball, flamingo, and the gender-neutral farmer, chef and painter. They're replaced with older equivalents (🐛, 👺, 🥥, 🕺, 🦜, 👨‍🌾, 👨‍🍳, 👨‍🎨).
 
 ---
 

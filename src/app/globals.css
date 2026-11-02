@@ -687,25 +687,29 @@ html[data-fx-buttons="mercury"] .pill::before {
 }
 
 /* --- The goblin guide: points at Bells & whistles until it's first opened. --- */
+/* Wide screens: he stands right of the badge and points straight at it, with his
+ * speech bubble hanging below him. Narrow screens: he stands under the badge and
+ * points up at it, bubble to his left. */
 .goblin-guide {
   position: absolute;
-  top: calc(100% + 0.35rem);
-  right: 0;
   z-index: 50;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.25rem;
+  left: calc(100% + 0.15rem);
+  top: calc(50% - 1.75rem);
   pointer-events: none;
   white-space: nowrap;
 }
 .goblin-guide-art {
-  width: 4.2rem;
-  height: 4.2rem;
-  flex: none;
+  display: block;
+  width: 3.5rem;
+  height: 3.5rem;
+}
+.goblin-arm-up {
+  display: none;
 }
 .goblin-bubble {
-  position: relative;
-  margin-top: 0.9rem;
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: -0.25rem;
   padding: 0.3rem 0.7rem;
   border-radius: 0.9rem;
   background: #ffffff;
@@ -716,11 +720,43 @@ html[data-fx-buttons="mercury"] .pill::before {
 .goblin-bubble::after {
   content: "";
   position: absolute;
-  right: -0.4rem;
-  top: 0.55rem;
+  top: -0.4rem;
+  right: 1.4rem;
   border: 0.4rem solid transparent;
-  border-right: 0;
-  border-left-color: #ffffff;
+  border-top: 0;
+  border-bottom-color: #ffffff;
+}
+@media (max-width: 1199px) {
+  .goblin-guide {
+    left: auto;
+    right: -0.4rem;
+    top: calc(100% + 0.1rem);
+  }
+  .goblin-guide-art {
+    width: 4rem;
+    height: 4rem;
+  }
+  .goblin-arm-left {
+    display: none;
+  }
+  .goblin-arm-up {
+    display: inline;
+  }
+  .goblin-bubble {
+    top: 1.4rem;
+    right: calc(100% + 0.2rem);
+  }
+  .goblin-bubble::after {
+    top: 0.55rem;
+    right: -0.4rem;
+    border: 0.4rem solid transparent;
+    border-right: 0;
+    border-left-color: #ffffff;
+  }
+}
+/* While he's pointing, the badge itself pulses, so there's no doubt which button he means. */
+.relative:has(> .goblin-guide:not(.is-leaving)) > .bells-button {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kelp) 70%, transparent);
 }
 @media (prefers-reduced-motion: no-preference) {
   .goblin-guide:not(.is-leaving) {
@@ -728,6 +764,9 @@ html[data-fx-buttons="mercury"] .pill::before {
   }
   .goblin-bubble {
     animation: goblin-shout 1.8s ease-in-out infinite;
+  }
+  .relative:has(> .goblin-guide:not(.is-leaving)) > .bells-button {
+    animation: guide-pulse 1.4s ease-in-out infinite;
   }
 }
 .goblin-guide.is-leaving {
@@ -739,6 +778,11 @@ html[data-fx-buttons="mercury"] .pill::before {
 @media (prefers-reduced-motion: reduce) {
   .goblin-guide.is-leaving {
     animation-duration: 0.01s;
+  }
+}
+@keyframes guide-pulse {
+  50% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--kelp) 15%, transparent);
   }
 }
 @keyframes goblin-bob {
@@ -759,10 +803,10 @@ html[data-fx-buttons="mercury"] .pill::before {
 }
 @keyframes goblin-run {
   20% {
-    transform: translate(10px, -12px) scaleX(-1);
+    transform: translate(-8px, -10px);
   }
   100% {
-    transform: translate(-70vw, 30vh) scaleX(-1);
+    transform: translate(40vw, 40vh);
     opacity: 0;
   }
 }

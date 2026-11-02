@@ -16,12 +16,12 @@ type StageDef = { dots: [string, string]; text: string; actions: Action[]; choco
 
 export const STAGES: Record<Stage, StageDef> = {
   start: {
-    dots: ["🐣", "🪱"],
+    dots: ["🐣", "🐛"],
     text: "A hungry chick. A wiggly worm.",
     actions: [{ label: "Feed the chick", to: "fed" }],
   },
   fed: {
-    dots: ["🐔", "🧑‍🌾"],
+    dots: ["🐔", "👨‍🌾"],
     text: "The chick ate the worm and grew into a hen. The farmer has two friends who could help.",
     actions: [
       { label: "Call the chef", to: "chef" },
@@ -29,12 +29,12 @@ export const STAGES: Record<Stage, StageDef> = {
     ],
   },
   chef: {
-    dots: ["🐔", "🧑‍🍳"],
+    dots: ["🐔", "👨‍🍳"],
     text: "The chef looks at the hen. The chef has a recipe in mind.",
     actions: [{ label: "Let him cook", to: "confirm" }],
   },
   confirm: {
-    dots: ["🐔", "🧑‍🍳"],
+    dots: ["🐔", "👨‍🍳"],
     text: "Are you sure? She's so young.",
     actions: [
       { label: "Yes, I'm sure", to: "fried" },
@@ -42,13 +42,13 @@ export const STAGES: Record<Stage, StageDef> = {
     ],
   },
   fried: {
-    dots: ["🍗", "🧑‍🍳"],
+    dots: ["🍗", "👨‍🍳"],
     text: "Well. That happened. The circle of life begins again…",
     actions: [],
     after: "start",
   },
   painter: {
-    dots: ["🥚", "🧑‍🎨"],
+    dots: ["🥚", "👨‍🎨"],
     text: "The hen laid an egg, and the painter has a brush and some brown paint.",
     actions: [{ label: "Paint the egg", to: "painted" }],
   },

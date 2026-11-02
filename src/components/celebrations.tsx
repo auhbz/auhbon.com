@@ -12,7 +12,7 @@ export function celebrate(at: number) {
   window.dispatchEvent(new CustomEvent<number>(CELEBRATE_EVENT, { detail: at }));
 }
 
-const ANIMALS = ["🐘", "🦒", "🐒", "🦓", "🐧", "🐢", "🦆", "🐇", "🦩", "🐊", "🦔", "🐓", "🦙", "🐿️", "🦘", "🐖"];
+const ANIMALS = ["🐘", "🦒", "🐒", "🦓", "🐧", "🐢", "🦆", "🐇", "🦜", "🐊", "🦔", "🐓", "🦙", "🐿️", "🦘", "🐖"];
 
 type Parade = { id: number; animals: { emoji: string; delay: number; duration: number; size: number; hop: number }[] };
 

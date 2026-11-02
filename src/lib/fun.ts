@@ -87,7 +87,7 @@ export const SECRET_LIST = [
   { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit" },
   { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds" },
   { id: "bunny", title: "Easter egg easter egg", icon: "🐰", how: "Had the painter paint the egg in the Farm story" },
-  { id: "goblin", title: "Hide and seek", icon: "🧌", how: "Found the goblin in all three of his hiding places" },
+  { id: "goblin", title: "Hide and seek", icon: "👺", how: "Found the goblin in all three of his hiding places" },
 ] as const;
 export type Secret = (typeof SECRET_LIST)[number]["id"];
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
@@ -98,7 +98,7 @@ export const MILESTONES = [
   { at: 10, name: "Animal parade", icon: "🐘" },
   { at: 20, name: "Confetti cannons", icon: "🎉" },
   { at: 40, name: "Fireworks", icon: "🎆" },
-  { at: 70, name: "Disco", icon: "🪩" },
+  { at: 70, name: "Disco", icon: "🕺" },
   { at: 100, name: "Grand finale", icon: "🏆" },
 ] as const;
 
@@ -272,6 +272,9 @@ export function advanceHide() {
 
 /** The favorite-number unlock: every secret found at once. */
 export const unlockAllSecrets = () => updateFun((s) => ({ ...s, secrets: [...SECRETS] }));
+
+/** Back to square one: secrets, peeks, milestone parties and the goblin's hiding place. */
+export const resetSecrets = () => updateFun((s) => ({ ...s, secrets: [], peeked: [], celebrated: [], hideSpot: 0 }));
 
 /** Game modes open up once every secret hidden so far has been found. */
 export const modesUnlocked = (s: FunState) => SECRETS.every((id) => s.secrets.includes(id));

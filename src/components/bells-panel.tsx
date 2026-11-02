@@ -11,6 +11,7 @@ import {
   MILESTONES,
   modesUnlocked,
   unlockAllSecrets,
+  resetSecrets,
   dueMilestones,
   markCelebrated,
   peekSecret,
@@ -65,6 +66,8 @@ export function BellsPanel() {
 
   return (
     <>
+      {/* The trophy sits left of the badge, so the guide goblin has room on the badge's right. */}
+      <SecretsChip />
       <span className="relative inline-flex">
         <button
           type="button"
@@ -79,7 +82,6 @@ export function BellsPanel() {
         </button>
         <GoblinGuide />
       </span>
-      <SecretsChip />
 
       <div
         id={PANEL_ID}
@@ -195,14 +197,13 @@ function ModeSection() {
 
 /**
  * The secrets tracker lives beside the Bells & whistles badge (not inside its
- * panel). It appears once someone has opened Bells & whistles and either has it
- * on or has found a secret, so first-time visitors see a clean header.
+ * panel), and it's always there, so visitors know secrets exist from the start.
  */
 function SecretsChip() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
   const headingId = useId();
-  if (!mounted || !fun.welcomed || (!fun.on && !fun.secrets.length)) return null;
+  if (!mounted) return null;
   const n = fun.secrets.length;
   return (
     <>
@@ -254,32 +255,42 @@ function UnlockAll() {
   const dialog = useRef<HTMLDialogElement>(null);
   const [code, setCode] = useState("");
   const [wrong, setWrong] = useState(false);
+  // "code" → enter the number; "confirm" → the right number, now spell out what happens.
+  const [stage, setStage] = useState<"code" | "confirm">("code");
+  const [resetting, setResetting] = useState(false);
   const titleId = useId();
+  const missing = SECRET_LIST.length - fun.secrets.filter((id) => SECRET_LIST.some((x) => x.id === id)).length;
 
   const press = (d: string) => {
+    if (stage !== "code") return;
     setWrong(false);
     setCode((c) => (c + d).slice(0, 6));
   };
   const submit = () => {
+    if (stage === "confirm") return unlock();
     if (code === "137") {
-      dialog.current?.close();
-      unlockAllSecrets();
-      burst("confetti");
-      sound("secret");
-      toast("You know my favorite number. Every secret unlocked, and the game modes too.");
-      for (const m of dueMilestones(getFun())) {
-        markCelebrated(m.at);
-        window.setTimeout(() => celebrate(m.at), 1400);
-      }
+      setStage("confirm");
+      sound("toggle");
     } else {
       setWrong(true);
       setCode("");
       sound("hit");
     }
   };
+  const unlock = () => {
+    dialog.current?.close();
+    unlockAllSecrets();
+    burst("confetti");
+    sound("secret");
+    toast("You know my favorite number. Every secret unlocked, and the game modes too.");
+    for (const m of dueMilestones(getFun())) {
+      markCelebrated(m.at);
+      window.setTimeout(() => celebrate(m.at), 1400);
+    }
+  };
 
   return (
-    <div className="mt-4 border-t border-line pt-3">
+    <div className="mt-4 space-y-3 border-t border-line pt-3">
       <Switch
         label="Unlock all secrets"
         description={all ? "Everything's unlocked" : "If you know my favorite number"}
@@ -288,10 +299,44 @@ function UnlockAll() {
         onChange={() => {
           setCode("");
           setWrong(false);
+          setStage("code");
           dialog.current?.showModal();
         }}
         className="text-sm"
       />
+      {resetting ? (
+        <div role="group" aria-label="Reset all secrets?" className="rounded-lg border border-line p-3 text-sm">
+          <p>
+            This clears the {fun.secrets.length} {fun.secrets.length === 1 ? "secret" : "secrets"} you&apos;ve found, the hints you peeked at, the
+            milestone parties and the goblin&apos;s hiding place. Game modes lock again. Your effect settings stay as they are.
+          </p>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                resetSecrets();
+                setResetting(false);
+                toast("All secrets reset. Happy hunting.");
+              }}
+              className="min-h-10 rounded-full bg-kelp px-4 font-medium text-kelp-ink"
+            >
+              Reset everything
+            </button>
+            <button type="button" onClick={() => setResetting(false)} className="min-h-10 rounded-full border border-line px-4">
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setResetting(true)}
+          disabled={!fun.secrets.length && !fun.peeked.length}
+          className="min-h-10 text-sm text-muted underline underline-offset-4 hover:text-ink disabled:cursor-not-allowed disabled:no-underline disabled:opacity-60"
+        >
+          Reset all secrets
+        </button>
+      )}
       <dialog
         ref={dialog}
         aria-labelledby={titleId}
@@ -304,33 +349,56 @@ function UnlockAll() {
             submit();
           }
         }}
-        className="numpad m-auto w-[min(18rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
+        className="numpad m-auto w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
       >
         <h2 id={titleId} className="font-display text-lg font-semibold tracking-tight">
-          What&apos;s my favorite number?
+          {stage === "code" ? "What's my favorite number?" : "137. You know me. Unlock everything?"}
         </h2>
-        <output
-          aria-live="polite"
-          className={`mt-3 flex h-12 items-center justify-center rounded-lg bg-paper font-mono text-2xl tracking-[0.4em] tabular-nums ${wrong ? "numpad-wrong" : ""}`}
-        >
-          {wrong ? "Nope" : code || "\u00a0"}
-        </output>
-        <div className="mt-3 grid grid-cols-3 gap-2">
-          {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
-            <button key={d} type="button" onClick={() => press(d)} className="numpad-key">
-              {d}
-            </button>
-          ))}
-          <button type="button" onClick={() => setCode("")} className="numpad-key text-sm" aria-label="Clear">
-            Clear
-          </button>
-          <button type="button" onClick={() => press("0")} className="numpad-key">
-            0
-          </button>
-          <button type="button" onClick={submit} className="numpad-key numpad-enter text-sm">
-            Enter
-          </button>
-        </div>
+        {stage === "code" ? (
+          <>
+            <output
+              aria-live="polite"
+              className={`mt-3 flex h-12 items-center justify-center rounded-lg bg-paper font-mono text-2xl tracking-[0.4em] tabular-nums ${wrong ? "numpad-wrong" : ""}`}
+            >
+              {wrong ? "Nope" : code || "\u00a0"}
+            </output>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
+                <button key={d} type="button" onClick={() => press(d)} className="numpad-key">
+                  {d}
+                </button>
+              ))}
+              <button type="button" onClick={() => setCode("")} className="numpad-key text-sm" aria-label="Clear">
+                Clear
+              </button>
+              <button type="button" onClick={() => press("0")} className="numpad-key">
+                0
+              </button>
+              <button type="button" onClick={submit} className="numpad-key numpad-enter text-sm">
+                Enter
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
+              <li>
+                The {missing} {missing === 1 ? "secret" : "secrets"} you haven&apos;t found yet will be marked found, without you finding them.
+              </li>
+              <li>The three game modes unlock.</li>
+              <li>Any milestone parties you pass will play.</li>
+              <li>You can undo it any time with &ldquo;Reset all secrets&rdquo;, which clears every secret, including the ones you found yourself.</li>
+            </ul>
+            <div className="mt-4 flex gap-2">
+              <button type="button" onClick={unlock} className="numpad-key numpad-enter flex-1 px-3 text-sm" autoFocus>
+                Unlock everything
+              </button>
+              <button type="button" onClick={() => dialog.current?.close()} className="numpad-key flex-1 px-3 text-sm">
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
       </dialog>
     </div>
   );

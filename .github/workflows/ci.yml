@@ -30,4 +30,5 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run check:contrast
+      - run: npm run check:emoji
       - run: npm run build

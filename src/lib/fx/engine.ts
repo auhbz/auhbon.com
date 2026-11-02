@@ -194,10 +194,21 @@ export class FxEngine {
     }
   }
 
+  /**
+   * The canvas's real CSS size. window.innerWidth includes the scrollbar while the
+   * fixed canvas doesn't, which used to squeeze every drawing toward the left.
+   */
+  private get W() {
+    return document.documentElement.clientWidth;
+  }
+  private get H() {
+    return document.documentElement.clientHeight;
+  }
+
   private resize = () => {
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.canvas.width = Math.round(window.innerWidth * this.dpr);
-    this.canvas.height = Math.round(window.innerHeight * this.dpr);
+    this.canvas.width = Math.round(this.W * this.dpr);
+    this.canvas.height = Math.round(this.H * this.dpr);
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
   };
 
@@ -213,6 +224,10 @@ export class FxEngine {
     };
 
     on("resize", this.resize);
+    // The scrollbar can appear or vanish without a window resize (e.g. a game locks scrolling).
+    const ro = new ResizeObserver(() => this.resize());
+    ro.observe(this.canvas);
+    this.cleanup.push(() => ro.disconnect());
     on("pointermove", (e) => this.onMove(e.clientX, e.clientY, e.pointerType), { passive: true });
     // Touch: pointer events stop once the page starts scrolling, but touchmove keeps
     // reporting, so trails and mercury follow a finger through a scroll too.
@@ -428,13 +443,17 @@ export class FxEngine {
     this.scorches.push({ x: x + scrollX, y: y + scrollY, r: 18, life: 1 });
   }
 
-  /** Cursed click: the ghost lunges at the spot, in a puff of ectoplasm. */
+  /** Cursed click: a puff of ectoplasm shoos the ghost back a little. */
   private boo(x: number, y: number) {
-    this.ghost ??= { x, y: y + 40, alpha: 0, lastMove: performance.now(), dir: 1, t: 0 };
+    this.ghost ??= { x: x - 34, y: y + 26, alpha: 0, lastMove: performance.now(), dir: 1, t: 0 };
     const g = this.ghost;
-    g.x += (x - g.x) * 0.8;
-    g.y += (y - g.y) * 0.8;
-    g.alpha = 1;
+    const dx = g.x - x;
+    const dy = g.y - y;
+    const d = Math.hypot(dx, dy) || 1;
+    g.x += (dx / d) * 45;
+    g.y += (dy / d) * 45;
+    g.dir = dx >= 0 ? -1 : 1; // it flinches, facing the click
+    g.alpha = 0.6;
     g.lastMove = performance.now();
     for (let i = 0; i < 12; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -505,7 +524,7 @@ export class FxEngine {
     this.last = now;
     const f = dt / 16.67; // 1 at 60fps
     const { ctx } = this;
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.clearRect(0, 0, this.W, this.H);
 
     this.updateScorches(ctx, dt);
     this.updateKnocked(ctx, dt, f);
@@ -521,9 +540,9 @@ export class FxEngine {
 
     const busy =
       this.particles.length || this.scorches.length || this.knocked.length || this.rocks.length || this.goblins.length || this.drag || this.ghost ||
-      this.electric || (this.settings.trail && this.pointer?.type === "mouse") || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
+      this.electric || ((this.settings.trail || this.settings.buttons === "electric") && this.pointer?.type === "mouse") || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
     this.frame = busy ? requestAnimationFrame(this.tick) : 0;
-    if (!busy) ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    if (!busy) ctx.clearRect(0, 0, this.W, this.H);
   };
 
   private updateParticles(ctx: CanvasRenderingContext2D, f: number) {
@@ -537,10 +556,10 @@ export class FxEngine {
       if (p.curious) this.steerBat(p, f);
       if (p.ambient) {
         p.x += Math.sin(p.y / 40 + p.hue) * 0.6 * f;
-        if (p.y > window.innerHeight + 40 || p.x < -80 || p.x > window.innerWidth + 80) this.particles.splice(i, 1);
+        if (p.y > this.H + 40 || p.x < -80 || p.x > this.W + 80) this.particles.splice(i, 1);
       } else {
         p.life -= p.decay * f;
-        if (p.life <= 0 || p.y > window.innerHeight + 60) {
+        if (p.life <= 0 || p.y > this.H + 60) {
           this.particles.splice(i, 1);
           continue;
         }
@@ -637,7 +656,7 @@ export class FxEngine {
       }
       const x = s.x - scrollX;
       const y = s.y - scrollY;
-      if (y < -40 || y > window.innerHeight + 40) continue;
+      if (y < -40 || y > this.H + 40) continue;
       const g = ctx.createRadialGradient(x, y, 0, x, y, s.r * 1.6);
       if (this.dark) {
         g.addColorStop(0, `rgba(255,130,50,${0.45 * s.life})`);
@@ -665,7 +684,7 @@ export class FxEngine {
         k.angle += k.spin * f;
         // Bounce off the bottom of the screen.
         const screenY = k.homeY - scrollY + k.dy;
-        if (screenY > window.innerHeight - 16 && k.vy > 0) {
+        if (screenY > this.H - 16 && k.vy > 0) {
           k.vy *= -0.45;
           k.vx *= 0.7;
           k.spin *= 0.6;
@@ -742,14 +761,14 @@ export class FxEngine {
       // (bouncing off the sides) instead of flying away.
       const goblin = this.goblinEl();
       if (goblin) {
-        const floor = window.innerHeight - 9;
+        const floor = this.H - 9;
         if (r.y > floor) {
           r.y = floor;
           r.vy = Math.abs(r.vy) < 2.5 ? 0 : r.vy * -0.35;
           r.vx *= 0.92 ** f;
         }
-        if (r.x < 9 || r.x > window.innerWidth - 9) {
-          r.x = Math.min(window.innerWidth - 9, Math.max(9, r.x));
+        if (r.x < 9 || r.x > this.W - 9) {
+          r.x = Math.min(this.W - 9, Math.max(9, r.x));
           r.vx *= -0.5;
         }
         const resting = r.y >= floor && r.vy === 0 && Math.abs(r.vx) < 0.2;
@@ -758,7 +777,7 @@ export class FxEngine {
           this.fetch(goblin, r);
           continue;
         }
-      } else if (r.age > 4500 || r.y > window.innerHeight + 60 || r.x < -60 || r.x > window.innerWidth + 60) {
+      } else if (r.age > 4500 || r.y > this.H + 60 || r.x < -60 || r.x > this.W + 60) {
         this.rocks.splice(i, 1);
         r.el.dataset.state = "ready"; // the rock grows back on the i
         continue;
@@ -967,7 +986,7 @@ export class FxEngine {
       if (now < due || this.bubbles.length > 16) continue;
       this.nextBubble.set(src, now + 900 + Math.random() * 1100);
       const r = src.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > window.innerHeight) continue;
+      if (r.bottom < 0 || r.top > this.H) continue;
       this.bubbles.push({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: 3, maxR: 9 + Math.random() * 13, vy: -(0.5 + Math.random() * 0.7), phase: Math.random() * 6 });
     }
     // Hovering a bubble with a mouse pops it too.
@@ -1054,9 +1073,7 @@ export class FxEngine {
   }
 
   private drawElectric(ctx: CanvasRenderingContext2D, now: number) {
-    const e = this.electric;
-    if (!e) return;
-    if (this.settings.buttons !== "electric" || now > e.until || !e.el.isConnected) {
+    if (this.settings.buttons !== "electric") {
       this.electric = null;
       return;
     }
@@ -1065,33 +1082,83 @@ export class FxEngine {
       this.boltSeed = Math.random() * 1e6;
       this.lastBolt = now;
     }
-    const r = e.el.getBoundingClientRect();
-    const radius = Math.min(parseFloat(getComputedStyle(e.el).borderTopLeftRadius) || 0, r.height / 2, r.width / 2);
     let seed = this.boltSeed;
     const rand = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280) - 0.5;
+    const p = this.pointer;
+    const stroke = (draw: () => void) => {
+      for (const [width, color, alpha] of [[3, "#43d9ff", 0.45], [1.3, "#e9fdff", 0.95]] as const) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = alpha;
+        ctx.lineWidth = width;
+        ctx.shadowColor = "#43d9ff";
+        ctx.shadowBlur = 10;
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        draw();
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
 
-    for (const [width, color, alpha] of [[3, "#43d9ff", 0.45], [1.3, "#e9fdff", 0.95]] as const) {
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.globalAlpha = alpha;
-      ctx.lineWidth = width;
-      ctx.shadowColor = "#43d9ff";
-      ctx.shadowBlur = 10;
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      const points = 64;
+    // Reaching out: nearby buttons throw an arc toward the cursor, longer as it gets closer.
+    if (p?.type === "mouse" && !this.settings.reduced && !this.electric) {
+      const REACH = 130;
+      const near: { r: DOMRect; d: number; nx: number; ny: number }[] = [];
+      for (const pill of document.querySelectorAll<HTMLElement>(".pill")) {
+        const r = pill.getBoundingClientRect();
+        if (r.bottom < 0 || r.top > this.H) continue;
+        const nx = Math.max(r.left, Math.min(p.x, r.right));
+        const ny = Math.max(r.top, Math.min(p.y, r.bottom));
+        const d = Math.hypot(p.x - nx, p.y - ny);
+        if (d > 0 && d < REACH) near.push({ r, d, nx, ny });
+      }
+      near.sort((a, b) => a.d - b.d);
+      for (const { d, nx, ny } of near.slice(0, 3)) {
+        const reach = Math.min(1, (1 - d / REACH) * 1.6); // touches the cursor inside ~50px
+        const tx = nx + (p.x - nx) * reach;
+        const ty = ny + (p.y - ny) * reach;
+        const len = Math.hypot(tx - nx, ty - ny);
+        const steps = Math.max(3, Math.round(len / 10));
+        const ux = (tx - nx) / (len || 1);
+        const uy = (ty - ny) / (len || 1);
+        stroke(() => {
+          ctx.moveTo(nx, ny);
+          for (let i = 1; i <= steps; i++) {
+            const t = i / steps;
+            const wobble = i === steps ? 0 : rand() * 12 * Math.sin(Math.PI * t);
+            ctx.lineTo(nx + (tx - nx) * t - uy * wobble, ny + (ty - ny) * t + ux * wobble);
+          }
+        });
+      }
+    }
+
+    const e = this.electric;
+    if (!e) return;
+    if (now > e.until || !e.el.isConnected) {
+      this.electric = null;
+      return;
+    }
+    const r = e.el.getBoundingClientRect();
+    const radius = Math.min(parseFloat(getComputedStyle(e.el).borderTopLeftRadius) || 0, r.height / 2, r.width / 2);
+    // On the button: ripples spread out along the outline from under the cursor.
+    stroke(() => {
+      const points = 72;
       for (let i = 0; i <= points; i++) {
         const [px, py, nx, ny] = perimeterPoint(r, radius, i / points);
-        const jitter = 3 + rand() * 7;
-        const x = px + nx * jitter;
-        const y = py + ny * jitter;
+        let out = 3 + rand() * 6;
+        if (p && !this.settings.reduced) {
+          const d = Math.hypot(px - p.x, py - p.y);
+          out += 9 * Math.exp(-d / 55) * Math.sin(now / 45 - d / 9) + 4 * Math.exp(-d / 30);
+        }
+        const x = px + nx * out;
+        const y = py + ny * out;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
-      ctx.stroke();
-      ctx.restore();
-    }
+    });
   }
+
 
   // ---------------------------------------------------------------- still states
 
@@ -1198,7 +1265,7 @@ export class FxEngine {
 
   private updateAmbient(now: number) {
     if (!this.ambientOn() || now < this.nextAmbient) return;
-    const W = window.innerWidth;
+    const W = this.W;
     if (this.settings.look === "nature") {
       this.nextAmbient = now + 1300 + Math.random() * 1200;
       if (this.particles.filter((p) => p.ambient).length > 10) return;
@@ -1206,7 +1273,7 @@ export class FxEngine {
     } else {
       this.nextAmbient = now + 5000 + Math.random() * 5000;
       const fromLeft = Math.random() < 0.5;
-      this.add({ kind: "glyph", ambient: true, flap: true, x: fromLeft ? -30 : W + 30, y: 60 + Math.random() * window.innerHeight * 0.35, vx: (fromLeft ? 1 : -1) * (2.2 + Math.random() * 1.5), vy: (Math.random() - 0.5) * 0.4, life: 1, decay: 0, size: 22 + Math.random() * 10, hue: Math.random() * 10, glyph: "🦇", gravity: 0, spin: 0, angle: 0,
+      this.add({ kind: "glyph", ambient: true, flap: true, x: fromLeft ? -30 : W + 30, y: 60 + Math.random() * this.H * 0.35, vx: (fromLeft ? 1 : -1) * (2.2 + Math.random() * 1.5), vy: (Math.random() - 0.5) * 0.4, life: 1, decay: 0, size: 22 + Math.random() * 10, hue: Math.random() * 10, glyph: "🦇", gravity: 0, spin: 0, angle: 0,
         // Some bats are curious: they come over to the cursor for a while.
         curious: Math.random() < 0.45 ? now + 9000 + Math.random() * 7000 : undefined });
     }

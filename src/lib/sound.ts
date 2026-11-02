@@ -193,6 +193,29 @@ const clown = {
     }
     tone(210, { type: "square", attack: 0.012, decay: 0.2, peak: 0.02, glideTo: 190, filter: { type: "lowpass", freq: 900 } });
   },
+  /** Two quick squeezes of the horn, the second higher. (Lab option B) */
+  honkHonk() {
+    const one = (at: number, f: number) => {
+      for (const d of [0, 6]) tone(f + d, { type: "sawtooth", at, attack: 0.012, decay: 0.24, peak: 0.07, glideTo: (f + d) * 0.9, filter: { type: "bandpass", freq: 1150, q: 3 } });
+      tone(f / 2, { type: "square", at, attack: 0.012, decay: 0.2, peak: 0.02, glideTo: f / 2.2, filter: { type: "lowpass", freq: 900 } });
+    };
+    one(0, 400);
+    one(0.14, 470);
+  },
+  /** Ba-dum-tss. (Lab option D) */
+  rimshot() {
+    for (const [at, f] of [[0, 190], [0.14, 150]] as const) {
+      tone(f, { at, glideTo: f * 0.6, attack: 0.003, decay: 0.12, peak: 0.12 });
+      hiss({ at, peak: 0.12, decay: 0.05, freq: 1800, q: 0.8 });
+    }
+    hiss({ at: 0.3, peak: 0.1, decay: 0.55, type: "highpass", freq: 5500, q: 0.5 });
+  },
+  /** A soft, wet pie to the face, with a drip. (Lab option G) */
+  pieSplat() {
+    hiss({ peak: 0.4, attack: 0.002, decay: 0.12, type: "lowpass", freq: 700, q: 1.2 });
+    tone(140, { glideTo: 60, attack: 0.003, decay: 0.12, peak: 0.12 });
+    tone(900, { at: 0.2, glideTo: 1500, attack: 0.004, decay: 0.05, peak: 0.03 });
+  },
   /** A short round of applause. */
   applause() {
     const claps = 34;
@@ -320,7 +343,9 @@ export function play(pack: SoundPack, event: SoundEvent) {
           else if (r < 0.75) clown.kazoo();
           else clown.boing();
         } else if (event === "press" || event === "toggle") {
-          clown.honk();
+          // Presses rotate through the three picks from the Clown Click Lab.
+          if (event === "toggle") clown.honkHonk();
+          else pick([clown.pieSplat, clown.rimshot, clown.honkHonk])();
           // Every so often, the crowd goes wild.
           if (event === "press" && ++presses % 5 === 0) clown.applause();
         } else if (event === "pop") clown.boing();
