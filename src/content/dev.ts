@@ -39,7 +39,7 @@ export const roadmap: RoadmapItem[] = [
     item: "1.18.0: Mobile experience",
     version: "1.18.0",
     status: "WIP",
-    notes: "On a preview branch for testing before it goes live.",
+    notes: "All seven ideas below are built on the mobile-preview branch (a Vercel preview), waiting for a phone test before it goes live.",
   },
   { item: "Copy editing", status: "Waiting on Auhbon", notes: "48 suggestions awaiting approval." },
   { item: "Global leaderboards", status: "Waiting on Auhbon", notes: "Needs Upstash Redis connected in Vercel." },

@@ -7,6 +7,7 @@ import { FxEngine } from "@/lib/fx/engine";
 import { play, type SoundEvent, type SoundPack } from "@/lib/sound";
 import { prefersReducedMotion } from "@/lib/events";
 import { reveal } from "@/components/easter-eggs";
+import { haptic } from "@/lib/device";
 
 const noSubscribe = () => () => {};
 
@@ -50,10 +51,12 @@ export function FxCanvas() {
   const dots = activeVariant(fun, "dots");
   const buttons = activeVariant(fun, "buttons");
   const look = lookActive(fun);
+  const on = fun.on;
+  const motion = fun.on && fun.motion;
 
   useEffect(() => {
-    engine.current?.configure({ trail, dots, buttons, look, reduced });
-  }, [trail, dots, buttons, look, reduced]);
+    engine.current?.configure({ trail, dots, buttons, look, reduced, on, motion });
+  }, [trail, dots, buttons, look, reduced, on, motion]);
 
   return <canvas ref={canvas} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[55] h-full w-full" />;
 }
@@ -77,6 +80,8 @@ export function SoundFx() {
     };
     const onClick = (e: MouseEvent) => {
       if ((e.target as Element).closest("a, button, [role='option'], [data-letter]")) playIfOn("press");
+      // Phones that can vibrate: a light tap on button presses (only while Bells & whistles is on).
+      if ((e.target as Element).closest("button, [role='button'], [role='option']")) haptic("tap");
     };
     const onSound = (e: Event) => playIfOn((e as CustomEvent<SoundEvent>).detail);
     document.addEventListener("pointerover", onOver);

@@ -37,6 +37,7 @@ Every version is saved as a `release/<version>` branch you can browse, compare, 
 <!-- versions:start -->
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.18.0 | Mobile experience (preview) | [`release/1.18.0`](https://github.com/auhbz/auhbon.com/tree/release/1.18.0) |
 | 1.17.0 | Dev pages | [`release/1.17.0`](https://github.com/auhbz/auhbon.com/tree/release/1.17.0) |
 | 1.16.0 | Farm adventure & cooking secrets | [`release/1.16.0`](https://github.com/auhbz/auhbon.com/tree/release/1.16.0) |
 | 1.15.0 | Feedback fixes, round 3 | [`release/1.15.0`](https://github.com/auhbz/auhbon.com/tree/release/1.15.0) |

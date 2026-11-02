@@ -12,7 +12,7 @@ What's planned, what's waiting on a decision, and what changed in each round of 
 | Version URLs (e.g. `1-0-0.auhbon.com`, one per checkpoint) | Proposed, waiting on approval |
 | More effects, options and categories (#11) | WIP |
 | 100 secrets (12 hidden so far) | WIP |
-| Better mobile experience | WIP (ideas: bottom-sheet panel, one-row header, long-press "hold still", tilt, haptics, shake to shuffle) |
+| Better mobile experience | Preview (1.18.0 on the `mobile-preview` branch: bottom-sheet panels, one-row header, long-press "hold still", tilt, haptics, shake to shuffle, swipe to fling, touch-first games), waiting on a phone test |
 | GitHub activity graph | Planned |
 | Outcome numbers in the copy | Planned (needs figures) |
 | Recorded sounds (clown laughter) | Skipped for now: laughter doesn't synthesize well, and the site ships no audio files |

@@ -15,6 +15,10 @@ export type EngineSettings = {
   buttons: string | null;
   look: Look;
   reduced: boolean;
+  /** Bells & whistles is on (any effect or look). Gates touch gestures like the hero swipe. */
+  on: boolean;
+  /** Phones: "Motion controls" is on, so tilt steers bubbles and aims the slingshot. */
+  motion: boolean;
 };
 
 type Particle = {
@@ -72,20 +76,42 @@ type Goblin = {
   /** Set when the visitor clicks the goblin: he hurries. */
   boost?: number;
 };
-type Drag = { el: HTMLElement; originX: number; originY: number; x: number; y: number; id: number };
+type Drag = {
+  el: HTMLElement;
+  originX: number;
+  originY: number;
+  x: number;
+  y: number;
+  id: number;
+  /** Where the finger went down; while it stays put (and motion controls are on), tilt aims. */
+  startX: number;
+  startY: number;
+  tilt: boolean;
+};
+/** A finger that went down with a cursor trail on; held still long enough, it becomes a "hold still". */
+type Press = { x: number; y: number; timer: number };
+/** A touch in progress, watched for a fast horizontal swipe across the hero name. */
+type Swipe = { x0: number; y0: number; t0: number; x: number; y: number; flung: boolean };
 type Bubble = { x: number; y: number; r: number; maxR: number; vy: number; phase: number };
 type Ghost = { x: number; y: number; alpha: number; lastMove: number; dir: number; t: number };
 
 const FLY_MS = 1500;
 const RETURN_MS = 650;
 const MAX_PARTICLES = 600;
+/** How long a finger must stay put to count as holding still. */
+const HOLD_MS = 500;
+/** A finger can wobble this much (px) and still be holding still. */
+const HOLD_SLOP = 10;
+/** Long-pressing these keeps its usual meaning (links, buttons, the rock...). */
+const HOLD_SKIP =
+  "a, button, input, textarea, select, label, summary, [contenteditable], [role='button'], [role='switch'], [role='radio'], [data-rock], [data-goblin], [data-farm-dot], [data-egg], dialog, [popover]";
 
 export class FxEngine {
   private ctx: CanvasRenderingContext2D;
   private dpr = 1;
   private frame = 0;
   private last = 0;
-  private settings: EngineSettings = { trail: null, dots: null, buttons: null, look: "classic", reduced: false };
+  private settings: EngineSettings = { trail: null, dots: null, buttons: null, look: "classic", reduced: false, on: false, motion: false };
 
   private particles: Particle[] = [];
   private scorches: Scorch[] = [];
@@ -105,6 +131,13 @@ export class FxEngine {
   private lastMoveAt = 0;
   private stillMs = 0;
   private possessed = false;
+  private press: Press | null = null;
+  /** A finger is holding still (long-press): the trail's still state shows at the finger. */
+  private holding = false;
+  private swipe: Swipe | null = null;
+  /** Latest device orientation and the "level" it's measured from (Motion controls). */
+  private tiltRaw: { beta: number; gamma: number } | null = null;
+  private tiltBase: { beta: number; gamma: number } | null = null;
   private nextBubble = new WeakMap<Element, number>();
   private nextAmbient = 0;
   private boltSeed = 0;
@@ -132,6 +165,14 @@ export class FxEngine {
     if (next.trail !== "cursed") this.setPossessed(false);
     if (next.dots !== "bubbles") this.bubbles = [];
     if (next.dots !== "slingshot") this.goblins = [];
+    if (!next.trail) this.endPress();
+    if (next.motion && !prev.motion) {
+      this.tiltRaw = this.tiltBase = null;
+      window.addEventListener("deviceorientation", this.onOrient);
+    } else if (!next.motion && prev.motion) {
+      window.removeEventListener("deviceorientation", this.onOrient);
+      this.tiltRaw = this.tiltBase = null;
+    }
     if (next.buttons !== "cookie") for (const pill of document.querySelectorAll<HTMLElement>(".pill[data-bites]")) delete pill.dataset.bites;
     // Leaves and bats belong to their look; clear them when the look changes.
     if (prev.look !== next.look) this.particles = this.particles.filter((p) => !p.ambient);
@@ -142,6 +183,8 @@ export class FxEngine {
   destroy() {
     cancelAnimationFrame(this.frame);
     this.cleanup.forEach((f) => f());
+    window.removeEventListener("deviceorientation", this.onOrient);
+    this.endPress();
     this.clearMercury();
     this.setPossessed(false);
     for (const k of this.knocked) if (k.hit.letter) k.hit.letter.style.transform = "";
@@ -177,6 +220,24 @@ export class FxEngine {
         angle: Math.random() * Math.PI,
       });
     }
+  }
+
+  /**
+   * Flings the hero letters along a line (a fast swipe across the name), using the
+   * same physics as a slingshot hit. Velocities are in px per frame. Returns how many flew.
+   */
+  fling(x0: number, y0: number, x1: number, y1: number, vx: number, vy: number) {
+    if (!this.settings.on || this.settings.reduced) return 0;
+    const steps = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 8));
+    let n = 0;
+    for (let i = 0; i <= steps; i++) {
+      const hit = wordAt(x0 + ((x1 - x0) * i) / steps, y0 + ((y1 - y0) * i) / steps);
+      if (!hit?.letter || this.knocked.some((k) => k.hit.key === hit.key)) continue;
+      this.knock(hit, vx, vy);
+      n++;
+    }
+    if (n) this.ensure();
+    return n;
   }
 
   // ---------------------------------------------------------------- plumbing
@@ -233,9 +294,25 @@ export class FxEngine {
     // reporting, so trails and mercury follow a finger through a scroll too.
     on("touchmove", (e) => {
       const t = e.touches[0];
-      if (t) this.onMove(t.clientX, t.clientY, "touch");
+      if (!t) return;
+      this.onMove(t.clientX, t.clientY, "touch");
+      this.swipeMove(t.clientX, t.clientY);
     }, { passive: true });
     on("touchend", () => this.onLeave("touch"), { passive: true });
+    on("touchcancel", () => this.onLeave("touch"), { passive: true });
+    // A fast horizontal swipe across the hero name flings its letters. Passive, so
+    // vertical scrolling is never held up.
+    on("touchstart", (e) => {
+      const t = e.touches[0];
+      this.swipe = e.touches.length === 1 && t ? { x0: t.clientX, y0: t.clientY, t0: performance.now(), x: t.clientX, y: t.clientY, flung: false } : null;
+    }, { passive: true });
+    // Long-press: no text selection or callout menu while a finger is holding still.
+    const holdGuard = (e: Event) => {
+      if (this.press) e.preventDefault();
+    };
+    on("contextmenu", holdGuard);
+    document.addEventListener("selectstart", holdGuard);
+    this.cleanup.push(() => document.removeEventListener("selectstart", holdGuard));
     on("pointerdown", (e) => this.onDown(e));
     on("pointerup", (e) => this.onUp(e));
     on("pointercancel", (e) => this.onUp(e));
@@ -268,14 +345,23 @@ export class FxEngine {
   }
 
   private onMove(x: number, y: number, type: string) {
+    // A finger that's holding still may wobble a little; only a real move ends the hold.
+    if (type === "touch" && this.press) {
+      if (Math.hypot(x - this.press.x, y - this.press.y) < HOLD_SLOP) return;
+      this.endPress();
+    }
     this.prev = this.pointer ? { x: this.pointer.x, y: this.pointer.y } : { x, y };
     this.pointer = { x, y, type };
     this.lastMoveAt = performance.now();
     this.stillMs = 0;
     this.setPossessed(false);
-    if (this.drag) {
-      this.drag.x = x;
-      this.drag.y = y;
+    const d = this.drag;
+    // With motion controls, a finger resting on the rock lets tilt do the aiming;
+    // once it really drags, the finger takes over again.
+    if (d && !(d.tilt && Math.hypot(x - d.startX, y - d.startY) < 12)) {
+      d.tilt = false;
+      d.x = x;
+      d.y = y;
     }
     const now = performance.now();
     const t = this.settings.trail;
@@ -291,6 +377,10 @@ export class FxEngine {
   }
 
   private onLeave(type: string) {
+    if (type === "touch") {
+      this.endPress();
+      this.swipe = null;
+    }
     if (this.pointer?.type === type) this.pointer = null;
     this.setPossessed(false);
     if (type === "touch" && this.settings.buttons === "mercury") this.clearMercury();
@@ -312,7 +402,10 @@ export class FxEngine {
       e.preventDefault();
       rock.setPointerCapture?.(e.pointerId);
       const r = rock.getBoundingClientRect();
-      this.drag = { el: rock, originX: r.left + r.width / 2, originY: r.top + r.height / 2, x: e.clientX, y: e.clientY, id: e.pointerId };
+      const tilt = this.settings.motion && e.pointerType === "touch";
+      // Tilt aims relative to how the phone is held right now.
+      if (tilt) this.tiltBase = this.tiltRaw ? { ...this.tiltRaw } : null;
+      this.drag = { el: rock, originX: r.left + r.width / 2, originY: r.top + r.height / 2, x: e.clientX, y: e.clientY, id: e.pointerId, startX: e.clientX, startY: e.clientY, tilt };
       rock.dataset.state = "out";
       document.documentElement.dataset.slinging = "true";
       this.ensure();
@@ -352,9 +445,89 @@ export class FxEngine {
     else if (trail === "sparkle") this.sparkleBurst(e.clientX, e.clientY);
     else if (trail === "fire") this.fireBurst(e.clientX, e.clientY);
     else if (trail === "cursed") this.boo(e.clientX, e.clientY);
+
+    // A finger on plain page content (not a link or control) might be about to hold still.
+    if (trail && e.pointerType === "touch" && !target.closest(HOLD_SKIP)) this.startPress(e.clientX, e.clientY);
+  }
+
+  // ---------------------------------------------------------------- touch gestures
+
+  private startPress(x: number, y: number) {
+    this.endPress();
+    this.press = { x, y, timer: window.setTimeout(() => this.beginHold(), HOLD_MS) };
+    // Long-press now means "hold still", so no text selection or callout while it's down.
+    document.documentElement.dataset.fxPress = "true";
+  }
+
+  private beginHold() {
+    const p = this.press;
+    if (!p || !this.settings.trail) return;
+    const now = performance.now();
+    this.holding = true;
+    this.pointer = { x: p.x, y: p.y, type: "touch" };
+    this.lastMoveAt = now - 600; // the still state starts right away
+    this.stillMs = 0;
+    getSelection()?.removeAllRanges();
+    if (this.settings.trail === "cursed") {
+      this.ghost ??= { x: p.x - 34, y: p.y + 26, alpha: 0, lastMove: now, dir: 1, t: 0 };
+      this.ghost.lastMove = now - 1400; // it comes for the finger straight away
+    }
+    this.ensure();
+  }
+
+  private endPress() {
+    if (this.press) window.clearTimeout(this.press.timer);
+    this.press = null;
+    if (this.holding) {
+      this.holding = false;
+      this.stillMs = 0;
+      this.setPossessed(false);
+    }
+    delete document.documentElement.dataset.fxPress;
+  }
+
+  private swipeMove(x: number, y: number) {
+    const s = this.swipe;
+    if (!s || this.drag || !this.settings.on) return;
+    const dx = x - s.x0;
+    const dy = y - s.y0;
+    const ms = Math.max(1, performance.now() - s.t0);
+    // Only a mostly horizontal, fast swipe counts (vertical drags are scrolling).
+    if (Math.abs(dx) > 24 && Math.abs(dx) > Math.abs(dy) * 2 && Math.abs(dx) / ms > 0.45) {
+      const clamp = (v: number, m: number) => Math.max(-m, Math.min(m, v));
+      // The first time it qualifies, cover the whole path so far.
+      this.fling(s.flung ? s.x : s.x0, s.flung ? s.y : s.y0, x, y, clamp((dx / ms) * 16.67, 22), clamp((dy / ms) * 16.67, 8));
+      s.flung = true;
+    }
+    s.x = x;
+    s.y = y;
+  }
+
+  private onOrient = (e: DeviceOrientationEvent) => {
+    if (e.beta == null || e.gamma == null) return;
+    this.tiltRaw = { beta: e.beta, gamma: e.gamma };
+    this.tiltBase ??= { ...this.tiltRaw };
+    if (this.drag?.tilt || this.bubbles.length) this.ensure();
+  };
+
+  /**
+   * Tilt as a screen-space "downhill" vector, about -1..1 per axis (1 is roughly
+   * 30 degrees from where the phone was held when tilt started counting).
+   */
+  private tiltVec(): [number, number] | null {
+    const r = this.tiltRaw;
+    const b = this.tiltBase;
+    if (!this.settings.motion || !r || !b) return null;
+    const rad = Math.PI / 180;
+    const gx = Math.sin((r.gamma - b.gamma) * rad) / 0.5;
+    const gy = Math.sin((r.beta - b.beta) * rad) / 0.5;
+    const a = (screen.orientation?.angle ?? 0) * rad;
+    const c = (v: number) => Math.max(-1.5, Math.min(1.5, v));
+    return [c(gx * Math.cos(a) + gy * Math.sin(a)), c(-gx * Math.sin(a) + gy * Math.cos(a))];
   }
 
   private onUp(e: PointerEvent) {
+    if (e.pointerType === "touch") this.endPress();
     const d = this.drag;
     if (!d || e.pointerId !== d.id) return;
     this.drag = null;
@@ -533,6 +706,7 @@ export class FxEngine {
     this.updateParticles(ctx, f);
     this.updateRocks(ctx, dt, f);
     this.updateGoblins(ctx, dt, f);
+    this.tiltAim();
     this.drawDrag(ctx);
     this.updateGhost(ctx, now, f);
     this.drawStill(ctx, now, dt);
@@ -540,7 +714,7 @@ export class FxEngine {
 
     const busy =
       this.particles.length || this.scorches.length || this.knocked.length || this.rocks.length || this.goblins.length || this.drag || this.ghost ||
-      this.electric || ((this.settings.trail || this.settings.buttons === "electric") && this.pointer?.type === "mouse") || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
+      this.electric || this.holding || ((this.settings.trail || this.settings.buttons === "electric") && this.pointer?.type === "mouse") || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
     this.frame = busy ? requestAnimationFrame(this.tick) : 0;
     if (!busy) ctx.clearRect(0, 0, this.W, this.H);
   };
@@ -935,6 +1109,15 @@ export class FxEngine {
     ctx.restore();
   }
 
+  /** Motion controls: with a finger resting on the rock, the phone's tilt pulls it back. */
+  private tiltAim() {
+    const d = this.drag;
+    const v = d?.tilt ? this.tiltVec() : null;
+    if (!d || !v) return;
+    d.x = d.originX + v[0] * 150;
+    d.y = d.originY + v[1] * 150;
+  }
+
   private drawDrag(ctx: CanvasRenderingContext2D) {
     const d = this.drag;
     if (!d) return;
@@ -991,12 +1174,22 @@ export class FxEngine {
     }
     // Hovering a bubble with a mouse pops it too.
     if (this.pointer?.type === "mouse") this.popAt(this.pointer.x, this.pointer.y);
+    // Motion controls: bubbles drift the way the phone tilts.
+    const tilt = this.tiltVec();
     ctx.save();
     for (let i = this.bubbles.length - 1; i >= 0; i--) {
       const b = this.bubbles[i];
       b.phase += 0.04 * f;
       b.y += b.vy * f;
       b.x += Math.sin(b.phase) * 0.5 * f;
+      if (tilt) {
+        b.x = Math.max(b.r, Math.min(this.W - b.r, b.x + tilt[0] * 1.6 * f));
+        b.y += tilt[1] * 1.6 * f;
+        if (b.y > this.H + 40) {
+          this.bubbles.splice(i, 1);
+          continue;
+        }
+      }
       b.r += (b.maxR - b.r) * 0.03 * f;
       if (b.y < -40) {
         this.bubbles.splice(i, 1);
@@ -1029,7 +1222,8 @@ export class FxEngine {
     const idle = now - g.lastMove > 2200;
     const target = this.pointer ?? { x: g.x, y: g.y };
     // Hold still with a mouse and it possesses your cursor.
-    const possess = this.pointer?.type === "mouse" && !this.drag && now - g.lastMove > 1400;
+    // (A finger long-pressing on a phone counts as holding still too.)
+    const possess = (this.pointer?.type === "mouse" || this.holding) && !this.drag && now - g.lastMove > 1400;
     // Otherwise it hangs back behind you, and drifts a little when you stop.
     const tx = possess ? target.x + 2 : target.x - 34 * g.dir + (idle ? Math.sin(g.t) * 30 : 0);
     const ty = possess ? target.y - 4 : target.y + 26 + (idle ? Math.cos(g.t * 0.7) * 14 : 0);
@@ -1170,11 +1364,11 @@ export class FxEngine {
     else delete document.documentElement.dataset.possessed;
   }
 
-  /** What each trail does when the mouse holds still. */
+  /** What each trail does when the mouse (or a long-pressed finger) holds still. */
   private drawStill(ctx: CanvasRenderingContext2D, now: number, dt: number) {
     const p = this.pointer;
     const trail = this.settings.trail;
-    if (!trail || !p || p.type !== "mouse" || this.drag || now - this.lastMoveAt < 600) {
+    if (!trail || !p || (p.type !== "mouse" && !this.holding) || this.drag || now - this.lastMoveAt < 600) {
       this.stillMs = 0;
       return;
     }

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { burst, sound, toast } from "@/lib/fx";
 import { comboSecret, dueMilestones, findSecret, FUN_EVENT, getFun, markCelebrated, SECRET_GOAL, SECRETS, setFunOn, type Secret } from "@/lib/fun";
 import { celebrate } from "@/components/celebrations";
+import { haptic } from "@/lib/device";
 
 export const HERO_WAVE_EVENT = "portfolio:hero-wave";
 
@@ -15,6 +16,7 @@ export function reveal(id: Secret, message: string) {
   const found = getFun().secrets.length;
   toast(first ? `${message} Secret ${found} of ${SECRET_GOAL} found.` : message);
   sound(first ? "secret" : "pop");
+  if (first) haptic("secret");
   // Crossing a milestone throws a little party (once each; they can be replayed from the panel).
   if (first) {
     for (const m of dueMilestones(getFun())) {

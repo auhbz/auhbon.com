@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import {
   blockedByMotion,
   CATEGORIES,
@@ -20,6 +20,8 @@ import {
   type Secret,
   setEffectOn,
   setFunOn,
+  setHaptics,
+  setMotion,
   setSoundHover,
   setLook,
   setVariant,
@@ -34,10 +36,66 @@ import { GoblinGuide } from "@/components/goblin";
 import { celebrate } from "@/components/celebrations";
 import { startGame } from "@/components/game-layer";
 import { GAMES } from "@/lib/games";
+import { canTilt, canVibrate, haptic, onShake, requestMotionPermission } from "@/lib/device";
 
 const PANEL_ID = "bells-panel";
 const SECRETS_ID = "secrets-panel";
 const noSubscribe = () => () => {};
+
+/** Shuffle everything, with the confetti, sound and toast (the button, or a shake). */
+function shuffleWithFanfare() {
+  const picks = shuffle();
+  burst("confetti");
+  sound("toggle");
+  toast(`Shuffled: ${picks.join(", ")}`);
+}
+
+/**
+ * On phones the panels are bottom sheets (see globals.css), with a grab handle.
+ * Dragging the handle down far enough closes the sheet. Decorative for assistive
+ * tech: the Close button, Esc and tapping outside all still work.
+ */
+function SheetHandle({ panelId }: { panelId: string }) {
+  const drag = useRef<{ id: number; y: number; t: number; dy: number } | null>(null);
+  const panel = () => document.getElementById(panelId);
+  const reset = () => {
+    const p = panel();
+    if (p) {
+      p.style.transform = "";
+      p.style.transition = "";
+    }
+    drag.current = null;
+  };
+  return (
+    <div
+      aria-hidden="true"
+      className="sheet-handle"
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture?.(e.pointerId);
+        drag.current = { id: e.pointerId, y: e.clientY, t: performance.now(), dy: 0 };
+        const p = panel();
+        if (p) p.style.transition = "none";
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        const p = panel();
+        if (!d || d.id !== e.pointerId || !p) return;
+        d.dy = Math.max(0, e.clientY - d.y);
+        p.style.transform = d.dy ? `translateY(${d.dy}px)` : "";
+      }}
+      onPointerUp={(e) => {
+        const d = drag.current;
+        if (!d || d.id !== e.pointerId) return;
+        const fast = d.dy / Math.max(1, performance.now() - d.t) > 0.5;
+        if (d.dy > 90 || (fast && d.dy > 30)) panel()?.hidePopover();
+        reset();
+      }}
+      onPointerCancel={reset}
+    >
+      <span className="sheet-grip" />
+    </div>
+  );
+}
 
 /**
  * Header button + popover with every playful switch. Uses the native Popover
@@ -57,12 +115,9 @@ export function BellsPanel() {
     }
   };
 
-  const onShuffle = () => {
-    const picks = shuffle();
-    burst("confetti");
-    sound("toggle");
-    toast(`Shuffled: ${picks.join(", ")}`);
-  };
+  // Motion controls: shaking the phone shuffles, like the button (at most every 2s).
+  const shake = fun.on && fun.motion;
+  useEffect(() => (shake ? onShake(shuffleWithFanfare, 2000) : undefined), [shake]);
 
   return (
     <>
@@ -90,6 +145,7 @@ export function BellsPanel() {
         aria-labelledby={headingId}
         className="bells-panel fixed inset-auto top-16 right-4 m-0 max-h-[calc(100dvh-5rem)] w-[min(24rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl"
       >
+        <SheetHandle panelId={PANEL_ID} />
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 id={headingId} className="font-display text-xl font-semibold tracking-tight">
@@ -115,7 +171,7 @@ export function BellsPanel() {
         </div>
         <button
           type="button"
-          onClick={onShuffle}
+          onClick={shuffleWithFanfare}
           className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line font-medium hover:border-ink/40"
         >
           <ShuffleIcon /> Shuffle everything
@@ -125,6 +181,7 @@ export function BellsPanel() {
           {CATEGORIES.map((c) => (
             <EffectRow key={c.id} category={c.id} reduced={reduced} />
           ))}
+          <PhoneSwitches />
         </div>
 
         <fieldset className="mt-4">
@@ -155,6 +212,56 @@ export function BellsPanel() {
 
         <ModeSection />
       </div>
+    </>
+  );
+}
+
+/**
+ * Phone-only switches: Motion controls (where the device has motion sensors) and
+ * Haptics (where it can vibrate, i.e. Android). Desktop never shows them.
+ */
+function PhoneSwitches() {
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const tilt = useSyncExternalStore(noSubscribe, canTilt, () => false);
+  const vibrate = useSyncExternalStore(noSubscribe, canVibrate, () => false);
+  const [denied, setDenied] = useState(false);
+  if (!tilt && !vibrate) return null;
+
+  const toggleMotion = () => {
+    if (fun.motion) {
+      setMotion(false);
+      return;
+    }
+    // iOS: this must run straight from the tap, so the permission prompt can show.
+    requestMotionPermission().then((ok) => {
+      setDenied(!ok);
+      if (ok) {
+        setMotion(true);
+        sound("toggle");
+      }
+    });
+  };
+
+  return (
+    <>
+      {tilt ? (
+        <div className="py-2">
+          <Switch
+            label="Motion controls"
+            description="Tilt to steer bubbles and aim the slingshot; shake to shuffle"
+            checked={fun.motion}
+            onChange={toggleMotion}
+          />
+          <p role="status" className="mt-1 text-sm text-muted empty:hidden">
+            {denied ? "Motion access was turned down, so this stays off. You can allow it in your browser settings." : ""}
+          </p>
+        </div>
+      ) : null}
+      {vibrate ? (
+        <div className="py-2">
+          <Switch label="Haptics" description="A light buzz when you press things" checked={fun.haptics} onChange={() => setHaptics(!fun.haptics)} />
+        </div>
+      ) : null}
     </>
   );
 }
@@ -213,7 +320,7 @@ function SecretsChip() {
         aria-label={`Secrets: ${n} of ${SECRET_GOAL} found`}
         title="Secrets"
         data-secrets-chip
-        className="pill inline-flex h-11 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-medium tabular-nums hover:border-ink/40"
+        className="pill inline-flex h-11 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-medium tabular-nums hover:border-ink/40 max-sm:min-w-11 max-sm:justify-center max-sm:gap-1 max-sm:px-2"
       >
         <TrophyIcon />
         {n}
@@ -225,6 +332,7 @@ function SecretsChip() {
         aria-labelledby={headingId}
         className="bells-panel fixed inset-auto top-16 right-4 m-0 max-h-[calc(100dvh-5rem)] w-[min(22rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl"
       >
+        <SheetHandle panelId={SECRETS_ID} />
         <div className="flex items-start justify-between gap-3">
           <h2 id={headingId} className="font-display text-xl font-semibold tracking-tight">
             Secrets
@@ -282,6 +390,7 @@ function UnlockAll() {
     unlockAllSecrets();
     burst("confetti");
     sound("secret");
+    haptic("secret");
     toast("You know my favorite number. Every secret unlocked, and the game modes too.");
     for (const m of dueMilestones(getFun())) {
       markCelebrated(m.at);
@@ -638,7 +747,7 @@ function BellsAndWhistlesIcon() {
   const whistle = "M-1-4H10.5a1 1 0 0 1 1 1V0.5a1 1 0 0 1-1 1H4.2A5.2 5.2 0 1 1-1-4Z";
   const cut = { stroke: "var(--paper)", strokeWidth: 1.2, paintOrder: "stroke" } as const;
   return (
-    <svg width="88" height="31" viewBox="0 0 80 28" fill="currentColor" aria-hidden="true" className="bells-icon">
+    <svg width="88" height="31" viewBox="0 0 80 28" fill="currentColor" aria-hidden="true" className="bells-icon max-sm:h-[23px] max-sm:w-16">
       <g className="bell-back" transform="translate(10 14.5) rotate(-20)" opacity="0.5">
         <path d={bell} />
         <circle cy="-9.6" r="1.3" />
