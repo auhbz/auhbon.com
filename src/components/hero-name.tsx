@@ -3,12 +3,8 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { activeVariant, DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
 import { HERO_WAVE_EVENT } from "@/components/easter-eggs";
-import {
-  enterStage,
-  FarmNarration,
-  STAGES,
-  type Stage,
-} from "@/components/farm-story";
+import { enterStage, FarmNarration, node, type Stage } from "@/components/farm-story";
+import { reveal } from "@/components/easter-eggs";
 
 const REST = 700; // weight when the pointer is away
 const MIN = 380; // letters far from the pointer
@@ -37,7 +33,8 @@ const SWAP_CLOSENESS = 0.72;
 /**
  * The name is set in a variable font. Letters near the pointer thicken and the
  * rest thin out, like a spotlight. With bells and whistles on, the dots on the
- * i's become fruit, a slingshot rock (and the goblin who fetches it), or bubble makers. Purely decorative:
+ * i's become fruit, a slingshot rock (and the goblin who fetches it), bubble makers, or a
+ * choose-your-own-adventure farm story. Purely decorative:
  * screen readers get the plain name, and nothing moves under reduced motion.
  */
 export function HeroName({ name, id }: { name: string; id: string }) {
@@ -46,17 +43,13 @@ export function HeroName({ name, id }: { name: string; id: string }) {
   // "fruit" | "slingshot" | "bubbles" | "farm" | null (regular dots)
   const dots = activeVariant(fun, "dots");
   const [stage, setStage] = useState<Stage>("start");
-  const storyTimer = useRef(0);
-  useEffect(() => () => window.clearTimeout(storyTimer.current), []);
-  const choose = (to: Stage, at?: { x: number; y: number }) => {
-    window.clearTimeout(storyTimer.current);
-    setStage(to);
-    enterStage(to, at);
-    const after = STAGES[to].after;
-    if (after)
-      storyTimer.current = window.setTimeout(() => setStage(after), 4500);
+  // An egg on the farm can be cooked by holding the Fire trail over it.
+  const [cooked, setCooked] = useState<Stage | null>(null);
+  const choose = (to: string, at?: { x: number; y: number }) => {
+    setStage(to as Stage);
+    enterStage(to as Stage, at);
   };
-  const farm = STAGES[stage];
+  const fire = activeVariant(fun, "trail") === "fire";
 
   useEffect(() => {
     const heading = ref.current;
@@ -211,19 +204,18 @@ export function HeroName({ name, id }: { name: string; id: string }) {
                     ) : null}
                     {/* Farm: the dots tell a little story; clicking one moves it along. */}
                     {dotted && dots === "farm" ? (
-                      <span
-                        data-farm-dot={dotIndex}
-                        className={`hero-dot hero-emoji hero-farm${farm.chocolate && dotIndex === 1 ? " is-chocolate" : ""}`}
+                      <FarmDot
                         key={`${stage}-${dotIndex}`}
-                        onClick={(e) => {
-                          const next =
-                            stage === "confirm" ? null : farm.actions[0]?.to;
-                          if (next)
-                            choose(next, { x: e.clientX, y: e.clientY });
+                        index={dotIndex}
+                        stage={stage}
+                        fire={fire}
+                        cooked={cooked === stage}
+                        onCook={() => {
+                          setCooked(stage);
+                          reveal("sunny", "Sunny side up! You cooked the farm egg.");
                         }}
-                      >
-                        {farm.dots[Math.min(dotIndex, 1)]}
-                      </span>
+                        onChoose={choose}
+                      />
                     ) : null}
                     {/* Bubbles rise from here; the engine spawns and pops them. */}
                     {dotted && dots === "bubbles" ? (
@@ -240,5 +232,48 @@ export function HeroName({ name, id }: { name: string; id: string }) {
         <FarmNarration stage={stage} onChoose={(to) => choose(to)} />
       ) : null}
     </>
+  );
+}
+
+/** One farm dot: clicking it moves the story along; an egg can be cooked with the Fire trail. */
+function FarmDot({
+  index,
+  stage,
+  fire,
+  cooked,
+  onCook,
+  onChoose,
+}: {
+  index: number;
+  stage: Stage;
+  fire: boolean;
+  cooked: boolean;
+  onCook: () => void;
+  onChoose: (to: string, at: { x: number; y: number }) => void;
+}) {
+  const farm = node(stage);
+  const glyph = farm.dots[Math.min(index, 1)];
+  const isEgg = glyph === "🥚" && !farm.tint;
+  const heat = useRef(0);
+  const last = useRef(0);
+  return (
+    <span
+      data-farm-dot={index}
+      className={`hero-dot hero-emoji hero-farm${farm.tint && index === 1 ? ` is-${farm.tint}` : ""}`}
+      onClick={(e) => {
+        const at = { x: e.clientX, y: e.clientY };
+        // Endings start over; "are you sure?" moments need the buttons.
+        if (farm.ending) onChoose("start", at);
+        else if (!farm.askOnly && farm.choices?.[0]) onChoose(farm.choices[0].to, at);
+      }}
+      onPointerMove={(e) => {
+        if (!isEgg || cooked || !fire) return;
+        heat.current += Math.min(100, e.timeStamp - last.current);
+        last.current = e.timeStamp;
+        if (heat.current > 900) onCook();
+      }}
+    >
+      {isEgg && cooked ? "🍳" : glyph}
+    </span>
   );
 }

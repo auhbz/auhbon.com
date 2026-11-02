@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { reveal } from "@/components/easter-eggs";
 import { burst } from "@/lib/fx";
+import { activeVariant, DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
 
 /**
  * A secret that only exists while selected. The egg is invisible and can't be
@@ -12,6 +13,12 @@ import { burst } from "@/lib/fx";
 export function HiddenEgg() {
   const ref = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState(false);
+  // Hold the Fire cursor trail over the revealed egg and it cooks.
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const fire = activeVariant(fun, "trail") === "fire";
+  const [cooked, setCooked] = useState(false);
+  const heat = useRef(0);
+  const last = useRef(0);
 
   useEffect(() => {
     const onSelection = () => {
@@ -30,6 +37,15 @@ export function HiddenEgg() {
       data-hidden-egg
       className={`hidden-egg${shown ? " is-shown" : ""}`}
       // pointerdown runs before the click clears the selection.
+      onPointerMove={(e) => {
+        if (!shown || cooked || !fire) return;
+        heat.current += Math.min(100, e.timeStamp - last.current);
+        last.current = e.timeStamp;
+        if (heat.current > 900) {
+          setCooked(true);
+          reveal("overeasy", "Over easy! You cooked the hidden egg.");
+        }
+      }}
       onPointerDown={(e) => {
         if (!shown) return;
         e.preventDefault();
@@ -39,7 +55,7 @@ export function HiddenEgg() {
         reveal("egg", "You found the egg hiding in plain sight.");
       }}
     >
-      🥚
+      {cooked ? "🍳" : "🥚"}
     </span>
   );
 }

@@ -5,6 +5,7 @@ import { HeroName } from "@/components/hero-name";
 import { ProjectExplorer } from "@/components/project-explorer";
 import { HiddenEgg } from "@/components/hidden-egg";
 import { GoblinSpot } from "@/components/goblin";
+import { GooglyOs } from "@/components/googly-eyes";
 import { ExternalLink } from "@/components/external-link";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
@@ -196,7 +197,7 @@ export default function Home() {
       <Section id="contact" title="Contact">
         <div className="relative">
           <p className="max-w-prose font-display text-2xl leading-snug font-medium tracking-tight sm:text-3xl">
-            I&apos;m looking for my next software engineering role in Los Angeles, hybrid or on-site.
+            I&apos;m l<GooglyOs />king for my next software engineering role in Los Angeles, hybrid or on-site.
           </p>
           <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2" aria-label="Ways to reach me">
             {profile.email ? (

@@ -383,6 +383,9 @@ html[data-look="spooky"] .hero-name {
   cursor: pointer;
   top: 0.04em;
 }
+.hero-farm.is-gold {
+  filter: sepia(1) saturate(4) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 0.06em #ffd54a);
+}
 .hero-farm.is-chocolate {
   filter: sepia(1) saturate(2.6) hue-rotate(-18deg) brightness(0.55);
 }
@@ -1054,4 +1057,24 @@ html[data-game] canvas:not(.game-canvas) {
   75% {
     transform: translateX(6px);
   }
+}
+
+/* --- Googly o's in Contact (Bells & whistles on): pupils follow the cursor. --- */
+.googly {
+  position: relative;
+  display: inline-block;
+}
+html[data-fun] .googly {
+  cursor: pointer;
+}
+html[data-fun] .googly::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 0.085em + var(--gx, 0px));
+  top: calc(60% - 0.085em + var(--gy, 0px));
+  width: 0.17em;
+  height: 0.17em;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
 }

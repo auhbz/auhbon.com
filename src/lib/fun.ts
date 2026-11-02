@@ -87,6 +87,11 @@ export const SECRET_LIST = [
   { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit" },
   { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds" },
   { id: "bunny", title: "Easter egg easter egg", icon: "🐰", how: "Had the painter paint the egg in the Farm story" },
+  { id: "golden", title: "The golden egg", icon: "🥇", how: "Farm story: kept the hen's egg warm and waited" },
+  { id: "road", title: "Why did the chicken…", icon: "🚗", how: "Farm story: crossed the road and asked why" },
+  { id: "overeasy", title: "Over easy", icon: "🍳", how: "Cooked the hidden egg with the Fire trail" },
+  { id: "sunny", title: "Sunny side up", icon: "🌞", how: "Cooked an egg in the Farm story with the Fire trail" },
+  { id: "eyes", title: "Eye spy", icon: "👀", how: "Clicked the googly o's in Contact" },
   { id: "goblin", title: "Hide and seek", icon: "👺", how: "Found the goblin in all three of his hiding places" },
 ] as const;
 export type Secret = (typeof SECRET_LIST)[number]["id"];
