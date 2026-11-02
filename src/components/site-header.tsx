@@ -5,10 +5,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { BellsPanel } from "@/components/bells-panel";
 
 const nav = [
-  { href: "#work", label: "Work" },
-  { href: "#github", label: "GitHub" },
-  { href: "#experience", label: "Experience" },
-  { href: "#contact", label: "Contact" },
+  { href: "/#work", label: "Work" },
+  { href: "/#github", label: "GitHub" },
+  { href: "/#experience", label: "Experience" },
+  { href: "/#contact", label: "Contact" },
 ];
 
 /**

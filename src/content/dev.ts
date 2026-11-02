@@ -33,8 +33,8 @@ export const roadmap: RoadmapItem[] = [
   { item: "1.10.0: Goblin guide, hide-and-seek & milestones", version: "1.10.0", status: "Shipped" },
   { item: "1.9.0: Feedback fixes", version: "1.9.0", status: "Shipped" },
   { item: "1.8.1: Content fixes", version: "1.8.1", status: "Shipped" },
-  { item: "1.16.0: Farm adventure rewrite", version: "1.16.0", status: "WIP", notes: "Plus 3 new secrets." },
-  { item: "1.17.0: These /dev pages", version: "1.17.0", status: "WIP" },
+  { item: "1.16.0: Farm adventure & cooking secrets", version: "1.16.0", status: "Shipped", notes: "16 endings, 3 special; 5 new secrets (17 total)." },
+  { item: "1.17.0: These /dev pages", version: "1.17.0", status: "Shipped" },
   {
     item: "1.18.0: Mobile experience",
     version: "1.18.0",

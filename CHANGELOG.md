@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.17.0 | Dev pages | [`release/1.17.0`](https://github.com/auhbz/auhbon.com/tree/release/1.17.0) |
 | 1.16.0 | Farm adventure & cooking secrets | [`release/1.16.0`](https://github.com/auhbz/auhbon.com/tree/release/1.16.0) |
 | 1.15.0 | Feedback fixes, round 3 | [`release/1.15.0`](https://github.com/auhbz/auhbon.com/tree/release/1.15.0) |
 | 1.14.0 | Game modes & leaderboards | [`release/1.14.0`](https://github.com/auhbz/auhbon.com/tree/release/1.14.0) |
@@ -22,6 +23,22 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.17.0: Dev pages
+
+**Added**
+- **Working-notes pages, reachable only by URL** (not linked from the site, kept out of search engines with noindex, a robots.txt rule and an X-Robots-Tag header):
+  - `/dev`: an index of the pages below.
+  - `/dev/roadmap`: every roadmap item with its status, plus the mobile ideas.
+  - `/dev/secrets`: every secret and its status, with progress toward 100. The answers are spoilers, so each one is hidden until you open "Show how".
+  - `/dev/hands-on-tasks`: what's waiting on Auhbon, split into decisions and to-dos, open first.
+  - `/dev/versions`: every version's notes, read from CHANGELOG.md at build time, with links to each release branch. This replaces hosting a copy of every old version.
+- The data behind the roadmap and hands-on pages lives in one file (`src/content/dev.ts`); secrets come straight from the site's own list, so new ones appear automatically.
+
+**Fixed**
+- The header's section links (Work, GitHub, Experience, Contact) now go to the home page's sections from any page, including /dev and the 404 page.
 
 ---
 
