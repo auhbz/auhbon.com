@@ -1,0 +1,6 @@
+[
+ {"name":"auhbon.com","description":"Personal portfolio. Next.js, TypeScript, WCAG 2.2 AA.","html_url":"https://github.com/auhbz/auhbon.com","homepage":"https://auhbon.com","language":"TypeScript","stargazers_count":0,"pushed_at":"2026-10-29T03:30:00Z","fork":false,"archived":false,"private":false},
+ {"name":"wordle-discord-bot","description":"Discord bot that tracks a friend group's daily Wordle results.","html_url":"https://github.com/auhbz/wordle-discord-bot","homepage":null,"language":"JavaScript","stargazers_count":2,"pushed_at":"2026-07-19T00:00:00Z","fork":false,"archived":false,"private":false},
+ {"name":"forked-thing","description":"should be hidden","html_url":"https://github.com/auhbz/forked-thing","homepage":"javascript:alert(1)","language":"Go","stargazers_count":0,"pushed_at":"2026-10-30T00:00:00Z","fork":true,"archived":false,"private":false},
+ {"name":"old-project","description":null,"html_url":"https://github.com/auhbz/old-project","homepage":"javascript:alert(1)","language":null,"stargazers_count":0,"pushed_at":"2020-03-01T00:00:00Z","fork":false,"archived":false,"private":false}
+]

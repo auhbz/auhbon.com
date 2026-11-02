@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Helper agents' private git worktrees.
     ".claude/**",
+    // Browser QA scripts (own package, run with Node directly).
+    "qa/**",
   ]),
 ]);
 

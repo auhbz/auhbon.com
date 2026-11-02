@@ -1,0 +1,13 @@
+{
+  "name": "auhbon-qa",
+  "private": true,
+  "description": "Browser QA for auhbon.com (Playwright + axe-core). Not part of the site build.",
+  "scripts": {
+    "all": "./run-all.sh",
+    "mobile": "node mobile.mjs"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "playwright": "^1.64.1"
+  }
+}
