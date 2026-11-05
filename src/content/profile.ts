@@ -56,6 +56,15 @@ export const profile = {
     { label: "GitHub", href: "https://github.com/auhbz" },
     { label: "LinkedIn", href: "https://www.linkedin.com/in/auhbon" },
   ] satisfies Link[],
+  /**
+   * Downloadable PDFs, served from /public. These are the employer-ready
+   * copies of the master CV and About Me; the website CV leaves out the phone
+   * number. Replace the files to update them.
+   */
+  documents: [
+    { label: "CV (PDF)", href: "/auhbon-amiri-cv.pdf" },
+    { label: "About me (PDF)", href: "/auhbon-amiri-about-me.pdf" },
+  ] satisfies Link[],
 };
 
 export const projects: Project[] = [

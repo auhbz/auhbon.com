@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.18.0 | CV & About me downloads | [`release/1.18.0`](https://github.com/auhbz/auhbon.com/tree/release/1.18.0) |
 | 1.17.1 | CV sync | [`release/1.17.1`](https://github.com/auhbz/auhbon.com/tree/release/1.17.1) |
 | 1.17.0 | Dev pages | [`release/1.17.0`](https://github.com/auhbz/auhbon.com/tree/release/1.17.0) |
 | 1.16.0 | Farm adventure & cooking secrets | [`release/1.16.0`](https://github.com/auhbz/auhbon.com/tree/release/1.16.0) |
@@ -24,6 +25,15 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.18.0: CV & About me downloads
+
+**Added**
+- The full CV and the About me page are now PDFs on the site, at /auhbon-amiri-cv.pdf and /auhbon-amiri-about-me.pdf.
+- Links to both sit next to GitHub and LinkedIn in the hero and in the Contact section, and they're in Quick actions too. They open in a new tab.
+- The website copy of the CV leaves out the phone number.
 
 ---
 

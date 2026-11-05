@@ -6,7 +6,7 @@ import { ProjectExplorer } from "@/components/project-explorer";
 import { HiddenEgg } from "@/components/hidden-egg";
 import { GoblinSpot } from "@/components/goblin";
 import { GooglyOs } from "@/components/googly-eyes";
-import { ExternalLink } from "@/components/external-link";
+import { DocumentLink, ExternalLink } from "@/components/external-link";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 
@@ -106,6 +106,16 @@ export default function Home() {
                 >
                   {link.label}
                 </ExternalLink>
+              </li>
+            ))}
+            {profile.documents.map((doc) => (
+              <li key={doc.href}>
+                <DocumentLink
+                  href={doc.href}
+                  className="pill inline-flex min-h-11 items-center rounded-full border border-ink/25 px-5 font-medium hover:border-ink"
+                >
+                  {doc.label}
+                </DocumentLink>
               </li>
             ))}
           </ul>
@@ -212,6 +222,13 @@ export default function Home() {
                 <ExternalLink className="text-link" href={link.href}>
                   {link.label}
                 </ExternalLink>
+              </li>
+            ))}
+            {profile.documents.map((doc) => (
+              <li key={doc.href}>
+                <DocumentLink className="text-link" href={doc.href}>
+                  {doc.label}
+                </DocumentLink>
               </li>
             ))}
           </ul>

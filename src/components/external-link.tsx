@@ -21,3 +21,16 @@ export function ExternalLink({ href, children, ...rest }: AnchorHTMLAttributes<H
     </a>
   );
 }
+
+/**
+ * Links to a PDF on this site. They open in a new tab, like external links,
+ * so the visitor keeps their place on the page.
+ */
+export function DocumentLink({ href, children, ...rest }: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children: ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener" type="application/pdf" {...rest}>
+      {children}
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  );
+}

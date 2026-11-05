@@ -92,7 +92,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           ]}
           filters={projectFilters}
           email={profile.email}
-          links={[...profile.links, { label: "site source code", href: `https://github.com/${profile.githubUser}/${profile.domain}` }]}
+          links={[
+            ...profile.links,
+            ...profile.documents.map((doc) => ({ label: `my ${doc.label}`, href: doc.href })),
+            { label: "site source code", href: `https://github.com/${profile.githubUser}/${profile.domain}` },
+          ]}
         />
         <Toaster />
         <FxCanvas />
