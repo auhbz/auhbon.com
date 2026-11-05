@@ -74,7 +74,7 @@ export const projects: Project[] = [
     featured: true,
   },
   {
-    name: "Space Panic",
+    name: "Power Panic",
     summary: "A frantic real-time co-op browser game where players have to talk to each other to survive.",
     role: "Team entry for the Hack the Midlands 2020 game jam. We went from a blank page to a complete, playable game before the deadline, and it's still playable online today.",
     stack: ["JavaScript", "Phaser"],
@@ -223,10 +223,23 @@ export const experience: Role[] = [
     ],
   },
   {
-    title: "Tutor and grader: combinatorial algorithms, discrete structures, automata",
+    title: "Freelance tutor",
+    org: "Private clients",
+    start: "2015-08",
+    end: "2022-01",
+    highlights: [
+      "Java and intro programming, remote (2020 to 2022)",
+      "Discrete structures and automata, while taking each course at CSUN (2018, 2019)",
+      "Symbolic logic at Pierce College (2017)",
+      "Calculus series, in person and remote (2015 to 2017)",
+    ],
+  },
+  {
+    title: "Grader: discrete structures, automata",
     org: "California State University, Northridge",
-    start: "2019-10",
+    start: "2020-01",
     end: "2020-05",
+    highlights: ["Graded both courses after completing each with an A"],
   },
   {
     title: "Full Stack Software Engineer",
@@ -242,6 +255,23 @@ export const experience: Role[] = [
       "Shipped 180+ features and bug fixes in an Agile team",
     ],
   },
+  {
+    title: "Research assistant",
+    org: "California State University, Northridge",
+    start: "2019-08",
+    end: "2020-02",
+    highlights: [
+      "Wrote a Google Apps Script tool for research data entry, saving the team many hours",
+      "Designed, created and presented the team's research poster at the AESA conference",
+    ],
+  },
+  {
+    title: "Tutor: combinatorial algorithms",
+    org: "California State University, Northridge",
+    start: "2019-02",
+    end: "2019-05",
+    highlights: ["Tutored classmates while taking the course"],
+  },
 ];
 
 export const education: Education[] = [
@@ -252,8 +282,9 @@ export const education: Education[] = [
     end: "2020",
     notes: [
       "Magna Cum Laude, 3.91 GPA",
-      "Dean's List four times",
+      "Dean's List every semester",
       "Grand prize winner, CSUN Cloud Jam",
+      "National Cyber League, Fall 2018: Silver bracket, 878th nationally of 4,730 registered players",
       "Layer8 Cyber Security Club",
     ],
   },
