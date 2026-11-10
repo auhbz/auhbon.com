@@ -127,7 +127,8 @@ export function EasterEggs({ email }: { email: string }) {
     const onClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      if (target.closest("#hero-name")) {
+      // (A hamster wheel on an i is its own toy, not a click on the name.)
+      if (target.closest("#hero-name") && !target.closest("[data-hamster]")) {
         clicks += 1;
         window.clearTimeout(clickTimer);
         clickTimer = window.setTimeout(() => (clicks = 0), 900);

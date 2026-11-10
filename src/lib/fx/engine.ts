@@ -22,7 +22,7 @@ export type EngineSettings = {
 };
 
 type Particle = {
-  kind: "sparkle" | "flame" | "confetti" | "glyph" | "spark" | "droplet" | "wisp" | "ripple" | "crumb";
+  kind: "sparkle" | "flame" | "confetti" | "glyph" | "spark" | "droplet" | "wisp" | "ripple" | "crumb" | "smoke" | "nitro" | "ecto";
   x: number;
   y: number;
   vx: number;
@@ -100,11 +100,34 @@ type Press = { x: number; y: number; timer: number };
 /** A touch in progress, watched for a fast horizontal swipe across the hero name. */
 type Swipe = { x0: number; y0: number; t0: number; x: number; y: number; flung: boolean };
 type Bubble = { x: number; y: number; r: number; maxR: number; vy: number; phase: number };
-type Ghost = { x: number; y: number; alpha: number; lastMove: number; dir: number; t: number };
+/** kx/ky: a push (from a click) that eases out; squash: a jelly wobble that settles. */
+type Ghost = { x: number; y: number; alpha: number; lastMove: number; dir: number; t: number; kx: number; ky: number; squash: number };
+/**
+ * The Car trail: a little top-down car that chases the pointer with momentum.
+ * heading/steer are radians, roll is a smoothed lean, nitro is ms of boost left.
+ */
+type Car = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  heading: number;
+  steer: number;
+  roll: number;
+  nitro: number;
+  alpha: number;
+  parked: number;
+  /** The rear wheels' last spots (viewport), to lay skid marks between frames. */
+  rear: [number, number, number, number] | null;
+};
+/** A stretch of skid mark, in page coordinates so it stays on the "road" as you scroll. */
+type Skid = { x1: number; y1: number; x2: number; y2: number; life: number };
 
 const FLY_MS = 1500;
 const RETURN_MS = 650;
 const MAX_PARTICLES = 600;
+/** The Car trail's car is drawn at 30x15 and scaled up by this. */
+const CAR_SCALE = 1.2;
 /** How long a finger must stay put to count as holding still. */
 const HOLD_MS = 500;
 /** A finger can wobble this much (px) and still be holding still. */
@@ -127,10 +150,16 @@ export class FxEngine {
   private bubbles: Bubble[] = [];
   private drag: Drag | null = null;
   private ghost: Ghost | null = null;
+  private car: Car | null = null;
+  private skids: Skid[] = [];
   private goblins: Goblin[] = [];
   private lastDrip = 0;
   private prev = { x: 0, y: 0 };
-  private electric: { el: HTMLElement; until: number } | null = null;
+  /** touch: lit by a finger, so it stays lit until that finger lifts (a long-press's pointerout doesn't count). */
+  private electric: { el: HTMLElement; until: number; touch?: boolean } | null = null;
+  private lastHoldSpark = 0;
+  /** The canvas's CSS box (cached; see resize). */
+  private box = { w: 0, h: 0, left: 0, top: 0 };
   private pointer: { x: number; y: number; type: string } | null = null;
   private lastTrail = 0;
   private lastScorch = 0;
@@ -171,6 +200,10 @@ export class FxEngine {
     this.settings = next;
     if (prev.buttons === "mercury" && next.buttons !== "mercury") this.clearMercury();
     if (next.trail !== "cursed") this.ghost = null;
+    if (next.trail !== "car") {
+      this.car = null;
+      this.skids = [];
+    }
     if (next.trail !== "cursed") this.setPossessed(false);
     if (next.dots !== "bubbles") this.bubbles = [];
     if (next.dots !== "slingshot") this.goblins = [];
@@ -268,21 +301,29 @@ export class FxEngine {
   }
 
   /**
-   * The canvas's real CSS size. window.innerWidth includes the scrollbar while the
-   * fixed canvas doesn't, which used to squeeze every drawing toward the left.
+   * The canvas's real CSS size, measured from the canvas itself. window.innerWidth
+   * includes the scrollbar while the fixed canvas doesn't (that squeezed drawings
+   * left), and on phones the fixed canvas grows taller than the root's
+   * clientHeight once the browser's toolbar slides away. A bitmap sized from
+   * clientHeight was then stretched to fit, so effects (Electric under a finger,
+   * most of all) landed further and further below where they belonged.
    */
   private get W() {
-    return document.documentElement.clientWidth;
+    return this.box.w || document.documentElement.clientWidth;
   }
   private get H() {
-    return document.documentElement.clientHeight;
+    return this.box.h || document.documentElement.clientHeight;
   }
 
   private resize = () => {
+    const r = this.canvas.getBoundingClientRect();
+    this.box = { w: r.width, h: r.height, left: r.left, top: r.top };
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.canvas.width = Math.round(this.W * this.dpr);
     this.canvas.height = Math.round(this.H * this.dpr);
-    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    // Everything is drawn in client (viewport) coordinates; shift by the canvas's
+    // own offset in case the browser places the fixed layer off the origin.
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, -this.box.left * this.dpr, -this.box.top * this.dpr);
   };
 
   private readColors() {
@@ -310,7 +351,9 @@ export class FxEngine {
       this.onMove(t.clientX, t.clientY, "touch");
       this.swipeMove(t.clientX, t.clientY);
     }, { passive: true });
-    on("touchend", () => this.onLeave("touch"), { passive: true });
+    on("touchend", (e) => {
+      if (!e.touches.length) this.onLeave("touch");
+    }, { passive: true });
     on("touchcancel", () => this.onLeave("touch"), { passive: true });
     // A fast horizontal swipe across the hero name flings its letters. Passive, so
     // vertical scrolling is never held up.
@@ -337,12 +380,17 @@ export class FxEngine {
     const over = (e: Event) => {
       if (this.settings.buttons !== "electric") return;
       const pill = (e.target as Element)?.closest?.<HTMLElement>(".pill");
+      // Focus lights it for keyboard users only; a tap also focuses, and that used to leave
+      // a button crackling forever after the finger lifted.
+      if (e.type === "focusin" && !pill?.matches(":focus-visible")) return;
       if (pill) {
         this.electric = { el: pill, until: Infinity };
         this.ensure();
       }
     };
     const out = (e: Event) => {
+      // A finger's long-press fires pointerout/pointercancel while it's still down: keep the button lit.
+      if (this.electric?.touch && (e as PointerEvent).pointerType === "touch") return;
       const pill = (e.target as Element)?.closest?.(".pill");
       const to = (e as MouseEvent | FocusEvent).relatedTarget as Element | null;
       if (pill && this.electric?.el === pill && !pill.contains(to)) this.electric = null;
@@ -389,6 +437,7 @@ export class FxEngine {
       else if (t === "fire") this.spawnFire(x, y, now);
       else if (t === "cursed") this.moveGhost(x, y, now);
       else if (t === "flow") this.spawnStream(x, y);
+      else if (t === "car") this.car ??= this.newCar(x, y);
     }
     if (this.settings.buttons === "mercury") this.mercury(x, y);
     this.ensure();
@@ -401,6 +450,8 @@ export class FxEngine {
     }
     if (this.pointer?.type === type) this.pointer = null;
     this.setPossessed(false);
+    // A finger lifted off an Electric button: it crackles a moment longer, then rests.
+    if (type === "touch" && this.electric?.touch) this.electric = { ...this.electric, until: performance.now() + 500, touch: false };
     if (type === "touch" && this.settings.buttons === "mercury") this.clearMercury();
   }
 
@@ -458,13 +509,17 @@ export class FxEngine {
     const pill = target.closest<HTMLElement>(".pill");
     if (pill && this.settings.buttons === "electric") {
       this.burst("sparks", e.clientX, e.clientY);
-      if (e.pointerType !== "mouse") this.electric = { el: pill, until: performance.now() + 1200 };
+      if (e.pointerType !== "mouse") {
+        this.electric = { el: pill, until: Infinity, touch: true };
+        this.lastHoldSpark = performance.now();
+      }
     }
     // Cookie buttons: each press takes a bite. The fourth finishes it: a shower of
     // crumbs (and a secret), then a fresh cookie.
     if (pill && this.settings.buttons === "cookie") {
       const bites = Number(pill.dataset.bites ?? 0);
-      this.burst("crumbs", e.clientX, e.clientY);
+      // Capped, so rapid taps on a phone don't pile up particles.
+      if (this.particles.filter((p) => p.kind === "crumb").length < 48) this.burst("crumbs", e.clientX, e.clientY);
       if (bites < 3) pill.dataset.bites = String(bites + 1);
       else if (bites === 3) {
         pill.dataset.bites = "4";
@@ -482,6 +537,7 @@ export class FxEngine {
     else if (trail === "sparkle") this.sparkleBurst(e.clientX, e.clientY);
     else if (trail === "fire") this.fireBurst(e.clientX, e.clientY);
     else if (trail === "cursed") this.boo(e.clientX, e.clientY);
+    else if (trail === "car") this.nitro(e.clientX, e.clientY);
 
     // A finger on plain page content (not a link or control) might be about to hold still.
     if (trail && e.pointerType === "touch" && !target.closest(HOLD_SKIP)) this.startPress(e.clientX, e.clientY);
@@ -506,7 +562,7 @@ export class FxEngine {
     this.stillMs = 0;
     getSelection()?.removeAllRanges();
     if (this.settings.trail === "cursed") {
-      this.ghost ??= { x: p.x - 34, y: p.y + 26, alpha: 0, lastMove: now, dir: 1, t: 0 };
+      this.ghost ??= { x: p.x - 34, y: p.y + 26, alpha: 0, lastMove: now, dir: 1, t: 0, kx: 0, ky: 0, squash: 0 };
       this.ghost.lastMove = now - 1400; // it comes for the finger straight away
     }
     this.ensure();
@@ -609,7 +665,7 @@ export class FxEngine {
   }
 
   private moveGhost(x: number, y: number, now: number) {
-    this.ghost ??= { x, y: y + 40, alpha: 0, lastMove: now, dir: 1, t: 0 };
+    this.ghost ??= { x, y: y + 40, alpha: 0, lastMove: now, dir: 1, t: 0, kx: 0, ky: 0, squash: 0 };
     this.ghost.lastMove = now;
   }
 
@@ -653,22 +709,255 @@ export class FxEngine {
     this.scorches.push({ x: x + scrollX, y: y + scrollY, r: 18, life: 1 });
   }
 
-  /** Cursed click: a puff of ectoplasm shoos the ghost back a little. */
+  /**
+   * Cursed click: a soft ring of ectoplasm ripples out and shoos the ghost back.
+   * The push is a velocity that eases out over about half a second (no jump),
+   * and the ghost wobbles like jelly as it settles.
+   */
   private boo(x: number, y: number) {
-    this.ghost ??= { x: x - 34, y: y + 26, alpha: 0, lastMove: performance.now(), dir: 1, t: 0 };
+    const now = performance.now();
+    this.ghost ??= { x: x - 34, y: y + 26, alpha: 0, lastMove: now, dir: 1, t: 0, kx: 0, ky: 0, squash: 0 };
     const g = this.ghost;
     const dx = g.x - x;
     const dy = g.y - y;
     const d = Math.hypot(dx, dy) || 1;
-    g.x += (dx / d) * 45;
-    g.y += (dy / d) * 45;
+    // Closer clicks push a little harder; the whole glide is about 55-65px.
+    const push = 7.5 * (0.75 + 0.25 * Math.max(0, 1 - d / 160));
+    g.kx = (dx / d) * push;
+    g.ky = (dy / d) * push;
+    g.squash = 1;
     g.dir = dx >= 0 ? -1 : 1; // it flinches, facing the click
-    g.alpha = 0.6;
-    g.lastMove = performance.now();
-    for (let i = 0; i < 12; i++) {
-      const a = Math.random() * Math.PI * 2;
-      this.add({ kind: "wisp", x, y, vx: Math.cos(a) * 1.6, vy: Math.sin(a) * 1.6, life: 1, decay: 0.02, size: 14 + Math.random() * 10, hue: 0, gravity: -0.01, spin: 0, angle: 0 });
+    g.lastMove = now;
+    // Rapid clicking keeps pushing, but doesn't stack up a glowing blob of ripples.
+    if (this.particles.filter((p) => p.kind === "ecto").length >= 4) return;
+    this.add({ kind: "ecto", x, y, vx: 0, vy: 0, life: 1, decay: 0.022, size: 6, hue: 0, gravity: 0, spin: 0, angle: 0 });
+    this.add({ kind: "ecto", x, y, vx: 0, vy: 0, life: 1.25, decay: 0.022, size: 2, hue: 1, gravity: 0, spin: 0, angle: 0 });
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + Math.random() * 0.4;
+      this.add({ kind: "wisp", x, y, vx: Math.cos(a) * 1.1, vy: Math.sin(a) * 1.1, life: 1, decay: 0.018, size: 12 + Math.random() * 8, hue: 0, gravity: -0.008, spin: 0, angle: 0 });
     }
+  }
+
+  // ---------------------------------------------------------------- car
+
+  private newCar(x: number, y: number): Car {
+    return { x: x - 46, y: y + 10, vx: 0, vy: 0, heading: 0, steer: 0, roll: 0, nitro: 0, alpha: 0, parked: 0, rear: null };
+  }
+
+  /** Car click or tap: nitro. A burst of speed, and flame from the exhaust. */
+  private nitro(x: number, y: number) {
+    this.car ??= this.newCar(x, y);
+    const c = this.car;
+    c.nitro = 750;
+    c.vx += Math.cos(c.heading) * 7;
+    c.vy += Math.sin(c.heading) * 7;
+    c.parked = 0;
+    this.exhaust(c, 10, 2.4);
+    this.ensure();
+  }
+
+  /** Flame with a blue-hot core out of the tailpipe. */
+  private exhaust(c: Car, n: number, speed: number) {
+    const ex = c.x - Math.cos(c.heading) * 16 * CAR_SCALE;
+    const ey = c.y - Math.sin(c.heading) * 16 * CAR_SCALE;
+    for (let i = 0; i < n; i++) {
+      const a = c.heading + Math.PI + (Math.random() - 0.5) * 0.5;
+      const v = speed * (0.6 + Math.random() * 0.8);
+      const blue = i % 3 === 0;
+      this.add({ kind: blue ? "nitro" : "flame", x: ex, y: ey, vx: Math.cos(a) * v + c.vx * 0.3, vy: Math.sin(a) * v + c.vy * 0.3, life: 1, decay: blue ? 0.08 : 0.06 + Math.random() * 0.03, size: blue ? 7 + Math.random() * 3 : 6 + Math.random() * 6, hue: 0, gravity: 0, spin: 0, angle: 0 });
+    }
+  }
+
+  private updateCar(ctx: CanvasRenderingContext2D, now: number, dt: number, f: number) {
+    if (this.settings.trail !== "car") return;
+    this.updateSkids(ctx, dt);
+    const c = this.car;
+    if (!c) return;
+    const p = this.pointer;
+    // The still state: a resting mouse, or a finger long-pressing.
+    const still = !!p && (p.type === "mouse" || this.holding) && !this.drag && now - this.lastMoveAt > 600;
+    const boost = c.nitro > 0;
+    c.nitro = Math.max(0, c.nitro - dt);
+    let drift = 0;
+    if (still && p) {
+      // Donuts: orbit the pointer with the nose turned in, tires smoking.
+      const a = Math.atan2(c.y - p.y, c.x - p.x) + 0.11 * f;
+      const R = 30;
+      const tx = p.x + Math.cos(a) * R;
+      const ty = p.y + Math.sin(a) * R;
+      const k = Math.min(1, 0.3 * f);
+      c.vx += (tx - c.x - c.vx) * k;
+      c.vy += (ty - c.y - c.vy) * k;
+      const want = a + Math.PI / 2 + 0.95; // the tangent, plus the nose swung toward the center
+      c.heading = wrap(c.heading + wrap(want - c.heading) * Math.min(1, 0.2 * f));
+      c.steer += (0.5 - c.steer) * Math.min(1, 0.2 * f);
+      c.roll += (0.8 - c.roll) * Math.min(1, 0.1 * f);
+      drift = 1;
+      if (Math.random() < 0.35 * f) this.smoke(c);
+    } else if (p) {
+      // Chase a spot just short of the pointer, so the car never sits on top of it.
+      const dx = p.x - c.x;
+      const dy = p.y - c.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const max = boost ? 17 : 9.5;
+      const want = Math.max(0, Math.min(max, (dist - 30) * 0.13));
+      const k = (boost ? 0.16 : 0.09) * f;
+      const ax = ((dx / dist) * want - c.vx) * k;
+      const ay = ((dy / dist) * want - c.vy) * k;
+      c.vx += ax;
+      c.vy += ay;
+      // Lean into the turn: sideways acceleration relative to the nose.
+      const lateral = -Math.sin(c.heading) * ax + Math.cos(c.heading) * ay;
+      c.roll += (Math.max(-1, Math.min(1, lateral * 0.9)) - c.roll) * Math.min(1, 0.2 * f);
+    } else {
+      c.vx *= 0.9 ** f;
+      c.vy *= 0.9 ** f;
+      c.roll *= 0.9 ** f;
+    }
+    const speed = Math.hypot(c.vx, c.vy);
+    if (!still) {
+      if (speed > 0.5) {
+        const diff = wrap(Math.atan2(c.vy, c.vx) - c.heading);
+        // The nose turns at a limited rate, so a sharp turn slides before it grips.
+        c.heading = wrap(c.heading + Math.max(-0.16, Math.min(0.16, diff * 0.22)) * f);
+        c.steer += (Math.max(-0.55, Math.min(0.55, diff * 1.4)) - c.steer) * Math.min(1, 0.3 * f);
+        drift = Math.abs(diff) > 0.45 && speed > 3.2 ? 1 : 0;
+        if (drift && Math.random() < 0.25 * f) this.smoke(c);
+      } else c.steer *= 0.85 ** f;
+    }
+    c.x += c.vx * f;
+    c.y += c.vy * f;
+    if (boost) this.exhaust(c, 2, 2);
+    // Skid marks from both rear wheels while it slides (or spins its wheels on nitro).
+    const cos = Math.cos(c.heading);
+    const sin = Math.sin(c.heading);
+    const rx = c.x - cos * 9 * CAR_SCALE;
+    const ry = c.y - sin * 9 * CAR_SCALE;
+    const w = 7.6 * CAR_SCALE;
+    const rear: [number, number, number, number] = [rx - sin * w, ry + cos * w, rx + sin * w, ry - cos * w];
+    if (c.rear && (drift || (boost && speed > 4)) && this.skids.length < 600) {
+      for (const i of [0, 2]) {
+        if (Math.hypot(rear[i] - c.rear[i], rear[i + 1] - c.rear[i + 1]) > 40) continue;
+        this.skids.push({ x1: c.rear[i] + scrollX, y1: c.rear[i + 1] + scrollY, x2: rear[i] + scrollX, y2: rear[i + 1] + scrollY, life: 1 });
+      }
+    }
+    c.rear = rear;
+    // Parked with nothing to chase (finger lifted, mouse left): it fades away.
+    if (!p && speed < 0.2) c.parked += dt;
+    else c.parked = 0;
+    const gone = c.parked > 1200;
+    c.alpha += ((gone ? 0 : 1) - c.alpha) * Math.min(1, (gone ? 0.06 : 0.15) * f);
+    if (gone && c.alpha < 0.03) {
+      this.car = null;
+      return;
+    }
+    this.drawCar(ctx, c, now);
+  }
+
+  private smoke(c: Car) {
+    const cos = Math.cos(c.heading);
+    const sin = Math.sin(c.heading);
+    const side = Math.random() < 0.5 ? -7 : 7;
+    this.add({ kind: "smoke", x: c.x - cos * 10 - sin * side, y: c.y - sin * 10 + cos * side, vx: (Math.random() - 0.5) * 0.5, vy: -0.25 - Math.random() * 0.3, life: 1, decay: 0.025 + Math.random() * 0.015, size: 5 + Math.random() * 4, hue: 0, gravity: 0, spin: 0, angle: 0 });
+  }
+
+  private updateSkids(ctx: CanvasRenderingContext2D, dt: number) {
+    if (!this.skids.length) return;
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = this.ink;
+    for (let i = this.skids.length - 1; i >= 0; i--) {
+      const s = this.skids[i];
+      s.life -= dt / 2600;
+      if (s.life <= 0) {
+        this.skids.splice(i, 1);
+        continue;
+      }
+      ctx.globalAlpha = 0.28 * s.life;
+      ctx.beginPath();
+      ctx.moveTo(s.x1 - scrollX, s.y1 - scrollY);
+      ctx.lineTo(s.x2 - scrollX, s.y2 - scrollY);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /** A small top-down sports car: wheels (the front ones steer), a body that leans, glass, lights. */
+  private drawCar(ctx: CanvasRenderingContext2D, c: Car, now: number) {
+    const lean = c.roll * 1.6;
+    ctx.save();
+    ctx.globalAlpha = c.alpha;
+    ctx.translate(c.x, c.y);
+    ctx.rotate(c.heading);
+    ctx.scale(CAR_SCALE, CAR_SCALE);
+    // Shadow, thrown opposite the lean.
+    ctx.fillStyle = "rgba(0,0,0,0.28)";
+    roundRect(ctx, -15, -7 - lean * 0.6 + 2.5, 31, 15, 5);
+    ctx.fill();
+    // Wheels.
+    ctx.fillStyle = "#16181b";
+    for (const [wx, wy, front] of [[9, -7.6, 1], [9, 7.6, 1], [-9, -7.6, 0], [-9, 7.6, 0]] as const) {
+      ctx.save();
+      ctx.translate(wx, wy);
+      if (front) ctx.rotate(c.steer);
+      roundRect(ctx, -3.6, -1.9, 7.2, 3.8, 1.2);
+      ctx.fill();
+      ctx.restore();
+    }
+    // Body, shifted by the lean.
+    ctx.translate(0, lean);
+    const body = ctx.createLinearGradient(0, -7, 0, 7);
+    body.addColorStop(0, "#f06a52");
+    body.addColorStop(0.5, "#d9402f");
+    body.addColorStop(1, "#a92b20");
+    ctx.fillStyle = body;
+    roundRect(ctx, -15, -7, 30, 14, 5.5);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(60,10,6,0.55)";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // Twin racing stripes over the hood and trunk.
+    ctx.fillStyle = "rgba(255,240,225,0.85)";
+    ctx.fillRect(-14.5, -2.3, 29, 1.3);
+    ctx.fillRect(-14.5, 1, 29, 1.3);
+    // Windshield and rear window, with a glint.
+    ctx.fillStyle = "#1c2833";
+    ctx.beginPath();
+    ctx.moveTo(6.5, -5.2);
+    ctx.lineTo(3, -5.6);
+    ctx.lineTo(3, 5.6);
+    ctx.lineTo(6.5, 5.2);
+    ctx.quadraticCurveTo(7.6, 0, 6.5, -5.2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(-6.5, -4.8);
+    ctx.lineTo(-9, -4.2);
+    ctx.quadraticCurveTo(-9.8, 0, -9, 4.2);
+    ctx.lineTo(-6.5, 4.8);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.35)";
+    ctx.fillRect(4.2, -4.6, 0.9, 3.4);
+    // Roof, stripes carried over.
+    ctx.fillStyle = "#c33627";
+    roundRect(ctx, -6.5, -5.2, 9.5, 10.4, 2);
+    ctx.fill();
+    ctx.fillStyle = "rgba(255,240,225,0.85)";
+    ctx.fillRect(-6.5, -2.3, 9.5, 1.3);
+    ctx.fillRect(-6.5, 1, 9.5, 1.3);
+    // Headlights; the taillights flare on nitro.
+    ctx.fillStyle = "#fff6c9";
+    ctx.fillRect(13.2, -5.6, 1.6, 2.6);
+    ctx.fillRect(13.2, 3, 1.6, 2.6);
+    const glow = c.nitro > 0 ? 0.6 + 0.4 * Math.sin(now / 40) : 0;
+    ctx.fillStyle = `rgb(${Math.round(190 + glow * 65)},${Math.round(30 + glow * 40)},${Math.round(30 + glow * 20)})`;
+    if (glow) {
+      ctx.shadowColor = "#ff4a2a";
+      ctx.shadowBlur = 8;
+    }
+    ctx.fillRect(-15, -5.6, 1.5, 2.6);
+    ctx.fillRect(-15, 3, 1.5, 2.6);
+    ctx.restore();
   }
 
   // ---------------------------------------------------------------- buttons
@@ -746,11 +1035,12 @@ export class FxEngine {
     this.tiltAim();
     this.drawDrag(ctx);
     this.updateGhost(ctx, now, f);
+    this.updateCar(ctx, now, dt, f);
     this.drawStill(ctx, now, dt);
     this.drawElectric(ctx, now);
 
     const busy =
-      this.particles.length || this.scorches.length || this.knocked.length || this.rocks.length || this.goblins.length || this.drag || this.ghost ||
+      this.particles.length || this.scorches.length || this.knocked.length || this.rocks.length || this.goblins.length || this.drag || this.ghost || this.car || this.skids.length ||
       this.electric || this.holding || ((this.settings.trail || this.settings.buttons === "electric") && this.pointer?.type === "mouse") || (this.settings.dots === "bubbles" && !this.settings.reduced) || this.ambientOn();
     this.frame = busy ? requestAnimationFrame(this.tick) : 0;
     if (!busy) ctx.clearRect(0, 0, this.W, this.H);
@@ -839,6 +1129,50 @@ export class FxEngine {
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.ellipse(0, 0, r, r * 0.4, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        break;
+      }
+      case "smoke": {
+        const r = p.size * (1.9 - p.life * 0.9);
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+        const c = this.dark ? "205,210,215" : "120,124,130";
+        g.addColorStop(0, `rgba(${c},${0.32 * p.life})`);
+        g.addColorStop(1, `rgba(${c},0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+      case "nitro": {
+        const r = p.size * (0.5 + p.life * 0.5);
+        if (this.dark) ctx.globalCompositeOperation = "lighter";
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+        g.addColorStop(0, `rgba(240,250,255,${0.95 * p.life})`);
+        g.addColorStop(0.45, `rgba(90,170,255,${0.75 * p.life})`);
+        g.addColorStop(1, "rgba(60,90,255,0)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      }
+      case "ecto": {
+        // An eased ring: quick at first, then settling softly (hue 1 is the fainter inner echo).
+        const t = Math.max(0, Math.min(1, 1 - p.life / (p.hue ? 1.25 : 1)));
+        const e = 1 - (1 - t) ** 3;
+        const r = p.size + e * (p.hue ? 34 : 52);
+        const a = Math.max(0, Math.min(1, p.life)) * (p.hue ? 0.35 : 0.55);
+        ctx.globalAlpha = 1;
+        const glow = ctx.createRadialGradient(0, 0, r * 0.55, 0, 0, r);
+        glow.addColorStop(0, "rgba(190,175,255,0)");
+        glow.addColorStop(1, `rgba(190,175,255,${a * 0.35})`);
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = this.dark ? `rgba(220,210,255,${a})` : `rgba(120,100,190,${a})`;
+        ctx.lineWidth = 2.2 * Math.min(1, p.life) + 0.4;
         ctx.stroke();
         break;
       }
@@ -1309,11 +1643,18 @@ export class FxEngine {
     // Otherwise it hangs back behind you, and drifts a little when you stop.
     const tx = bones ? bones.left + bones.width / 2 : possess ? target.x + 2 : target.x - 34 * g.dir + (idle ? Math.sin(g.t) * 30 : 0);
     const ty = bones ? bones.top + bones.height / 2 : possess ? target.y - 4 : target.y + 26 + (idle ? Math.cos(g.t * 0.7) * 14 : 0);
-    const nx = g.x + (tx - g.x) * 0.06 * f;
-    if (Math.abs(nx - g.x) > 0.4) g.dir = nx > g.x ? 1 : -1;
+    // While a click's push glides it back, it barely follows (then picks up again smoothly).
+    const pushing = Math.min(1, Math.hypot(g.kx, g.ky) / 6);
+    const follow = 0.06 * (1 - 0.85 * pushing) * f;
+    const nx = g.x + (tx - g.x) * follow + g.kx * f;
+    if (pushing < 0.05 && Math.abs(nx - g.x) > 0.4) g.dir = nx > g.x ? 1 : -1;
     g.x = nx;
-    g.y += (ty - g.y) * 0.06 * f;
-    g.alpha += ((possess ? 0.45 : idle ? 0.25 : 0.85) - g.alpha) * 0.05 * f;
+    g.y += (ty - g.y) * follow + g.ky * f;
+    g.kx *= 0.87 ** f;
+    g.ky *= 0.87 ** f;
+    g.squash *= 0.93 ** f;
+    // It dims a little when shooed, and brightens back as it recovers.
+    g.alpha += ((possess ? 0.45 : idle ? 0.25 : 0.85) * (1 - 0.35 * g.squash) - g.alpha) * 0.08 * f;
     if (skeleton && Math.hypot(g.x - tx, g.y - ty) < 14) {
       // In it goes: the skeleton gets up and dances, and the ghost is spent for now.
       this.setPossessed(false);
@@ -1337,6 +1678,11 @@ export class FxEngine {
     ctx.save();
     ctx.globalAlpha = g.alpha;
     ctx.translate(g.x, g.y + Math.sin(g.t * 2) * 3);
+    if (g.squash > 0.01) {
+      // Jelly wobble: squashed by the push, springing back with a soft overshoot.
+      const w = g.squash * Math.cos((1 - g.squash) * 9);
+      ctx.scale(1 + 0.18 * w, 1 - 0.14 * w);
+    }
     ctx.shadowColor = "rgba(170,150,255,0.8)";
     ctx.shadowBlur = 16;
     ctx.fillStyle = this.dark ? "rgba(236,232,255,0.85)" : "rgba(120,110,160,0.55)";
@@ -1425,6 +1771,14 @@ export class FxEngine {
     if (now > e.until || !e.el.isConnected) {
       this.electric = null;
       return;
+    }
+    // A finger holding an Electric button: little sparks keep jumping off under it.
+    if (e.touch && p && !this.settings.reduced && now - this.lastHoldSpark > 220) {
+      this.lastHoldSpark = now;
+      for (let i = 0; i < 4; i++) {
+        const a = Math.random() * Math.PI * 2;
+        this.add({ kind: "spark", x: p.x, y: p.y, vx: Math.cos(a) * 3, vy: Math.sin(a) * 3, life: 0.8, decay: 0.07, size: 5 + Math.random() * 4, hue: 180 + Math.random() * 30, gravity: 0.08, spin: 0, angle: 0 });
+      }
     }
     const r = e.el.getBoundingClientRect();
     const radius = Math.min(parseFloat(getComputedStyle(e.el).borderTopLeftRadius) || 0, r.height / 2, r.width / 2);
@@ -1586,6 +1940,16 @@ export class FxEngine {
         curious: Math.random() < 0.45 ? now + 9000 + Math.random() * 7000 : undefined });
     }
   }
+}
+
+/** An angle folded into -π..π. */
+function wrap(a: number) {
+  return Math.atan2(Math.sin(a), Math.cos(a));
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
 }
 
 /** A point on a rounded rectangle's outline at t ∈ [0,1], with its outward normal. */

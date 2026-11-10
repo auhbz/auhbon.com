@@ -681,7 +681,8 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
         <div
           role="radiogroup"
           aria-labelledby={groupId}
-          className={`mt-2 grid gap-1.5 ${def.options.length === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}
+          data-count={def.options.length}
+          className="style-picker mt-2"
         >
           <span id={groupId} className="sr-only">
             {def.label} style
@@ -699,7 +700,7 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
                   setVariant(category, o.id);
                   sound("toggle");
                 }}
-                className="min-h-10 rounded-md border border-line px-1.5 text-sm leading-tight aria-checked:border-kelp aria-checked:bg-kelp aria-checked:text-kelp-ink"
+                className="min-h-10 min-w-0 rounded-md border border-line px-1.5 text-sm leading-tight aria-checked:border-kelp aria-checked:bg-kelp aria-checked:text-kelp-ink"
               >
                 {o.label}
               </button>

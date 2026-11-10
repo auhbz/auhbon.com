@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.22.0 | Effects, polish & phone fixes | [`release/1.22.0`](https://github.com/auhbz/auhbon.com/tree/release/1.22.0) |
 | 1.21.0 | Draft sandbox & visuals | [`release/1.21.0`](https://github.com/auhbz/auhbon.com/tree/release/1.21.0) |
 | 1.20.0 | Secrets batch | [`release/1.20.0`](https://github.com/auhbz/auhbon.com/tree/release/1.20.0) |
 | 1.19.0 | Mobile experience | [`release/1.19.0`](https://github.com/auhbz/auhbon.com/tree/release/1.19.0) |
@@ -57,6 +58,20 @@ Major Push 4, part 2. A sandbox for trying ideas before they reach the live site
 - **/dev/draft/diff:** a checklist of everything that differs between the draft and the live site.
 - **/dev/visuals:** the farm story tree, the site architecture, release sizes and an effects catalog.
 - New `qa/draft.mjs` test suite.
+
+---
+
+Major Push 4, part 3. New effects, a smoother look and phone fixes.
+
+- **Car trail:** a little car chases the cursor with momentum. It skids on sharp turns, does donuts when you stop, and fires nitro on click.
+- **Two new sound packs:** Chiptune and Tabletop (card flicks, chips and dice).
+- **Hamster i-dots:** click fast enough and the wheels shake, spark, catch fire, then break off and roll away.
+- **Guide goblin** recolored to the site's palette, smaller and tucked against the badge. On phones he says "Tap it!!!!".
+- **Cursed click:** the ghost now glides back and wobbles instead of jumping, with a soft ripple.
+- **Phones:**
+  - Electric now draws under your finger, stays lit while held and rests after.
+  - Rapid taps on Cookie tags no longer stutter.
+- Style pickers in the panel lay out in balanced rows.
 
 ---
 

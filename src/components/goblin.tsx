@@ -17,28 +17,28 @@ function GoblinArt({ pointing = false, className = "" }: { pointing?: boolean; c
         // straight left on wide screens, up and to the left on narrow ones.
         <>
           <g className="goblin-arm-left">
-            <path d="M24 42 L3 36" stroke="#4d8f2c" strokeWidth="5" strokeLinecap="round" />
-            <circle cx="3" cy="36" r="3.6" fill="#6cb447" />
+            <path d="M24 42 L3 36" stroke="var(--gob-arm, #4d8f2c)" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="3" cy="36" r="3.6" fill="var(--gob-skin, #6cb447)" />
           </g>
           <g className="goblin-arm-up">
-            <path d="M24 40 L9 10" stroke="#4d8f2c" strokeWidth="5" strokeLinecap="round" />
-            <circle cx="9" cy="10" r="3.6" fill="#6cb447" />
+            <path d="M24 40 L9 10" stroke="var(--gob-arm, #4d8f2c)" strokeWidth="5" strokeLinecap="round" />
+            <circle cx="9" cy="10" r="3.6" fill="var(--gob-skin, #6cb447)" />
           </g>
         </>
       ) : null}
       {/* Body: a little brown tunic. */}
-      <ellipse cx="32" cy="50" rx="11" ry="10" fill="#7a4a22" />
+      <ellipse cx="32" cy="50" rx="11" ry="10" fill="var(--gob-tunic, #7a4a22)" />
       {/* Ears. */}
-      <path d="M20 26 L3 14 L21 33 Z M44 26 L61 14 L43 33 Z" fill="#5fa83a" />
+      <path d="M20 26 L3 14 L21 33 Z M44 26 L61 14 L43 33 Z" fill="var(--gob-ear, #5fa83a)" />
       {/* Head. */}
-      <circle cx="32" cy="29" r="14" fill="#6cb447" />
-      <circle cx="26.5" cy="27" r="3" fill="#ffe14d" />
-      <circle cx="37.5" cy="27" r="3" fill="#ffe14d" />
-      <circle cx="27.3" cy="27.4" r="1.3" fill="#1d3a0e" />
-      <circle cx="38.3" cy="27.4" r="1.3" fill="#1d3a0e" />
+      <circle cx="32" cy="29" r="14" fill="var(--gob-skin, #6cb447)" />
+      <circle cx="26.5" cy="27" r="3" fill="var(--gob-eye, #ffe14d)" />
+      <circle cx="37.5" cy="27" r="3" fill="var(--gob-eye, #ffe14d)" />
+      <circle cx="27.3" cy="27.4" r="1.3" fill="var(--gob-dark, #1d3a0e)" />
+      <circle cx="38.3" cy="27.4" r="1.3" fill="var(--gob-dark, #1d3a0e)" />
       {/* A toothy grin. */}
-      <path d="M25 34 Q32 40 39 34" fill="none" stroke="#1d3a0e" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M29 35.6 L30 38 L31 36.2 M33 36.2 L34 38 L35 35.6" fill="#fff" stroke="#fff" strokeWidth="0.8" />
+      <path d="M25 34 Q32 40 39 34" fill="none" stroke="var(--gob-dark, #1d3a0e)" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M29 35.6 L30 38 L31 36.2 M33 36.2 L34 38 L35 35.6" fill="var(--gob-teeth, #fff)" stroke="var(--gob-teeth, #fff)" strokeWidth="0.8" />
     </svg>
   );
 }
@@ -66,7 +66,11 @@ export function GoblinGuide() {
       }}
     >
       <GoblinArt pointing className="goblin-guide-art" />
-      <span className="goblin-bubble">Click it!!!!</span>
+      {/* Phones and tablets get the touch word (CSS picks by pointer type, so nothing re-renders). */}
+      <span className="goblin-bubble">
+        <span className="goblin-say-click">Click it!!!!</span>
+        <span className="goblin-say-tap">Tap it!!!!</span>
+      </span>
     </div>
   );
 }

@@ -24,6 +24,7 @@ export const CATEGORIES: CategoryDef[] = [
       { id: "slingshot", label: "Slingshot", description: "Pull a rock back, let go, knock words around" },
       { id: "bubbles", label: "Bubbles", description: "They float away; pop them" },
       { id: "farm", label: "Farm", description: "A little story: feed the chick and see what happens" },
+      { id: "hamsters", label: "Hamsters", description: "Hamsters in wheels. Click fast and see how far they go" },
     ],
   },
   {
@@ -46,6 +47,7 @@ export const CATEGORIES: CategoryDef[] = [
       { id: "flow", label: "Flow", description: "Water: it streams, drips when you wait, and splashes when you click" },
       { id: "fire", label: "Fire", description: "Flames that scorch the words they pass, and grow if you wait" },
       { id: "cursed", label: "Cursed", description: "Something follows you. Don’t stand still." },
+      { id: "car", label: "Car", description: "A tiny car chases you, drifts the corners, does donuts when you wait; click for nitro" },
     ],
   },
   {
@@ -58,6 +60,8 @@ export const CATEGORIES: CategoryDef[] = [
       { id: "clown", label: "Clown", description: "Honks, slide whistles, kazoos, applause (and the odd toot)" },
       { id: "birds", label: "Birds", description: "Chirps on hover, a whistled call on press" },
       { id: "jungle", label: "Jungle", description: "Monkeys, frogs, toucans, bongos, and an elephant when a rock hits" },
+      { id: "chiptune", label: "Chiptune", description: "Retro game blips, coins, jumps and power-ups, with a victory jingle for secrets" },
+      { id: "tabletop", label: "Tabletop", description: "Board game night: dice, card shuffles, wooden pieces and poker chips" },
     ],
   },
 ];

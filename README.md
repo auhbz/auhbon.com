@@ -37,6 +37,7 @@ Every version is saved as a `release/<version>` branch you can browse, compare, 
 <!-- versions:start -->
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.22.0 | Effects, polish & phone fixes | [`release/1.22.0`](https://github.com/auhbz/auhbon.com/tree/release/1.22.0) |
 | 1.21.0 | Draft sandbox & visuals | [`release/1.21.0`](https://github.com/auhbz/auhbon.com/tree/release/1.21.0) |
 | 1.20.0 | Secrets batch | [`release/1.20.0`](https://github.com/auhbz/auhbon.com/tree/release/1.20.0) |
 | 1.19.0 | Mobile experience | [`release/1.19.0`](https://github.com/auhbz/auhbon.com/tree/release/1.19.0) |

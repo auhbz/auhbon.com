@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { flushSync } from "react-dom";
 import type { Project } from "@/content/profile";
 import { FILTER_EVENT, prefersReducedMotion } from "@/lib/events";
@@ -49,6 +49,7 @@ export function ProjectExplorer({ projects, filters }: { projects: Project[]; fi
   }, [allChips, showAll, active]);
   const hidden = allChips.length - VISIBLE_CHIPS;
 
+  const lastTransition = useRef(-Infinity);
   const choose = useCallback(
     (tech: string | null) => {
       const next = tech && counts.has(tech) ? tech : null;
@@ -60,8 +61,13 @@ export function ProjectExplorer({ projects, filters }: { projects: Project[]; fi
           history.replaceState(null, "", url);
           window.dispatchEvent(new Event(URL_EVENT));
         });
-      // Animate projects into their new positions where the browser supports it.
-      if ("startViewTransition" in document && !prefersReducedMotion()) document.startViewTransition(update);
+      // Animate projects into their new positions where the browser supports it. Rapid
+      // repeat taps (say, biting a Cookie tag) skip the animation: each transition
+      // snapshots the whole page, and back-to-back ones made phones stutter.
+      const now = performance.now();
+      const rapid = now - lastTransition.current < 1000;
+      lastTransition.current = now;
+      if ("startViewTransition" in document && !prefersReducedMotion() && !rapid) document.startViewTransition(update);
       else update();
     },
     [counts],

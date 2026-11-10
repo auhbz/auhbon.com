@@ -5,6 +5,7 @@ import { activeVariant, DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
 import { HERO_WAVE_EVENT } from "@/components/easter-eggs";
 import { enterStage, FarmNarration, node, type Stage } from "@/components/farm-story";
 import { reveal } from "@/components/easter-eggs";
+import { HamsterDot } from "@/components/hamster-wheel";
 
 const REST = 700; // weight when the pointer is away
 const MIN = 380; // letters far from the pointer
@@ -40,7 +41,7 @@ const SWAP_CLOSENESS = 0.72;
 export function HeroName({ name, id }: { name: string; id: string }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  // "fruit" | "slingshot" | "bubbles" | "farm" | null (regular dots)
+  // "fruit" | "slingshot" | "bubbles" | "farm" | "hamsters" | null (regular dots)
   const dots = activeVariant(fun, "dots");
   const [stage, setStage] = useState<Stage>("start");
   // An egg on the farm can be cooked by holding the Fire trail over it.
@@ -217,6 +218,8 @@ export function HeroName({ name, id }: { name: string; id: string }) {
                         onChoose={choose}
                       />
                     ) : null}
+                    {/* Hamsters: each dot is a hamster in a wheel; click fast. */}
+                    {dotted && dots === "hamsters" ? <HamsterDot index={dotIndex} /> : null}
                     {/* Bubbles rise from here; the engine spawns and pops them. */}
                     {dotted && dots === "bubbles" ? (
                       <span data-bubble className="hero-dot hero-bubble" />

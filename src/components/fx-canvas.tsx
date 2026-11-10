@@ -59,7 +59,7 @@ export function FxCanvas() {
     engine.current?.configure({ trail, dots, buttons, look, reduced, on, motion });
   }, [trail, dots, buttons, look, reduced, on, motion]);
 
-  return <canvas ref={canvas} aria-hidden="true" className="pointer-events-none fixed inset-0 z-[55] h-full w-full" />;
+  return <canvas ref={canvas} aria-hidden="true" className="fx-canvas pointer-events-none fixed inset-0 z-[55] h-full w-full" />;
 }
 
 /**
@@ -80,7 +80,8 @@ export function SoundFx() {
       playIfOn("hover");
     };
     const onClick = (e: MouseEvent) => {
-      if ((e.target as Element).closest("a, button, [role='option'], [data-letter]")) playIfOn("press");
+      // Hamster wheels make their own sounds as they build up, not one per (very fast) click.
+      if ((e.target as Element).closest("a, button, [role='option'], [data-letter]") && !(e.target as Element).closest("[data-hamster]")) playIfOn("press");
       // Phones that can vibrate: a light tap on button presses (only while Bells & whistles is on).
       if ((e.target as Element).closest("button, [role='button'], [role='option']")) haptic("tap");
     };

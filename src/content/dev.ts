@@ -38,6 +38,7 @@ export const roadmap: RoadmapItem[] = [
   { item: "1.17.1: CV sync", version: "1.17.1", status: "Shipped" },
   { item: "1.18.0: CV & About me downloads", version: "1.18.0", status: "Shipped" },
   { item: "1.18.1: Roomier intro", version: "1.18.1", status: "Shipped" },
+  { item: "1.22.0: Effects, polish & phone fixes", version: "1.22.0", status: "Shipped", notes: "Car trail, Chiptune and Tabletop sounds, hamster i-dots, quieter goblin, smoother cursed click, Electric and Cookie fixes on phones." },
   { item: "1.21.0: Draft sandbox & visuals", version: "1.21.0", status: "Shipped", notes: "/dev/draft, /dev/draft/diff and /dev/visuals. Draft features stay off the live site." },
   { item: "1.20.0: Secrets batch", version: "1.20.0", status: "Shipped", notes: "18 new secrets (35 total), badge hints, new milestones, touch gamepad." },
   { item: "1.19.0: Mobile experience", version: "1.19.0", status: "Shipped", notes: "All seven mobile ideas below, now live." },
