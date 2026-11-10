@@ -8,6 +8,8 @@ const pages = [
   { href: "/dev/secrets", title: "Secrets", description: "Every secret, how each one is found (hidden until you ask), and rough ideas for more." },
   { href: "/dev/hands-on-tasks", title: "Hands-on tasks", description: "Things only Auhbon can decide or do, open ones first." },
   { href: "/dev/versions", title: "Versions", description: "Every version's notes and its GitHub branch, from the changelog." },
+  { href: "/dev/draft", title: "Draft playground", description: "The live home page plus ideas being tested before they go live. See what's different on /dev/draft/diff." },
+  { href: "/dev/visuals", title: "Visuals", description: "The farm story as a tree, the site's architecture, release sizes and the effects catalog." },
 ] as const;
 
 export default function DevIndex() {
