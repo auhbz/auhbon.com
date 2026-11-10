@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { BURST_EVENT, SOUND_EVENT, type Burst } from "@/lib/fx";
+import { BURST_EVENT, foundSecret, SOUND_EVENT, type Burst } from "@/lib/fx";
 import { activeVariant, DEFAULT_FUN, getFun, lookActive, subscribeFun } from "@/lib/fun";
 import { FxEngine } from "@/lib/fx/engine";
 import { play, type SoundEvent, type SoundPack } from "@/lib/sound";
@@ -33,6 +33,7 @@ export function FxCanvas() {
     if (!canvas.current) return;
     const fx = new FxEngine(canvas.current, playIfOn, (id) => {
       if (id === "bat") reveal("bat", "Batter up!");
+      else foundSecret(id);
     });
     engine.current = fx;
     const onBurst = (e: Event) => {

@@ -1,5 +1,6 @@
 import { profile } from "@/content/profile";
 import { ExternalLink } from "@/components/external-link";
+import { KonamiPad } from "@/components/konami-pad";
 
 export function SiteFooter() {
   return (
@@ -12,6 +13,7 @@ export function SiteFooter() {
             View the source
           </ExternalLink>
         </p>
+        <KonamiPad />
       </div>
     </footer>
   );

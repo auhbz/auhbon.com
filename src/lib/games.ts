@@ -3,7 +3,7 @@
  * drawn on its own canvas over a blurred page, built from the page itself
  * (its headings, tags and buttons become asteroids and blocks).
  */
-import { burst, sound } from "@/lib/fx";
+import { burst, foundSecret, sound } from "@/lib/fx";
 
 export type GameMode = "asteroids" | "keepy" | "stacker";
 
@@ -81,6 +81,8 @@ export class Asteroids implements Game {
   }
 
   private nextWave(now: number) {
+    // Clearing the first wave (one that actually had rocks in it) is a secret.
+    if (this.wave === 1 && this.score > 0) foundSecret("cadet");
     this.wave++;
     const speed = 0.5 + this.wave * 0.25;
     const shapes = pageShapes(14);
@@ -261,6 +263,7 @@ export class KeepyUppy implements Game {
       b.r = 21;
       this.balls.push(b);
       this.banner = { text: "40! Double trouble!", until: now + 1600 };
+      foundSecret("double");
     }
   }
 
@@ -323,6 +326,8 @@ export class Stacker implements Game {
   private debris: { x: number; y: number; w: number; vy: number; text: string; hue: number }[] = [];
   private words = pageWords();
   private camera = 0;
+  /** Perfect drops in a row. */
+  private streak = 0;
 
   constructor(private colors: Colors) {
     const w = Math.min(340, innerWidth * 0.7);
@@ -362,7 +367,9 @@ export class Stacker implements Game {
     this.stack.push({ x: perfect ? top.x : left, w: perfect ? top.w : overlap, y: m.y, text: m.text, hue: m.hue });
     this.score++;
     sound(perfect ? "secret" : "pop");
-    if (perfect) this.banner = { text: "Perfect!", until: performance.now() + 900 };
+    this.streak = perfect ? this.streak + 1 : 0;
+    if (perfect) this.banner = { text: this.streak >= 3 ? `${this.streak} perfect in a row!` : "Perfect!", until: performance.now() + 900 };
+    if (this.streak === 3) foundSecret("perfect");
     this.moving = this.nextBlock();
   }
 

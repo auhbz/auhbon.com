@@ -1,5 +1,5 @@
 import { DEV_AS_OF, roughSecretIdeas } from "@/content/dev";
-import { MILESTONES, SECRET_GOAL, SECRET_LIST } from "@/lib/fun";
+import { MILESTONES, SECRET_CATEGORIES, SECRET_GOAL, SECRET_LIST, type SecretCategory } from "@/lib/fun";
 import { DevPageHeader, DevSection, ResponsiveTable, StatusPill, devMetadata } from "@/components/dev/ui";
 
 export const metadata = devMetadata("Secrets", "/dev/secrets", "Every secret on auhbon.com, with spoilers hidden.");
@@ -12,6 +12,30 @@ function Title({ row }: { row: { icon?: string; title: string } }) {
     <span className="inline-flex items-baseline gap-2">
       {row.icon ? <span aria-hidden="true">{row.icon}</span> : null}
       <span>{row.title}</span>
+    </span>
+  );
+}
+
+const CATEGORY_NOTES: Record<SecretCategory, string> = {
+  Hidden: "Things to click or find on the page.",
+  Typing: "Words, codes and keys (phones get on-screen stand-ins).",
+  Combos: "Themes and effects switched on together in Bells & whistles.",
+  Effects: "Playing with a particular effect or theme.",
+  Farm: "Endings and tricks in the Farm i-dots story.",
+  Games: "Inside the game modes (these don't count toward unlocking them).",
+  Misc: "Everything else.",
+};
+
+const LEVELS = { 1: "Easy", 2: "Medium", 3: "Hard" } as const;
+
+function Difficulty({ level }: { level: 1 | 2 | 3 }) {
+  return (
+    <span className="inline-flex items-baseline gap-2">
+      <span aria-hidden="true" className="tracking-widest text-kelp">
+        {"●".repeat(level)}
+        <span className="text-muted">{"○".repeat(3 - level)}</span>
+      </span>
+      <span>{LEVELS[level]}</span>
     </span>
   );
 }
@@ -57,29 +81,47 @@ export default function Secrets() {
         </ul>
       </DevSection>
 
-      <DevSection id="implemented" title="Implemented">
-        <ResponsiveTable
-          caption="Implemented secrets"
-          rows={secrets}
-          rowKey={(r) => r.id}
-          columns={[
-            { header: "Secret", cell: (r) => <><span className="text-muted">{r.n}.</span> <Title row={r} /></>, className: "w-[38%]" },
-            { header: "Status", cell: () => <StatusPill tone="done">Implemented</StatusPill>, className: "w-40" },
-            {
-              header: "How it's found",
-              cell: (r) => (
-                <details className="group">
-                  <summary className={summaryClass}>
-                    <span className="group-open:hidden">Show how</span>
-                    <span className="hidden group-open:inline">Hide how</span>
-                    <span className="sr-only"> to find {r.title}</span>
-                  </summary>
-                  <p className="pb-1">{r.how}</p>
-                </details>
-              ),
-            },
-          ]}
-        />
+      <DevSection
+        id="implemented"
+        title="Implemented"
+        intro="Grouped by kind. Difficulty is a rough estimate of how hard each one is to stumble on or work out."
+      >
+        {SECRET_CATEGORIES.map((category) => {
+          const rows = secrets.filter((s) => s.category === category);
+          if (!rows.length) return null;
+          return (
+            <div key={category} className="mt-10 first:mt-0">
+              <h3 id={`cat-${category.toLowerCase()}`} className="font-display text-lg font-semibold tracking-tight">
+                {category} <span className="text-base font-normal text-muted">({rows.length})</span>
+              </h3>
+              <p className="mt-1 max-w-prose text-sm text-muted">{CATEGORY_NOTES[category]}</p>
+              <div className="mt-3">
+                <ResponsiveTable
+                  caption={`${category} secrets`}
+                  rows={rows}
+                  rowKey={(r) => r.id}
+                  columns={[
+                    { header: "Secret", cell: (r) => <><span className="text-muted">{r.n}.</span> <Title row={r} /></>, className: "w-[38%]" },
+                    { header: "Difficulty", cell: (r) => <Difficulty level={r.difficulty} />, className: "w-40" },
+                    {
+                      header: "How it's found",
+                      cell: (r) => (
+                        <details className="group">
+                          <summary className={summaryClass}>
+                            <span className="group-open:hidden">Show how</span>
+                            <span className="hidden group-open:inline">Hide how</span>
+                            <span className="sr-only"> to find {r.title}</span>
+                          </summary>
+                          <p className="pb-1">{r.how}</p>
+                        </details>
+                      ),
+                    },
+                  ]}
+                />
+              </div>
+            </div>
+          );
+        })}
 
         <details className="group mt-6 rounded-lg border border-line bg-surface px-4">
           <summary className={`${summaryClass} font-medium`}>

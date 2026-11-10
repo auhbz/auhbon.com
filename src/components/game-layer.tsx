@@ -87,6 +87,8 @@ export function GameLayer() {
     size();
     document.documentElement.dataset.game = mode;
     game.current = mode === "asteroids" ? new Asteroids(colors) : mode === "keepy" ? new KeepyUppy() : new Stacker(colors);
+    // The QA suite reaches the running game through its canvas (to test the in-game secrets).
+    (el as HTMLCanvasElement & { game?: Game }).game = game.current;
     started.current = performance.now();
     clearInput(input, true);
     el.focus();

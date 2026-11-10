@@ -3,16 +3,42 @@
 import { useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
-import { MILESTONES } from "@/lib/fun";
+import { dueMilestones, getFun, markCelebrated, MILESTONES } from "@/lib/fun";
 
 export const CELEBRATE_EVENT = "portfolio:celebrate";
 
-/** Throw the party for a secrets milestone (10, 20, 40, 70, 100). */
+/** Throw the party for a secrets milestone (see MILESTONES). */
 export function celebrate(at: number) {
   window.dispatchEvent(new CustomEvent<number>(CELEBRATE_EVENT, { detail: at }));
 }
 
+/**
+ * Celebrate any milestones just reached. Several at once (the 137 unlock, or a
+ * save from before the milestones changed) are all marked as celebrated, but
+ * only the biggest party plays, so they never pile up.
+ */
+export function celebrateDue(delayMs = 1200) {
+  const due = dueMilestones(getFun());
+  if (!due.length) return;
+  for (const m of due) markCelebrated(m.at);
+  const top = due[due.length - 1].at;
+  window.setTimeout(() => celebrate(top), delayMs);
+}
+
 const ANIMALS = ["🐘", "🦒", "🐒", "🦓", "🐧", "🐢", "🦆", "🐇", "🦜", "🐊", "🦔", "🐓", "🦙", "🐿️", "🦘", "🐖"];
+
+type Party = "parade" | "cannons" | "fireworks" | "disco";
+/** Which parties each milestone throws. The last one is the grand finale: everything. */
+const PARTIES: Record<number, Party[]> = {
+  5: ["parade"],
+  10: ["cannons"],
+  15: ["fireworks"],
+  25: ["disco"],
+  40: ["parade", "cannons"],
+  65: ["fireworks", "disco"],
+  97: ["cannons", "fireworks"],
+  100: ["parade", "cannons", "fireworks", "disco"],
+};
 
 type Parade = { id: number; animals: { emoji: string; delay: number; duration: number; size: number; hop: number }[] };
 
@@ -62,6 +88,7 @@ export function Celebrations() {
       document.documentElement.dataset.disco = "true";
       later(8000, () => delete document.documentElement.dataset.disco);
     };
+    const run: Record<Party, () => void> = { parade: startParade, cannons, fireworks, disco };
 
     const onCelebrate = (e: Event) => {
       const at = (e as CustomEvent<number>).detail;
@@ -70,16 +97,7 @@ export function Celebrations() {
       toast(`Milestone: ${at} secrets! ${m.name} ${m.icon}`);
       sound("secret");
       if (prefersReducedMotion()) return;
-      if (at === 10) startParade();
-      else if (at === 20) cannons();
-      else if (at === 40) fireworks();
-      else if (at === 70) disco();
-      else {
-        startParade();
-        cannons();
-        fireworks();
-        disco();
-      }
+      for (const p of PARTIES[at] ?? ["parade"]) run[p]();
     };
     window.addEventListener(CELEBRATE_EVENT, onCelebrate);
     return () => {
@@ -91,6 +109,7 @@ export function Celebrations() {
 
   if (!parade) return null;
   return (
+    // The strip lets clicks through to the page; only the animals catch them (tap one and it jumps).
     <div aria-hidden="true" data-parade className="parade" key={parade.id}>
       {parade.animals.map((a, i) => (
         <span
@@ -106,7 +125,23 @@ export function Celebrations() {
           }
         >
           {/* Emoji animals face left; flip them so they walk the way they're going. */}
-          <span className="parade-hop">{a.emoji}</span>
+          <span className="parade-hop">
+            <span
+              className="parade-trick"
+              data-parade-animal
+              onPointerDown={(e) => {
+                const el = e.currentTarget;
+                if (el.dataset.trick) return;
+                el.dataset.trick = "true";
+                sound("pop");
+              }}
+              onAnimationEnd={(e) => {
+                if (e.animationName === "parade-trick") delete e.currentTarget.dataset.trick;
+              }}
+            >
+              {a.emoji}
+            </span>
+          </span>
         </span>
       ))}
     </div>

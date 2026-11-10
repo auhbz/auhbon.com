@@ -1173,3 +1173,198 @@ html[data-fun] .googly::after {
   background: currentColor;
   pointer-events: none;
 }
+
+/* --- Secrets batch --- */
+/* Extras that only exist while Bells & whistles is on (data-fun is set before first paint). */
+html:not([data-fun]) .fun-only {
+  display: none !important;
+}
+/* Touch-only extras, like the Konami gamepad. */
+@media not (pointer: coarse) {
+  .touch-only {
+    display: none !important;
+  }
+}
+
+/* Parade animals catch taps (the strip itself lets clicks through) and do a jump-spin. */
+.parade-trick {
+  display: inline-block;
+  pointer-events: auto;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .parade-trick[data-trick] {
+    animation: parade-trick 0.7s cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+}
+@keyframes parade-trick {
+  45% {
+    transform: translateY(-0.7em) rotate(200deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Cookie buttons: the fourth bite finishes the cookie; a fresh one appears a moment later. */
+html[data-fx-buttons="cookie"] .pill[data-bites="4"]:not(:focus-visible) {
+  opacity: 0;
+  transform: scale(0.6);
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+
+/* The skeleton at the bottom of the timeline. Possessed (Cursed trail), it gets up and dances. */
+.skeleton {
+  display: inline-block;
+  padding: 2px;
+  color: var(--muted);
+  opacity: 0.75;
+  transform-origin: 100% 85%;
+}
+.skeleton[data-state="dance"] {
+  position: relative;
+  z-index: 2;
+  color: var(--ink);
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(170, 150, 255, 0.85));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skeleton[data-state="dance"] {
+    animation: skeleton-dance 4s ease-in-out both;
+  }
+  .skeleton[data-state="dance"] .skeleton-arms {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    animation: skeleton-wave 0.3s ease-in-out infinite alternate;
+  }
+}
+@keyframes skeleton-dance {
+  0% {
+    transform: none;
+  }
+  14% {
+    transform: rotate(90deg);
+  }
+  24% {
+    transform: rotate(76deg) scale(1.05);
+  }
+  34% {
+    transform: rotate(104deg);
+  }
+  44% {
+    transform: rotate(76deg) scale(1.05);
+  }
+  54% {
+    transform: rotate(104deg);
+  }
+  64% {
+    transform: rotate(76deg) scale(1.05);
+  }
+  74% {
+    transform: rotate(104deg);
+  }
+  86% {
+    transform: rotate(90deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes skeleton-wave {
+  to {
+    transform: scaleX(1.12) rotate(-6deg);
+  }
+}
+
+/* The Konami gamepad (touch): an original, unbranded take on a classic controller. */
+.gamepad {
+  border-radius: 14px;
+  background: #d6d3cc;
+  padding: 10px 12px 14px;
+  box-shadow: inset 0 -3px 0 #b5b1a8;
+}
+.gamepad-progress {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.gamepad-progress span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #a29e95;
+}
+.gamepad-progress span[data-lit] {
+  background: #c8242b;
+}
+.gamepad-face {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 8px;
+  background: #26262a;
+  padding: 14px;
+}
+.gamepad-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
+  grid-template-rows: repeat(3, 40px);
+  grid-template-areas:
+    ". up ."
+    "left mid right"
+    ". down .";
+}
+.gamepad-dpad > * {
+  background: #111113;
+  color: #8d8d93;
+}
+.gamepad-dpad button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+}
+.gamepad-dpad button[data-pad="ArrowUp"] {
+  border-radius: 5px 5px 0 0;
+}
+.gamepad-dpad button[data-pad="ArrowDown"] {
+  border-radius: 0 0 5px 5px;
+}
+.gamepad-dpad button[data-pad="ArrowLeft"] {
+  border-radius: 5px 0 0 5px;
+}
+.gamepad-dpad button[data-pad="ArrowRight"] {
+  border-radius: 0 5px 5px 0;
+}
+.gamepad-dpad button:active {
+  background: #000;
+  color: #fff;
+}
+.gamepad-ab {
+  display: flex;
+  gap: 12px;
+}
+.gamepad-round {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  color: #e8e6e1;
+  font: 700 0.8rem/1 system-ui, sans-serif;
+}
+.gamepad-round button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #c8242b;
+  box-shadow: 0 3px 0 #7d1015;
+  touch-action: manipulation;
+}
+.gamepad-round button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #7d1015;
+}
