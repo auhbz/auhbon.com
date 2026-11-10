@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.18.1 | Roomier intro | [`release/1.18.1`](https://github.com/auhbz/auhbon.com/tree/release/1.18.1) |
 | 1.18.0 | CV & About me downloads | [`release/1.18.0`](https://github.com/auhbz/auhbon.com/tree/release/1.18.0) |
 | 1.17.1 | CV sync | [`release/1.17.1`](https://github.com/auhbz/auhbon.com/tree/release/1.17.1) |
 | 1.17.0 | Dev pages | [`release/1.17.0`](https://github.com/auhbz/auhbon.com/tree/release/1.17.0) |
@@ -25,6 +26,14 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.18.1: Roomier intro
+
+**Changed**
+- The intro and the contact buttons sit side by side with more room (on screens 1024px and wider). The buttons have their own column, arranged 1-2-2: "Email me" alone on top, GitHub and LinkedIn below it, and the two PDF downloads at the bottom. Every button fills its cell and is a little taller. On narrower screens the same 1-2-2 block sits under the paragraph, instead of the paragraph being squeezed beside it.
+- The browser test suites, the GitHub fixture and the release helper now live in the repo (`qa/`, `scripts/addver.py`), so they survive a new workspace or computer.
 
 ---
 

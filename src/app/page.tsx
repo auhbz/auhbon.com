@@ -80,19 +80,21 @@ export default function Home() {
       {/* Hero: the one bold typographic moment on the page. */}
       <section aria-labelledby="hero-name" className="mx-auto max-w-5xl px-5 pt-16 pb-20 sm:px-8 sm:pt-24 sm:pb-28">
         <HeroName id="hero-name" name={profile.name} />
-        <div className="hero-rest mt-8 grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
+        {/* Intro on the left; on the right, the ways to reach me as a 1-2-2 block:
+            contact alone on top, profiles below it, downloads at the bottom. */}
+        <div className="hero-rest mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-center lg:gap-14">
           <div className="max-w-[38rem]">
             <p className="font-display text-xl font-medium tracking-tight sm:text-2xl">
               {profile.role} in {profile.location}
             </p>
             <p className="mt-4 text-pretty text-muted">{profile.intro}</p>
           </div>
-          <ul className="flex flex-wrap gap-3" aria-label="Profiles">
+          <ul className="grid w-full max-w-[22rem] grid-cols-2 gap-3" aria-label="Profiles">
             {profile.email ? (
-              <li>
+              <li className="col-span-2">
                 <ExternalLink
                   href={`mailto:${profile.email}`}
-                  className="pill pill-filled inline-flex min-h-11 items-center rounded-full bg-kelp px-5 font-medium text-kelp-ink hover:opacity-90"
+                  className="pill pill-filled flex min-h-12 w-full items-center justify-center rounded-full bg-kelp px-5 font-medium text-kelp-ink hover:opacity-90"
                 >
                   Email me
                 </ExternalLink>
@@ -102,7 +104,7 @@ export default function Home() {
               <li key={link.href}>
                 <ExternalLink
                   href={link.href}
-                  className="pill inline-flex min-h-11 items-center rounded-full border border-ink/25 px-5 font-medium hover:border-ink"
+                  className="pill flex min-h-12 w-full items-center justify-center rounded-full border border-ink/25 px-4 font-medium hover:border-ink"
                 >
                   {link.label}
                 </ExternalLink>
@@ -112,7 +114,7 @@ export default function Home() {
               <li key={doc.href}>
                 <DocumentLink
                   href={doc.href}
-                  className="pill inline-flex min-h-11 items-center rounded-full border border-ink/25 px-5 font-medium hover:border-ink"
+                  className="pill flex min-h-12 w-full items-center justify-center rounded-full border border-ink/25 px-4 font-medium hover:border-ink"
                 >
                   {doc.label}
                 </DocumentLink>
