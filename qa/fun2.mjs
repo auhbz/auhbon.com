@@ -261,13 +261,224 @@ check(big > small * 1.3 && big > 600, `fire still: flame grows on the cursor (${
 await page.screenshot({ path: `${out}/flame.png`, clip: { x: 560, y: 380, width: 160, height: 170 } });
 await choose("Cursor trail", "Cursed");
 
+// --- Style pickers handle 5+ options (p4) -------------------------------------------------
+{
+  if (!(await panel.isVisible())) await bell.click();
+  for (const [label, n, firstRow] of [["i-dots", 5, 3], ["Cursor trail", 5, 3], ["Sound effects", 7, 4]]) {
+    const group = page.getByRole("radiogroup", { name: `${label} style` });
+    const gb2 = await group.boundingBox();
+    const boxes = await group.getByRole("radio").evaluateAll((els) => els.map((e) => e.getBoundingClientRect().toJSON()));
+    const rows = [...new Set(boxes.map((b) => Math.round(b.top)))];
+    const inRow1 = boxes.filter((b) => Math.round(b.top) === rows[0]).length;
+    const right = Math.max(...boxes.map((b) => b.right));
+    check(boxes.length === n && rows.length === 2 && inRow1 === firstRow && Math.abs(right - (gb2.x + gb2.width)) < 2, `${label}: ${n} styles in two balanced, full-width rows (${boxes.length} styles, ${rows.length} rows, ${inRow1} in the first, right edge ${Math.round(right)} of ${Math.round(gb2.x + gb2.width)})`);
+  }
+  await page.keyboard.press("Escape");
+}
+
+// --- Car trail (p4) ------------------------------------------------------------------------
+{
+  /** Red car-body pixels inside a box, and their centroid. */
+  const carPx = (box) => page.evaluate((box) => {
+    const c = document.querySelector("canvas");
+    const k = c.width / innerWidth;
+    const d = c.getContext("2d").getImageData(box.x * k, box.y * k, box.width * k, box.height * k).data;
+    let n = 0, sx = 0, sy = 0, blue = 0;
+    const w = Math.round(box.width * k);
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] > 200 && d[i] > 170 && d[i + 1] < 120 && d[i + 2] < 110) { n++; sx += (i / 4) % w; sy += Math.floor(i / 4 / w); }
+      if (d[i + 3] > 60 && d[i + 2] > 200 && d[i] < 200) blue++;
+    }
+    return { n, blue, x: n ? box.x + sx / n / k : null, y: n ? box.y + sy / n / k : null };
+  }, box);
+  await choose("Cursor trail", "Car");
+  await page.evaluate(() => scrollTo(0, 0));
+  for (let i = 0; i <= 30; i++) { await page.mouse.move(200 + i * 18, 560); await page.waitForTimeout(16); }
+  await page.waitForTimeout(250);
+  const drive = await carPx({ x: 560, y: 480, width: 280, height: 160 });
+  check(drive.n > 40, `car: a little car chases the cursor (${drive.n} body px at ${Math.round(drive.x)},${Math.round(drive.y)})`);
+  // A sharp U-turn leaves skid marks.
+  for (let i = 0; i <= 12; i++) { await page.mouse.move(740 - i * 40, 560 + (i < 3 ? i * 30 : 90)); await page.waitForTimeout(16); }
+  await page.waitForTimeout(500);
+  const skid = await page.evaluate(() => {
+    const c = document.querySelector("canvas");
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let n = 0;
+    // Skid marks are drawn in the ink color at low alpha.
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 15 && d[i + 3] < 110 && Math.abs(d[i] - d[i + 2]) < 30) n++;
+    return n;
+  });
+  check(skid > 150, `car: sharp turns leave skid marks (${skid}px)`);
+  await page.screenshot({ path: `${out}/car-drive.png`, clip: { x: 150, y: 420, width: 800, height: 280 } });
+  // Nitro on click: a burst of blue-hot flame and speed.
+  await page.mouse.down();
+  await page.mouse.up();
+  await page.waitForTimeout(60);
+  const nitro = await carPx({ x: 150, y: 420, width: 800, height: 280 });
+  check(nitro.blue > 30, `car click: nitro flames from the exhaust (${nitro.blue} blue px)`);
+  await page.screenshot({ path: `${out}/car-nitro.png`, clip: { x: 150, y: 420, width: 800, height: 280 } });
+  // Still: donuts around the cursor.
+  await page.mouse.move(640, 600);
+  await page.waitForTimeout(2200);
+  const at = [];
+  for (let i = 0; i < 3; i++) { at.push(await carPx({ x: 560, y: 520, width: 160, height: 160 })); await page.waitForTimeout(230); }
+  const near = at.every((p) => p.n > 30 && Math.hypot(p.x - 640, p.y - 600) < 55);
+  const moved = Math.hypot(at[0].x - at[1].x, at[0].y - at[1].y) + Math.hypot(at[1].x - at[2].x, at[1].y - at[2].y);
+  check(near && moved > 20, `car still: donuts around the resting cursor (moved ${Math.round(moved)}px, ${at.map((p) => `${Math.round(p.x)},${Math.round(p.y)}`).join(" ")})`);
+  await page.screenshot({ path: `${out}/car-donuts.png`, clip: { x: 540, y: 500, width: 200, height: 200 } });
+}
+
+// --- Cursed click is smooth (p4) ----------------------------------------------------------
+{
+  await choose("Cursor trail", "Cursed");
+  for (let i = 0; i < 30; i++) { await page.mouse.move(400 + i * 10, 520); await page.waitForTimeout(16); }
+  await page.waitForTimeout(350);
+  // Track the ghost's dark eyes (nothing else on the canvas is that dark) every frame while a click shoos it.
+  const track = page.evaluate(() => new Promise((done) => {
+    const c = document.querySelector("canvas");
+    const k = c.width / innerWidth;
+    const pts = [];
+    const t0 = performance.now();
+    const step = () => {
+      const d = c.getContext("2d").getImageData(0, 300 * k, c.width, 450 * k).data;
+      let n = 0, sx = 0, sy = 0;
+      for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 90 && d[i] + d[i + 1] + d[i + 2] < 380) { n++; sx += (i / 4) % c.width; sy += Math.floor(i / 4 / c.width); }
+      if (n > 6) pts.push([sx / n / k, 300 + sy / n / k]);
+      if (performance.now() - t0 < 750) requestAnimationFrame(step);
+      else done(pts);
+    };
+    requestAnimationFrame(step);
+  }));
+  await page.waitForTimeout(80);
+  await page.mouse.down();
+  await page.mouse.up();
+  const pts = await track;
+  let maxStep = 0;
+  for (let i = 1; i < pts.length; i++) maxStep = Math.max(maxStep, Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  // How far the push carried it (it then drifts back toward the cursor).
+  const travel = Math.max(0, ...pts.map((q) => Math.hypot(q[0] - pts[0][0], q[1] - pts[0][1])));
+  check(pts.length > 10 && maxStep < 9 && travel > 15, `cursed click: the ghost glides back smoothly (largest frame step ${maxStep.toFixed(1)}px, moved ${Math.round(travel)}px over ${pts.length} frames)`);
+  await page.waitForTimeout(80);
+  await page.screenshot({ path: `${out}/cursed-shoo.png`, clip: { x: 500, y: 400, width: 380, height: 260 } });
+}
+
+// --- Hamsters i-dots (p4) ------------------------------------------------------------------
+{
+  await choose("i-dots", "Hamsters");
+  await page.evaluate(() => scrollTo(0, 0));
+  const ham = page.locator("[data-hamster]").first();
+  check((await page.locator("[data-hamster]").count()) === 2, "hamsters: a hamster wheel on each i");
+  const stageOf = async () => Number(await ham.getAttribute("data-stage"));
+  // Aim after hovering: the name's letters thicken under the cursor and nudge the dot.
+  let hb = await ham.boundingBox();
+  for (let i = 0; i < 2; i++) { await page.mouse.move(hb.x + hb.width / 2, hb.y + hb.height / 2); await page.waitForTimeout(200); hb = await ham.boundingBox(); }
+  const cx = hb.x + hb.width / 2;
+  const cy = hb.y + hb.height / 2;
+  const secretsBefore = (await page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets)).length;
+  // Slow clicking (2 per second) keeps it a happy jog.
+  for (let i = 0; i < 6; i++) { await page.mouse.click(cx, cy); await page.waitForTimeout(500); }
+  check((await stageOf()) === 0, "hamsters: slow clicks never escalate");
+  await page.waitForTimeout(1200);
+  // Fast clicks (about 12 per second), recording when each stage begins.
+  const reached = {};
+  let n = 0;
+  for (; n < 80 && !reached[4]; n++) {
+    await page.mouse.click(cx, cy);
+    const s = await stageOf();
+    if (s && !reached[s]) {
+      reached[s] = n + 1;
+      if (s < 4) await page.screenshot({ path: `${out}/hamster-${s}.png`, clip: { x: cx - 160, y: cy - 70, width: 320, height: 170 } });
+    }
+    await page.waitForTimeout(40);
+  }
+  const order = Object.keys(reached).join("");
+  check(order === "1234", `hamsters: stages go shake, sparks, fire, break in order (${order})`);
+  check(reached[1] >= 3 && reached[2] - reached[1] >= 8 && reached[3] - reached[2] >= 15 && reached[4] - reached[3] >= 20, `hamsters: each stage needs enough clicks since the last (${JSON.stringify(reached)})`);
+  await page.waitForTimeout(450);
+  await page.screenshot({ path: `${out}/hamster-4.png`, clip: { x: cx - 160, y: cy - 70, width: 360, height: 170 } });
+  check((await page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets)).length === secretsBefore, "hamsters: clicking a wheel isn't counted as clicking the name");
+  let back = false;
+  for (let i = 0; i < 60 && !back; i++) { await page.waitForTimeout(100); back = (await stageOf()) === 0; }
+  check(back, "hamsters: the broken wheel rolls back after a few seconds");
+  // Cool down: build to sparks, stop clicking, and it settles back down.
+  for (let i = 0; i < 16 && (await stageOf()) < 2; i++) { await page.mouse.click(cx, cy); await page.waitForTimeout(40); }
+  const peak = await stageOf();
+  await page.waitForTimeout(3500);
+  check(peak >= 2 && (await stageOf()) === 0, `hamsters: they cool down when the clicking stops (${peak} -> ${await stageOf()})`);
+  check(errors.length === 0, `hamsters: no errors ${errors.join(" | ")}`);
+}
+
+// --- Guide goblin restyle (p4) ---------------------------------------------------------------
+{
+  const gctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const gp = await gctx.newPage();
+  await gp.goto(url, { waitUntil: "networkidle" });
+  const g = gp.locator("[data-goblin-guide]");
+  const art = await gp.locator(".goblin-guide-art").boundingBox();
+  const badge = await gp.getByRole("button", { name: "Bells and whistles" }).boundingBox();
+  check(art.width <= 44 && art.x - (badge.x + badge.width) < 4, `goblin guide: smaller and tucked against the badge (${Math.round(art.width)}px, gap ${Math.round(art.x - badge.x - badge.width)}px)`);
+  const look = await gp.evaluate(() => {
+    const bubble = getComputedStyle(document.querySelector(".goblin-bubble"));
+    const probe = document.createElement("div");
+    probe.style.background = "var(--surface)";
+    document.body.append(probe);
+    const surface = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return { bg: bubble.backgroundColor, surface, skin: getComputedStyle(document.querySelector(".goblin-guide-art circle")).fill };
+  });
+  check(look.bg === look.surface && look.skin !== "rgb(108, 180, 71)", `goblin guide: drawn in the site's tokens, not neon (${JSON.stringify(look)})`);
+  check(/Click it!!!!/.test(await g.innerText()) && !/Tap it/.test(await g.innerText()), "goblin guide: says Click on desktop");
+  await gp.screenshot({ path: `${out}/guide-1280.png`, clip: { x: 780, y: 0, width: 500, height: 130 } });
+  await gctx.close();
+}
+
 // --- Sound packs (no audible check in CI; must not throw) ------------------------------
-for (const pack of ["Bells & whistles", "Cereal", "Clown", "Birds", "Jungle"]) {
+for (const pack of ["Bells & whistles", "Cereal", "Clown", "Birds", "Jungle", "Chiptune", "Tabletop"]) {
   await choose("Sound effects", pack);
   await gh.hover();
   await page.getByRole("button", { name: /^Color mode:/ }).hover();
 }
 check(errors.length === 0, `sound packs play without errors ${errors.join(" | ")}`);
+
+// --- New sound packs are audible and level-matched (p4): render into an OfflineAudioContext ---
+{
+  const lp = await browser.newPage();
+  await lp.addInitScript(() => {
+    class Rec extends OfflineAudioContext {
+      constructor() { super(1, 44100 * 2, 44100); window.__rec = this; }
+      resume() { return Promise.resolve(); }
+      get state() { return "running"; }
+    }
+    window.AudioContext = Rec;
+  });
+  await lp.goto(url);
+  const measure = async (pack, ev) => {
+    await lp.evaluate((pack) => localStorage.setItem("bells-and-whistles-v2", JSON.stringify({ on: true, look: "classic", welcomed: true, secrets: [], peeked: [], effects: { dots: { on: false, variant: "fruit" }, buttons: { on: false, variant: "rainbow" }, trail: { on: false, variant: "sparkle" }, sound: { on: true, variant: pack, hover: true } } })), pack);
+    await lp.reload({ waitUntil: "load" });
+    await lp.waitForTimeout(250);
+    await lp.evaluate((ev) => window.dispatchEvent(new CustomEvent("portfolio:sound", { detail: ev })), ev);
+    return lp.evaluate(async () => {
+      if (!window.__rec) return { peak: 0, rms: 0 };
+      const d = (await window.__rec.startRendering()).getChannelData(0);
+      let peak = 0, sum = 0, n = 0;
+      for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); peak = Math.max(peak, a); if (a > 0.001) { sum += a * a; n++; } }
+      return { peak, rms: Math.sqrt(sum / Math.max(1, n)) };
+    });
+  };
+  const ref = [];
+  for (const pack of ["chimes", "cereal", "clown", "birds", "jungle"]) ref.push((await measure(pack, "press")).rms);
+  ref.sort((a, b) => a - b);
+  const median = ref[2];
+  for (const pack of ["chiptune", "tabletop"]) {
+    const res = {};
+    for (const ev of ["hover", "press", "toggle", "pop", "launch", "hit", "secret"]) res[ev] = await measure(pack, ev);
+    const audible = Object.values(res).every((r) => r.peak > 0.015 && r.peak < 0.6);
+    const ratio = res.press.rms / median;
+    check(audible, `${pack}: every event is audible and unclipped (peaks ${Object.entries(res).map(([k, r]) => `${k} ${r.peak.toFixed(3)}`).join(", ")})`);
+    check(ratio > 0.5 && ratio < 2, `${pack}: press level matches the other packs (rms ${res.press.rms.toFixed(4)} vs median ${median.toFixed(4)})`);
+  }
+  await lp.close();
+}
 
 // --- Hover sounds sub-switch ---------------------------------------------------------
 if (!(await panel.isVisible())) await bell.click();

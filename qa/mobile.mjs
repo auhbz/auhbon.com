@@ -418,6 +418,146 @@ const vibrateSpy = () => {
   await ctx.close();
 }
 
+// ------------------------------------------------------------ Electric: holding a button draws at the finger (p4)
+{
+  const { ctx, page, errors, touch } = await newPhone();
+  await setFun(page, { effects: effects({ buttons: "electric" }) });
+  // Phones grow the fixed layer when the toolbar slides away, so the canvas's box can be
+  // taller than the root's clientHeight. Simulate that: drawings must still line up.
+  await page.evaluate(() => (document.querySelector("canvas").style.height = `${document.documentElement.clientHeight + 90}px`));
+  const pill = page.locator("#work article .pill").first();
+  await pill.evaluate((e) => e.scrollIntoView({ block: "end", behavior: "instant" }));
+  await page.evaluate(() => scrollBy(0, 40));
+  await page.waitForTimeout(600);
+  const r = await pill.boundingBox();
+  const fx = r.x + r.width / 2;
+  const fy = r.y + r.height / 2;
+  /** Bounding box of everything painted on the canvas, in CSS px. */
+  const extent = () => page.evaluate(() => {
+    const c = document.querySelector("canvas");
+    const k = c.width / c.getBoundingClientRect().width;
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1, n = 0;
+    for (let i = 3; i < d.length; i += 4) if (d[i] > 10) { const p = (i - 3) / 4; const x = (p % c.width) / k, y = Math.floor(p / c.width) / k; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); n++; }
+    return { n, x0, y0, x1, y1 };
+  });
+  await touch("touchStart", fx, fy);
+  await page.waitForTimeout(1600); // well past a long-press
+  const e = await extent();
+  await page.screenshot({ path: `${out}/m-electric-hold.png`, clip: { x: 0, y: Math.max(0, r.y - 120), width: 375, height: 260 } });
+  check(e.n > 300, `electric hold: still crackling while the finger stays down (${e.n} px at 1.6s)`);
+  check(e.y0 > r.y - 45 && e.y1 < r.y + r.height + 45 && e.x0 > r.x - 45 && e.x1 < r.x + r.width + 45, `electric hold: drawn around the held button, not off to one side (paint ${Math.round(e.x0)}-${Math.round(e.x1)} x ${Math.round(e.y0)}-${Math.round(e.y1)}; button ${Math.round(r.x)}-${Math.round(r.x + r.width)} x ${Math.round(r.y)}-${Math.round(r.y + r.height)})`);
+  await touch("touchEnd");
+  await page.waitForTimeout(1200);
+  check((await extent()).n === 0, "electric hold: lifting the finger lets it rest");
+  check(errors.length === 0, `electric: no errors ${errors.join(" | ")}`);
+  await ctx.close();
+}
+
+// ------------------------------------------------------------ Cookie tags: rapid taps stay smooth (p4)
+{
+  const { ctx, page, errors, touch } = await newPhone();
+  await setFun(page, { effects: effects({ buttons: "cookie" }) });
+  const cdp = await ctx.newCDPSession(page);
+  const pill = page.locator("#work article .pill").first();
+  await pill.evaluate((e) => e.scrollIntoView({ block: "center", behavior: "instant" }));
+  await page.waitForTimeout(800);
+  // Each tap toggles the project filter; count the (whole-page) view transitions it starts.
+  await page.evaluate(() => {
+    window.__vt = 0;
+    const real = document.startViewTransition?.bind(document);
+    if (real) document.startViewTransition = (cb) => (window.__vt++, real(cb));
+  });
+  const run = async () => {
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 4 }); // a mid-range phone
+    await page.evaluate(() => {
+      window.__vt = 0;
+      window.__long = [];
+      window.__obs?.disconnect();
+      window.__obs = new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__long.push(Math.round(e.duration)); });
+      window.__obs.observe({ type: "longtask" });
+      window.__frames = [];
+      window.__stop = false;
+      let last = performance.now();
+      const f = (t) => { window.__frames.push(t - last); last = t; if (!window.__stop) requestAnimationFrame(f); };
+      requestAnimationFrame(f);
+    });
+    const r = await pill.boundingBox();
+    for (let i = 0; i < 14; i++) {
+      await touch("touchStart", r.x + r.width / 2, r.y + r.height / 2);
+      await touch("touchEnd");
+      await page.waitForTimeout(110);
+    }
+    await page.waitForTimeout(500);
+    await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+    return page.evaluate(() => {
+      window.__stop = true;
+      const fr = window.__frames.slice(1).sort((a, b) => a - b);
+      return { p95: Math.round(fr[Math.floor(fr.length * 0.95)]), long: window.__long, vt: window.__vt };
+    });
+  };
+  // Frame timing is sensitive to a busy test machine, so one retry is allowed.
+  let perf = await run();
+  if (perf.p95 > 100 || perf.long.length > 12) perf = await run();
+  check(perf.vt <= 1, `rapid taps on a tag start at most one view transition (${perf.vt})`);
+  check(perf.long.length <= 12 && perf.p95 <= 100, `14 quick taps on a Cookie tag stay smooth at 4x CPU throttle (p95 frame ${perf.p95}ms, ${perf.long.length} long tasks: ${perf.long.join(",")})`);
+  check(errors.length === 0, `cookie taps: no errors ${errors.join(" | ")}`);
+  await ctx.close();
+}
+
+// ------------------------------------------------------------ Car trail, hamsters and the guide on a phone (p4)
+{
+  const { ctx, page, errors, touch } = await newPhone();
+  check(/Tap it!!!!/.test(await page.locator("[data-goblin-guide]").innerText()) && !/Click it/.test(await page.locator("[data-goblin-guide]").innerText()), "goblin guide says Tap it!!!! on a touch screen");
+  await setFun(page, { effects: effects({ trail: "car" }) });
+  const carPx = (box) => page.evaluate((box) => {
+    const c = document.querySelector("canvas");
+    const k = c.width / c.getBoundingClientRect().width;
+    const d = c.getContext("2d").getImageData(box.x * k, box.y * k, box.width * k, box.height * k).data;
+    let n = 0, blue = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] > 200 && d[i] > 170 && d[i + 1] < 120 && d[i + 2] < 110) n++;
+      if (d[i + 3] > 60 && d[i + 2] > 200 && d[i] < 200) blue++;
+    }
+    return { n, blue };
+  }, box);
+  const p = await page.locator("main p").first().boundingBox();
+  const y = p.y + p.height / 2;
+  // A mostly vertical drag (a sideways one would be taken as a back gesture by the emulator).
+  await touch("touchStart", 60, y);
+  for (let i = 1; i <= 16; i++) { await touch("touchMove", 60 + i * 5, y + i * 14); await page.waitForTimeout(16); }
+  await page.waitForTimeout(500);
+  check((await carPx({ x: 60, y: y + 164, width: 160, height: 120 })).n > 30, "car: follows a finger");
+  await touch("touchEnd");
+  // Long-press: donuts at the finger.
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await page.waitForTimeout(200);
+  await touch("touchStart", 200, y);
+  await page.waitForTimeout(2200);
+  check((await carPx({ x: 200 - 60, y: y - 60, width: 120, height: 120 })).n > 30, "car: a long-press does donuts around the finger");
+  await page.screenshot({ path: `${out}/m-car-donuts.png`, clip: { x: 80, y: y - 100, width: 250, height: 200 } });
+  await touch("touchEnd");
+  // A tap: nitro.
+  await page.waitForTimeout(100);
+  await touch("touchStart", 200, y);
+  await touch("touchEnd");
+  await page.waitForTimeout(60);
+  check((await carPx({ x: 0, y: Math.max(0, y - 150), width: 375, height: 300 })).blue > 20, "car: a tap fires the nitro");
+  // Hamsters: quick taps on a wheel build it up.
+  await setFun(page, { effects: effects({ dots: "hamsters" }) });
+  const ham = page.locator("[data-hamster]").first();
+  const hb = await ham.boundingBox();
+  check(hb.width >= 18, `hamster wheel is visible on a phone (${Math.round(hb.width)}px)`);
+  for (let i = 0; i < 12 && (await ham.getAttribute("data-stage")) === "0"; i++) {
+    await touch("touchStart", hb.x + hb.width / 2, hb.y + hb.height / 2);
+    await touch("touchEnd");
+    await page.waitForTimeout(60);
+  }
+  check((await ham.getAttribute("data-stage")) === "1", "hamsters: fast taps make the wheel shake");
+  check(errors.length === 0, `car + hamsters: no errors ${errors.join(" | ")}`);
+  await ctx.close();
+}
+
 // ------------------------------------------------------------ reduced motion
 {
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true, reducedMotion: "reduce" });
