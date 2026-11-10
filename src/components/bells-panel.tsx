@@ -36,6 +36,7 @@ import { celebrate, celebrateDue } from "@/components/celebrations";
 import { startGame } from "@/components/game-layer";
 import { GAMES } from "@/lib/games";
 import { canTilt, canVibrate, haptic, onShake, requestMotionPermission } from "@/lib/device";
+import { DraftPanelSection } from "@/components/draft/panel-section"; // draft-only
 
 const PANEL_ID = "bells-panel";
 const SECRETS_ID = "secrets-panel";
@@ -210,6 +211,9 @@ export function BellsPanel() {
         </fieldset>
 
         <ModeSection />
+
+        {/* Draft-only: renders nothing outside /dev/draft (see src/components/draft/). */}
+        <DraftPanelSection />
       </div>
     </>
   );

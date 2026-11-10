@@ -1,0 +1,100 @@
+/* /dev/visuals: small SVG diagrams, drawn with the site's tokens so every theme works. */
+.viz-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--surface);
+  padding: 0.75rem;
+}
+.viz {
+  font-family: var(--font-sans);
+}
+.viz-edge {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+.viz-arrowhead {
+  fill: var(--muted);
+}
+.viz-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.viz-edge-label {
+  font-size: 11px;
+  fill: var(--muted);
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.viz-node rect {
+  fill: var(--paper);
+  stroke: var(--line);
+  stroke-width: 1.5;
+}
+.viz-node text {
+  font-size: 13px;
+  fill: var(--ink);
+}
+.viz-node-label {
+  font-size: 13px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+.viz-node-sub {
+  font-size: 12px;
+  fill: var(--muted);
+}
+.viz-mono {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-weight: 500;
+}
+.viz-node.is-situation rect {
+  stroke: var(--muted);
+}
+.viz-node.is-common rect {
+  stroke-dasharray: 4 3;
+  stroke: var(--muted);
+}
+.viz-node.is-secret rect {
+  stroke: var(--kelp);
+  stroke-width: 3;
+}
+.viz-node.is-ext rect {
+  stroke-dasharray: 5 3;
+  stroke: var(--muted);
+}
+.viz-node.is-store rect,
+.viz-node.is-draft rect {
+  stroke: var(--kelp);
+  stroke-width: 2;
+}
+.viz-node.is-draft rect {
+  stroke-dasharray: 6 3;
+}
+.viz-node.is-data rect {
+  fill: var(--surface);
+}
+.viz-bar {
+  fill: var(--kelp);
+}
+.viz-bar-row:hover .viz-bar {
+  opacity: 0.8;
+}
+.viz-key {
+  display: inline-block;
+  width: 1.6rem;
+  height: 0.9rem;
+  border-radius: 0.25rem;
+  border: 1.5px solid var(--muted);
+  background: var(--paper);
+}
+.viz-key.is-common {
+  border-style: dashed;
+}
+.viz-key.is-secret {
+  border: 3px solid var(--kelp);
+  border-radius: 999px;
+}
