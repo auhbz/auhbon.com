@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.21.0 | Draft sandbox & visuals | [`release/1.21.0`](https://github.com/auhbz/auhbon.com/tree/release/1.21.0) |
 | 1.20.0 | Secrets batch | [`release/1.20.0`](https://github.com/auhbz/auhbon.com/tree/release/1.20.0) |
 | 1.19.0 | Mobile experience | [`release/1.19.0`](https://github.com/auhbz/auhbon.com/tree/release/1.19.0) |
 | 1.18.1 | Roomier intro | [`release/1.18.1`](https://github.com/auhbz/auhbon.com/tree/release/1.18.1) |
@@ -41,6 +42,21 @@ Major Push 4, part 1. 18 new secrets, bringing the total to 35.
 - **Touch gamepad** for the cheat code, in the footer while Bells & whistles is on.
 - **/dev/secrets** grouped by category with difficulty estimates.
 - Game modes no longer require the in-game secrets.
+
+---
+
+Major Push 4, part 2. A sandbox for trying ideas before they reach the live site, plus visuals in the dev notes. The live site is unchanged.
+
+- **/dev/draft:** the full live site plus draft-only features, each tagged "draft" in Bells & whistles, with a separate secret counter:
+  - **Chaos:** unleash the monkeys, with a banana crate, a gorilla behind glass and a peanut-and-banana hammer.
+  - **Themes:** Pho and Board games.
+  - **Pico-8:** a little climber, and Flabby with his minigame.
+  - **Portals:** a device and three test chambers ("It was a lie").
+  - **The "I ❤️" staircase list.**
+  - 10 draft-only secrets.
+- **/dev/draft/diff:** a checklist of everything that differs between the draft and the live site.
+- **/dev/visuals:** the farm story tree, the site architecture, release sizes and an effects catalog.
+- New `qa/draft.mjs` test suite.
 
 ---
 

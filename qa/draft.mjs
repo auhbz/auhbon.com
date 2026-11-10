@@ -232,7 +232,9 @@ await wait(800);
 await game.screenshot({ path: `${out}/draft-flabby-over.png` });
 await page.keyboard.press("Escape");
 
-check((await liveSecrets(page)).length === 0, "after every draft secret, live secrets are still 0");
+// Keyboard warrior (live) fires on any key while Bells & whistles is on, so it is allowed here.
+const stray = (await liveSecrets(page)).filter((id) => id !== "keys");
+check(stray.length === 0, `after every draft secret, no draft play counted as a live secret (${stray})`);
 await openPanel(page);
 check(/^\s*\d+ of 10/.test(await page.locator("[data-draft-secret-count]").innerText()), "draft secrets have their own counter");
 check(await page.locator("[data-modes='locked']").isVisible(), "game modes stay locked");

@@ -38,6 +38,7 @@ export const roadmap: RoadmapItem[] = [
   { item: "1.17.1: CV sync", version: "1.17.1", status: "Shipped" },
   { item: "1.18.0: CV & About me downloads", version: "1.18.0", status: "Shipped" },
   { item: "1.18.1: Roomier intro", version: "1.18.1", status: "Shipped" },
+  { item: "1.21.0: Draft sandbox & visuals", version: "1.21.0", status: "Shipped", notes: "/dev/draft, /dev/draft/diff and /dev/visuals. Draft features stay off the live site." },
   { item: "1.20.0: Secrets batch", version: "1.20.0", status: "Shipped", notes: "18 new secrets (35 total), badge hints, new milestones, touch gamepad." },
   { item: "1.19.0: Mobile experience", version: "1.19.0", status: "Shipped", notes: "All seven mobile ideas below, now live." },
   { item: "Copy editing", status: "Waiting on Auhbon", notes: "60 suggestions awaiting approval (re-checked against the CV on Nov 10)." },
@@ -127,7 +128,6 @@ export type SecretIdea = { title: string; how: string };
 
 /** Not built yet. Implemented secrets come from SECRET_LIST in src/lib/fun.ts. */
 export const roughSecretIdeas: SecretIdea[] = [
-  { title: "The cake is a lie", how: "Portal-style puzzle with a portal gun (draft first)" },
   { title: "Roll the dice", how: "A board game or dice secret" },
   { title: "Superuser hint", how: "Show a sudo hint once Keyboard warrior is found" },
 ];
