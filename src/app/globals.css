@@ -656,6 +656,74 @@ html[data-fx-buttons="mercury"] .pill::before {
     animation: pop 160ms cubic-bezier(0.2, 0.7, 0.1, 1);
   }
 }
+/* The grab handle only exists on phones, where the panels are bottom sheets. */
+.sheet-handle {
+  display: none;
+}
+@media (max-width: 640px) {
+  /* Bottom sheet: anchored to the bottom, full width, within thumb reach. Still a
+   * native popover, so light dismiss, Esc and focus handling are unchanged. */
+  .bells-panel {
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: 85dvh;
+    border-width: 1px 0 0;
+    border-radius: 1.25rem 1.25rem 0 0;
+    padding: 0 max(1.25rem, env(safe-area-inset-right, 0px)) calc(1.25rem + env(safe-area-inset-bottom, 0px)) max(1.25rem, env(safe-area-inset-left, 0px));
+    box-shadow: 0 -12px 40px rgb(0 0 0 / 0.35);
+  }
+  .bells-panel::backdrop {
+    background: rgb(0 0 0 / 0.35);
+  }
+  .sheet-handle {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    margin: 0 -1.25rem 0.25rem;
+    padding: 0.6rem 0 0.7rem;
+    background: var(--surface);
+    touch-action: none;
+    cursor: grab;
+  }
+  .sheet-grip {
+    width: 2.75rem;
+    height: 0.3rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: no-preference) {
+  .bells-panel:popover-open {
+    animation: sheet-up 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .bells-panel {
+    transition: transform 180ms ease-out;
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+/* A sideways swipe across the name flings its letters (see the engine), so the
+ * browser shouldn't treat it as a back/forward gesture. Vertical scrolling and
+ * pinch-zoom are untouched. */
+html[data-fun] .hero-name {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Long-press as "hold still" (touch, with a cursor trail): while a finger is down
+ * on plain content, it doesn't start a text selection or the callout menu. */
+html[data-fx-press],
+html[data-fx-press] * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
 
 /* --- Secret: an egg that only exists while selected (see hidden-egg.tsx) --- */
 .hidden-egg {
@@ -980,25 +1048,52 @@ html[data-game] canvas:not(.game-canvas) {
   pointer-events: none;
   white-space: nowrap;
 }
+/* Touch controls: turning under the left thumb, thrust and fire under the right. */
 .game-pad {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  left: max(1rem, env(safe-area-inset-left, 0px));
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
   display: flex;
-  justify-content: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 1rem;
+  pointer-events: none;
+}
+.game-pad-group {
+  display: flex;
+  gap: 0.875rem;
+  pointer-events: auto;
 }
 .game-pad button {
-  width: 3.75rem;
-  height: 3.75rem;
+  width: 4.25rem;
+  height: 4.25rem;
   border-radius: 50%;
   border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent);
   background: color-mix(in srgb, var(--surface) 85%, transparent);
   color: var(--ink);
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   touch-action: none;
+  -webkit-user-select: none;
   user-select: none;
+  -webkit-touch-callout: none;
+}
+.game-pad button[data-held] {
+  border-color: var(--kelp);
+  box-shadow: 0 0 0 3px var(--kelp);
+}
+/* Taps in the games are taps: no double-tap zoom, no scrolling, no text selection or callouts. */
+.game-layer {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (pointer: coarse) {
+  .game-canvas,
+  .game-hud p,
+  .game-banner {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
 }
 @media (hover: hover) and (pointer: fine) {
   .game-pad {

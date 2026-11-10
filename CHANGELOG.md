@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.19.0 | Mobile experience | [`release/1.19.0`](https://github.com/auhbz/auhbon.com/tree/release/1.19.0) |
 | 1.18.1 | Roomier intro | [`release/1.18.1`](https://github.com/auhbz/auhbon.com/tree/release/1.18.1) |
 | 1.18.0 | CV & About me downloads | [`release/1.18.0`](https://github.com/auhbz/auhbon.com/tree/release/1.18.0) |
 | 1.17.1 | CV sync | [`release/1.17.1`](https://github.com/auhbz/auhbon.com/tree/release/1.17.1) |
@@ -26,6 +27,28 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+## 1.19.0: Mobile experience
+
+Built and tested on the `mobile-preview` branch, then shipped to production in Major Push 4. Everything here applies to phones and touch only; desktop is unchanged.
+
+**Added**
+- **Bottom sheets:** on screens 640px wide or less, the Bells & whistles and Secrets panels slide up from the bottom: full width, rounded top corners, a grab handle, at most 85% of the screen tall, scrolling inside, and clear of the home indicator (safe-area insets). They're still native popovers, so tapping outside, Esc and focus handling work as before. Drag the handle down to close.
+- **One-row header on phones:** the domain and the four icon buttons (Quick actions, color mode, trophy with its count, Bells & whistles) share one row; the section links sit on a compact second row that scrolls sideways if it ever needs to. Touch targets stay 44px and the buttons keep their names. The goblin guide still points up at the badge.
+- **Long-press as "hold still":** with a cursor trail on, holding a finger still for half a second shows the trail's still state at the finger (the sparkle ring, the growing flame, the ghost possessing it, Flow's drip) until the finger lifts or moves. No text selection or callout menu while it's down. Long-pressing links and buttons works as usual.
+- **Motion controls** (a new switch, on phones with motion sensors): bubbles drift the way the phone tilts, and holding the slingshot rock without dragging lets tilt aim and pull it (with the usual bands and aim preview); lift the finger to fire. On iPhone, turning it on asks for motion permission; if that's declined, the switch stays off and says why. Off by default.
+- **Shake to shuffle:** with Motion controls on, a shake shuffles everything (at most every 2 seconds), with the same toast as the Shuffle button.
+- **Swipe the name:** a fast sideways swipe across the hero name flings the letters it crosses in that direction, with the slingshot's physics. Vertical scrolling is untouched, and the swipe isn't mistaken for the browser's back gesture.
+- **Haptics** (a new switch, on by default, shown where the phone can vibrate, i.e. Android): a light tap on button presses and a short pattern when a secret is found, only while Bells & whistles is on.
+
+**Changed**
+- **Touch-first games:** the Asteroids controls are bigger (68px), split for two thumbs (turn left/right on the left, thrust and fire on the right), and labeled for screen readers. A tap on the playfield gives a short burst of thrust and a shot. Keepy Uppy gives finger taps a little extra reach, and none of the games zoom on a double tap or scroll.
+
+**Notes**
+- Reduced motion is respected: trails, bubbles and the letter fling stay off, as before.
+- No new dependencies; the Content-Security-Policy and Permissions-Policy are unchanged (motion sensors are allowed for the site itself by default).
 
 ---
 

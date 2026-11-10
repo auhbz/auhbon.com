@@ -35,18 +35,16 @@ export const roadmap: RoadmapItem[] = [
   { item: "1.8.1: Content fixes", version: "1.8.1", status: "Shipped" },
   { item: "1.16.0: Farm adventure & cooking secrets", version: "1.16.0", status: "Shipped", notes: "16 endings, 3 special; 5 new secrets (17 total)." },
   { item: "1.17.0: These /dev pages", version: "1.17.0", status: "Shipped" },
-  {
-    item: "1.18.0: Mobile experience",
-    version: "1.18.0",
-    status: "WIP",
-    notes: "On a preview branch for testing before it goes live.",
-  },
+  { item: "1.17.1: CV sync", version: "1.17.1", status: "Shipped" },
+  { item: "1.18.0: CV & About me downloads", version: "1.18.0", status: "Shipped" },
+  { item: "1.18.1: Roomier intro", version: "1.18.1", status: "Shipped" },
+  { item: "1.19.0: Mobile experience", version: "1.19.0", status: "Shipped", notes: "All seven mobile ideas below, now live." },
   { item: "Copy editing", status: "Waiting on Auhbon", notes: "48 suggestions awaiting approval." },
   { item: "Global leaderboards", status: "Waiting on Auhbon", notes: "Needs Upstash Redis connected in Vercel." },
   {
     item: "Version URLs",
-    status: "Waiting on Auhbon",
-    notes: "Now proposed as the /dev/versions notes instead of hosting every old build.",
+    status: "Shipped",
+    notes: "Resolved as /dev/versions (every version's notes plus branch links) instead of hosting every old build.",
   },
   { item: "More effects, options and categories (#11)", status: "WIP" },
   { item: "100 secrets", status: "WIP" },
@@ -60,7 +58,7 @@ export const roadmap: RoadmapItem[] = [
   },
 ];
 
-/** Being built on the 1.18.0 preview branch. */
+/** Shipped in 1.19.0. */
 export const mobileIdeas: string[] = [
   "Bottom-sheet Bells & whistles panel",
   "One-row header with icon-only buttons",

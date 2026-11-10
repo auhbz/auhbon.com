@@ -13,7 +13,8 @@ export const GAMES: { id: GameMode; label: string; how: string; touch: string }[
   { id: "stacker", label: "Stacker", how: "Drop each block onto the stack with a click, a tap or Space. Only the overlap stays.", touch: "Tap anywhere to drop." },
 ];
 
-export type Input = { keys: Set<string>; taps: { x: number; y: number }[] };
+/** `touch` marks a finger tap (touch-only extras, like tap-to-thrust, key off it). */
+export type Input = { keys: Set<string>; taps: { x: number; y: number; touch?: boolean }[] };
 
 /** Clear taps after each frame (and keys too, when a game starts). */
 export function clearInput(input: Input, keys = false) {
@@ -72,6 +73,8 @@ export class Asteroids implements Game {
   private shots: { x: number; y: number; vx: number; vy: number; life: number }[] = [];
   private lastShot = 0;
   private wave = 0;
+  private thrustUntil = 0;
+  private tapFire = false;
 
   constructor(private colors: Colors) {
     this.nextWave(performance.now());
@@ -96,9 +99,14 @@ export class Asteroids implements Game {
   update(_dt: number, f: number, input: Input, now: number) {
     const k = input.keys;
     const s = this.ship;
+    // Touch: a tap on the playfield is a short burst of thrust, and a shot.
+    if (input.taps.some((t) => t.touch)) {
+      this.thrustUntil = now + 260;
+      this.tapFire = true;
+    }
     if (k.has("left")) s.angle -= 0.075 * f;
     if (k.has("right")) s.angle += 0.075 * f;
-    if (k.has("up")) {
+    if (k.has("up") || now < this.thrustUntil) {
       s.vx += Math.cos(s.angle) * 0.18 * f;
       s.vy += Math.sin(s.angle) * 0.18 * f;
     }
@@ -106,8 +114,9 @@ export class Asteroids implements Game {
     s.vy *= 0.992 ** f;
     s.x = wrap(s.x + s.vx * f, innerWidth);
     s.y = wrap(s.y + s.vy * f, innerHeight);
-    if (k.has("fire") && now - this.lastShot > 220) {
+    if ((k.has("fire") || this.tapFire) && now - this.lastShot > 220) {
       this.lastShot = now;
+      this.tapFire = false;
       this.shots.push({ x: s.x + Math.cos(s.angle) * 14, y: s.y + Math.sin(s.angle) * 14, vx: Math.cos(s.angle) * 9 + s.vx, vy: Math.sin(s.angle) * 9 + s.vy, life: 70 });
       sound("launch");
     }
@@ -257,7 +266,9 @@ export class KeepyUppy implements Game {
 
   update(_dt: number, f: number, input: Input, now: number) {
     for (const t of input.taps) {
-      const hit = this.balls.find((b) => Math.hypot(b.x - t.x, b.y - t.y) < b.r * 1.5);
+      // Fingers are less precise than a cursor, so taps get a little extra reach.
+      const reach = (b: { r: number }) => (t.touch ? Math.max(b.r * 1.5, b.r + 26) : b.r * 1.5);
+      const hit = this.balls.find((b) => Math.hypot(b.x - t.x, b.y - t.y) < reach(b));
       if (hit) this.bump(hit, t.x);
     }
     // Space bumps the lowest ball that's within reach, for keyboard players.

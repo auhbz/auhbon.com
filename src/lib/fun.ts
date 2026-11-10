@@ -125,6 +125,10 @@ export type FunState = {
   hideSpot: number;
   /** Milestones already celebrated. */
   celebrated: number[];
+  /** Phones: tilt steers bubbles and aims the slingshot; a shake shuffles. Off by default (iOS asks permission). */
+  motion: boolean;
+  /** Phones that can vibrate: a light buzz on presses while Bells & whistles is on. */
+  haptics: boolean;
 };
 
 export const FUN_EVENT = "portfolio:fun";
@@ -148,7 +152,7 @@ export const ALL_OFF: Record<Category, Effect> = {
   sound: { ...ALL_ON.sound, on: false },
 };
 
-export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [], welcomed: false, hideSpot: 0, celebrated: [] };
+export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [], welcomed: false, hideSpot: 0, celebrated: [], motion: false, haptics: true };
 
 /**
  * The master switch is a summary, not a separate layer: it's "on" whenever any
@@ -191,6 +195,8 @@ function read(): FunState {
       welcomed: p.welcomed === true || master || (Array.isArray(p.secrets) && p.secrets.length > 0),
       hideSpot: Number.isInteger(p.hideSpot) ? Math.min(HIDE_SPOTS, Math.max(0, p.hideSpot as number)) : 0,
       celebrated: Array.isArray(p.celebrated) ? p.celebrated.filter((n) => MILESTONES.some((m) => m.at === n)) : [],
+      motion: p.motion === true,
+      haptics: p.haptics !== false,
     });
   } catch {
     return DEFAULT_FUN;
@@ -247,6 +253,12 @@ export const setVariant = (c: Category, variant: string) =>
 /** The "hover sounds" sub-switch inside Sound effects. Touches nothing else. */
 export const setSoundHover = (hover: boolean) =>
   updateFun((s) => ({ ...s, effects: { ...s.effects, sound: { ...s.effects.sound, hover } } }));
+
+/** The "Motion controls" switch (phones). Touches nothing else. */
+export const setMotion = (motion: boolean) => updateFun((s) => ({ ...s, motion }));
+
+/** The "Haptics" switch (phones that can vibrate). Touches nothing else. */
+export const setHaptics = (haptics: boolean) => updateFun((s) => ({ ...s, haptics }));
 
 /** Picking a look (shown as "Theme" in the panel). Touches nothing else. */
 export const setLook = (look: Look) => updateFun((s) => ({ ...s, look }));

@@ -142,15 +142,30 @@ export function GameLayer() {
 
   if (!mode) return null;
   const info = GAMES.find((g) => g.id === mode)!;
-  const hold = (k: string) => ({
-    onPointerDown: (e: React.PointerEvent) => {
-      e.preventDefault();
-      input.keys.add(k);
-    },
-    onPointerUp: () => input.keys.delete(k),
-    onPointerLeave: () => input.keys.delete(k),
-    onPointerCancel: () => input.keys.delete(k),
-  });
+  const hold = (k: string, label: string) => {
+    const release = (e: React.PointerEvent<HTMLButtonElement>) => {
+      input.keys.delete(k);
+      delete e.currentTarget.dataset.held;
+    };
+    return {
+      "aria-label": label,
+      onPointerDown: (e: React.PointerEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        input.keys.add(k);
+        e.currentTarget.dataset.held = "";
+      },
+      onPointerUp: release,
+      onPointerLeave: release,
+      onPointerCancel: release,
+      // Screen readers (and switch access) activate with a click and no pointer down: a short press.
+      onClick: (e: React.MouseEvent) => {
+        if (e.detail !== 0) return;
+        input.keys.add(k);
+        window.setTimeout(() => input.keys.delete(k), 250);
+      },
+      onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+    };
+  };
 
   return (
     <section aria-label={`${info.label} game`} className="game-layer" data-game-layer={mode}>
@@ -159,7 +174,7 @@ export function GameLayer() {
         tabIndex={-1}
         aria-label={`${info.label}. ${info.how}`}
         className="game-canvas"
-        onPointerDown={(e) => input.taps.push({ x: e.clientX, y: e.clientY })}
+        onPointerDown={(e) => input.taps.push({ x: e.clientX, y: e.clientY, touch: e.pointerType === "touch" })}
       />
       <div className="game-hud">
         <p className="font-display font-semibold">{info.label}</p>
@@ -177,11 +192,24 @@ export function GameLayer() {
         </p>
       ) : null}
       {mode === "asteroids" && !over ? (
-        <div className="game-pad" aria-hidden="true">
-          <button type="button" tabIndex={-1} {...hold("left")}>⟲</button>
-          <button type="button" tabIndex={-1} {...hold("up")}>▲</button>
-          <button type="button" tabIndex={-1} {...hold("right")}>⟳</button>
-          <button type="button" tabIndex={-1} {...hold("fire")}>●</button>
+        // Keyboard players use the arrow keys, so the pad stays out of the Tab order.
+        <div className="game-pad" role="group" aria-label="Ship controls">
+          <div className="game-pad-group">
+            <button type="button" tabIndex={-1} {...hold("left", "Turn left")}>
+              <span aria-hidden="true">⟲</span>
+            </button>
+            <button type="button" tabIndex={-1} {...hold("right", "Turn right")}>
+              <span aria-hidden="true">⟳</span>
+            </button>
+          </div>
+          <div className="game-pad-group">
+            <button type="button" tabIndex={-1} {...hold("up", "Thrust")}>
+              <span aria-hidden="true">▲</span>
+            </button>
+            <button type="button" tabIndex={-1} {...hold("fire", "Fire")}>
+              <span aria-hidden="true">●</span>
+            </button>
+          </div>
         </div>
       ) : null}
       {over ? (
