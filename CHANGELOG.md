@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 1.20.0 | Secrets batch | [`release/1.20.0`](https://github.com/auhbz/auhbon.com/tree/release/1.20.0) |
 | 1.19.0 | Mobile experience | [`release/1.19.0`](https://github.com/auhbz/auhbon.com/tree/release/1.19.0) |
 | 1.18.1 | Roomier intro | [`release/1.18.1`](https://github.com/auhbz/auhbon.com/tree/release/1.18.1) |
 | 1.18.0 | CV & About me downloads | [`release/1.18.0`](https://github.com/auhbz/auhbon.com/tree/release/1.18.0) |
@@ -27,6 +28,19 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 | 1.0.0 | Clean pre-bells & whistles | [`release/1.0.0`](https://github.com/auhbz/auhbon.com/tree/release/1.0.0) |
 
 **Restore a checkpoint:** in GitHub, open the branch from the table, or locally run `git checkout release/<version>`. To put a checkpoint back on the live site, merge or reset `main` to it; Vercel redeploys automatically.
+
+---
+
+Major Push 4, part 1. 18 new secrets, bringing the total to 35.
+
+- **New secrets:** Cookie monster, Old MacDonald, Double trouble, Perfectionist, Space cadet, Night owl, Keyboard warrior, Curiosity ("What's this?"), Name drop, Pho real, Meeple people, Pod bay doors, Golden leaf, Possessed, and four new combos (Breakfast of champions, Hacker, Insert coin, Big top).
+- **Badge hints:** hover a locked badge for "Reveal badge?", then "One-word hint?".
+- **Milestones** at 5, 10, 15, 25, 40, 65, 97 and 100. Crossing several at once plays only the biggest party.
+- **Parade animals** jump and spin when clicked.
+- **Quick actions:** typed secret words (including "hire") work there, and touch devices get "Type a secret word…".
+- **Touch gamepad** for the cheat code, in the footer while Bells & whistles is on.
+- **/dev/secrets** grouped by category with difficulty estimates.
+- Game modes no longer require the in-game secrets.
 
 ---
 

@@ -6,7 +6,7 @@
  */
 
 /** The date this file was last brought up to date (YYYY-MM-DD). */
-export const DEV_AS_OF = "2026-11-01";
+export const DEV_AS_OF = "2026-11-10";
 
 export type RoadmapStatus = "Shipped" | "Waiting on Auhbon" | "WIP" | "Planned" | "Skipped";
 
@@ -38,8 +38,9 @@ export const roadmap: RoadmapItem[] = [
   { item: "1.17.1: CV sync", version: "1.17.1", status: "Shipped" },
   { item: "1.18.0: CV & About me downloads", version: "1.18.0", status: "Shipped" },
   { item: "1.18.1: Roomier intro", version: "1.18.1", status: "Shipped" },
+  { item: "1.20.0: Secrets batch", version: "1.20.0", status: "Shipped", notes: "18 new secrets (35 total), badge hints, new milestones, touch gamepad." },
   { item: "1.19.0: Mobile experience", version: "1.19.0", status: "Shipped", notes: "All seven mobile ideas below, now live." },
-  { item: "Copy editing", status: "Waiting on Auhbon", notes: "48 suggestions awaiting approval." },
+  { item: "Copy editing", status: "Waiting on Auhbon", notes: "60 suggestions awaiting approval (re-checked against the CV on Nov 10)." },
   { item: "Global leaderboards", status: "Waiting on Auhbon", notes: "Needs Upstash Redis connected in Vercel." },
   {
     item: "Version URLs",
@@ -80,7 +81,11 @@ export type HandsOnTask = {
 };
 
 export const handsOnTasks: HandsOnTask[] = [
-  { task: "Review copy edits", type: "decide", status: "To do", details: "48 suggestions awaiting approval." },
+  { task: "Review copy edits", type: "decide", status: "To do", details: "60 suggestions in the Copy Review doc, including 20 against the CV." },
+  { task: "Connect GitHub Desktop", type: "do", status: "To do", details: "Clone auhbz/auhbon.com." },
+  { task: "Pin the overview issue (#185) on GitHub", type: "do", status: "To do" },
+  { task: "Finish the typing-secret words list", type: "decide", status: "To do", details: "Live now: auhbon, pho, meeple. Issue #154." },
+  { task: "Original Celeste-style climber instead of Celeste's character?", type: "decide", status: "To do", details: "Issue #174." },
   {
     task: "Turn on global leaderboards",
     type: "do",
@@ -95,7 +100,7 @@ export const handsOnTasks: HandsOnTask[] = [
     status: "To do",
     details: "MGM, Groomer.io (is “98% satisfaction” still right?), EstateDiamondJewelry.",
   },
-  { task: "Try the mobile preview and approve it", type: "decide", status: "To do" },
+  { task: "Try the mobile preview and approve it", type: "decide", status: "Done", details: "Shipped as 1.19.0." },
   { task: "Add the BeeSafe and Off-Top slideshows to the site?", type: "decide", status: "To do" },
   { task: "Remove the old resume from LinkedIn Featured", type: "do", status: "To do", details: "v4, Nov 2021." },
   {
@@ -122,10 +127,7 @@ export type SecretIdea = { title: string; how: string };
 
 /** Not built yet. Implemented secrets come from SECRET_LIST in src/lib/fun.ts. */
 export const roughSecretIdeas: SecretIdea[] = [
-  { title: "Old MacDonald", how: "Farm dots + Jungle sounds + Nature theme" },
-  { title: "Double trouble", how: "Reach 40 in Keepy Uppy" },
-  { title: "Perfectionist", how: "Three perfect Stacker drops in a row" },
-  { title: "Space cadet", how: "Clear the first Asteroids wave" },
-  { title: "Night owl", how: "Visit between midnight and 4 a.m." },
-  { title: "Cookie monster", how: "Bite every cookie button on screen" },
+  { title: "The cake is a lie", how: "Portal-style puzzle with a portal gun (draft first)" },
+  { title: "Roll the dice", how: "A board game or dice secret" },
+  { title: "Superuser hint", how: "Show a sudo hint once Keyboard warrior is found" },
 ];
