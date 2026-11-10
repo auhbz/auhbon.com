@@ -2,7 +2,10 @@ import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
 
 const out = process.argv[2];
-const url = "http://localhost:3000/";
+const url = process.env.BASE ?? "http://localhost:3000/";
+// Every secret (id and category), read from the source so the counts stay in step.
+const SECRET_DEFS = [...(await import("node:fs")).readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "(\w+)", title: .*?category: "(\w+)"/g)].map((m) => ({ id: m[1], category: m[2] }));
+const SECRET_COUNT = SECRET_DEFS.length;
 const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };
@@ -180,7 +183,14 @@ await pal.scrollIntoViewIfNeeded();
 for (let i = 1; i <= 4; i++) {
   await pal.click();
   const bites = await pal.getAttribute("data-bites");
-  check(bites === String(i % 4), `cookie: press ${i} -> ${i % 4} bites (${bites})`);
+  check(bites === String(i), `cookie: press ${i} -> ${i} bites (${bites})`);
+  if (i === 4) {
+    // The fourth bite finishes the cookie (Cookie monster), then a fresh one appears.
+    check(await pal.evaluate((el) => getComputedStyle(el).opacity !== "1" || el.getAnimations().length > 0), "cookie: the fourth bite eats it all");
+    check(JSON.parse(await page.evaluate(() => localStorage.getItem("bells-and-whistles-v2"))).secrets.includes("cookie"), "cookie monster: eating a whole cookie is a secret");
+    await page.waitForTimeout(800);
+    check((await pal.getAttribute("data-bites")) === "0" && (await pal.evaluate((el) => getComputedStyle(el).opacity)) === "1", "cookie: then a fresh cookie");
+  }
   if (i === 3) {
     check(await pal.evaluate((el) => getComputedStyle(el).maskImage !== "none"), "cookie: bites are masked out");
     const b = await pal.boundingBox();
@@ -339,13 +349,34 @@ await chip.click();
 const prog = page.getByRole("button", { name: /Secrets found/ });
 check(await prog.isVisible(), "achievements: progress opens from the chip, already expanded");
 const badges = page.getByRole("list", { name: "Secrets" }).getByRole("button");
-check((await badges.count()) === 17, `achievements: 17 badges (${await badges.count()})`);
-check((await page.locator("[data-notch]").count()) === 4, "achievements: milestone notches on the bar");
+check((await badges.count()) === SECRET_COUNT, `achievements: ${SECRET_COUNT} badges (${await badges.count()})`);
+check((await page.locator("[data-notch]").count()) === 7, `achievements: 7 milestone notches on the bar (${await page.locator("[data-notch]").count()})`);
 check(!(await guide.count()), "goblin guide ran off after the first open");
-const firstLocked = page.getByRole("button", { name: /Tap to peek/ }).first();
+// Badge hints: hover asks "Reveal badge?", a click reveals the icon; hover again asks
+// "One-word hint?", and a second click shows the word under the icon.
+const firstLocked = page.locator('[data-badge="locked"]').first();
 const lockedName = await firstLocked.getAttribute("aria-label");
+check(/Reveal badge\?$/.test(lockedName), `badge hints: a locked badge's name offers to reveal it (${lockedName})`);
+await firstLocked.hover();
+check(await firstLocked.locator("[data-badge-ask]").isVisible() && (await firstLocked.innerText()).includes("Reveal badge?"), "badge hints: hovering a locked badge shows “Reveal badge?”");
 await firstLocked.click();
-check((await page.getByRole("button", { name: /Hint icon:/ }).count()) >= 1, `achievements: tapping a locked badge peeks at its hint (${lockedName})`);
+const revealed = page.locator('[data-badge="revealed"]').first();
+check(/One-word hint\?$/.test(await revealed.getAttribute("aria-label")), `badge hints: clicking reveals the icon (${await revealed.getAttribute("aria-label")})`);
+await page.mouse.move(10, 600);
+await revealed.hover();
+check((await revealed.innerText()).includes("One-word hint?"), "badge hints: hovering a revealed badge offers a one-word hint");
+check(/again for a one-word hint/.test(await page.locator('[aria-live="polite"]').filter({ hasText: /Badge revealed/ }).innerText()), "badge hints: the live region says how to get the hint");
+await revealed.click();
+const hintedBadge = page.locator('[data-badge="hinted"]').first();
+const hintWord = await hintedBadge.locator("[data-badge-hint]").innerText();
+check(hintWord.length > 1 && !/\s/.test(hintWord) && /hint: /.test(await hintedBadge.getAttribute("aria-label")), `badge hints: a second click shows a one-word hint under the icon (${hintWord})`);
+check(JSON.parse(await page.evaluate(() => localStorage.getItem("bells-and-whistles-v2"))).hinted.length === 1, "badge hints: the hints shown are saved (hinted)");
+check(await page.getByText(`Hint: “${hintWord}”`).isVisible(), "badge hints: the live region reads the hint");
+// Keyboard: focusing a locked badge shows the same question.
+await hintedBadge.focus();
+await page.keyboard.press("Tab");
+const focusedAsk = await page.evaluate(() => { const el = document.activeElement; const ask = el?.querySelector("[data-badge-ask]"); return ask ? getComputedStyle(ask).display : "none"; });
+check(focusedAsk === "flex", `badge hints: keyboard focus shows the question too (${focusedAsk})`);
 await axe(page, "achievements open");
 await page.screenshot({ path: `${out}/achievements.png`, clip: { x: 800, y: 0, width: 480, height: 520 } });
 await page.keyboard.press("Escape");
@@ -406,16 +437,30 @@ check((await found()).includes("goblin"), "hide and seek: finding him three time
 await page.evaluate(() => {
   const k = "bells-and-whistles-v2";
   const f = JSON.parse(localStorage.getItem(k));
-  f.secrets = ["name", "konami", "diamond", "sudo", "bat", "egg", "elements", "wild", "goblin"];
-  f.celebrated = [];
+  // Four found (Keyboard warrior among them), plus a stale 20 from the old milestones.
+  f.secrets = ["name", "konami", "diamond", "keys"];
+  f.celebrated = [20];
   localStorage.setItem(k, JSON.stringify(f));
 });
 await page.reload({ waitUntil: "load" });
 await page.waitForTimeout(500);
 await page.keyboard.type("hire");
 await page.waitForTimeout(1800);
-check(await page.locator("[data-parade]").isVisible(), "milestone 10: the animal parade runs");
+check(await page.locator("[data-parade]").isVisible(), "milestone 5: the animal parade runs");
+const celebratedNow = await page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).celebrated);
+check(JSON.stringify(celebratedNow) === "[5]", `milestones: 5 is marked celebrated and old milestones are dropped (${JSON.stringify(celebratedNow)})`);
+// The parade: the strip lets clicks through, the animals catch them and do a trick.
+const paradeCss = await page.evaluate(() => ({ strip: getComputedStyle(document.querySelector("[data-parade]")).pointerEvents, animal: getComputedStyle(document.querySelector("[data-parade-animal]")).pointerEvents }));
+check(paradeCss.strip === "none" && paradeCss.animal === "auto", `parade: only the animals catch clicks (${JSON.stringify(paradeCss)})`);
+const animal = page.locator("[data-parade-animal]").first();
+await animal.dispatchEvent("pointerdown");
+check((await animal.getAttribute("data-trick")) === "true", "parade: clicking an animal makes it jump and spin");
 await page.screenshot({ path: `${out}/parade.png`, clip: { x: 0, y: 780, width: 1280, height: 120 } });
+await page.waitForTimeout(900);
+check((await animal.getAttribute("data-trick")) === null, "parade: the trick ends and the animal walks on");
+await chip.click();
+check(/Next celebration at 10/.test(await page.getByRole("button", { name: /Secrets found/ }).innerText()), "milestones: “Next celebration at 10” after the first party");
+await page.keyboard.press("Escape");
 
 // --- Farm adventure (1.16.0) -------------------------------------------------------------
 await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
@@ -486,7 +531,10 @@ const sure = page.getByRole("dialog", { name: /Unlock everything\?/ });
 check(await sure.isVisible() && /marked found, without you finding them/.test(await sure.innerText()), "137: asks if you're sure and says exactly what will happen");
 await sure.getByRole("button", { name: "Unlock everything" }).click();
 await page.waitForTimeout(300);
-check(!(await sure.isVisible()) && (await found()).length === 17, `137: unlocks every secret (${(await found()).length})`);
+check(!(await sure.isVisible()) && (await found()).length === SECRET_COUNT, `137: unlocks every secret (${(await found()).length})`);
+await page.waitForTimeout(1600);
+const celebrated137 = await page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).celebrated);
+check(celebrated137.length >= 4 && /Milestone: \d+ secrets/.test(await page.locator(".toast").innerText()), `137: every milestone passed is marked, and only the biggest party plays (${JSON.stringify(celebrated137)})`);
 await page.keyboard.press("Escape");
 await page.waitForTimeout(200);
 if (!(await panel.isVisible())) await bell.click();
@@ -554,6 +602,192 @@ a = await attrs(page);
 check(!a.fun && !a.fxButtons && !a.fxDots && !a.look, `master off: clean site (${JSON.stringify(a)})`);
 check(errors.length === 0, `no console/page errors (${errors.length}) ${errors.slice(0, 3).join(" | ")}`);
 await ctx.close();
+
+// --- Secrets batch (P4) ---------------------------------------------------------------
+/** An IANA zone where it's currently `hour` o'clock (give or take the minutes). */
+const zoneFor = (hour) => {
+  let n = (new Date().getUTCHours() - hour + 48) % 24;
+  if (n > 12) n -= 24;
+  return n === 0 ? "Etc/GMT" : n > 0 ? `Etc/GMT+${n}` : `Etc/GMT${n}`;
+};
+const KEY = "bells-and-whistles-v2";
+const desk = async (timezoneId) => {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 }, timezoneId });
+  const p = await c.newPage();
+  const errs = [];
+  p.on("pageerror", (e) => errs.push(e.message));
+  p.on("console", (m) => { if (m.type() === "error") errs.push(m.text()); });
+  await p.goto(url, { waitUntil: "networkidle" });
+  const has = async (id) => (JSON.parse(await p.evaluate((k) => localStorage.getItem(k), KEY))?.secrets ?? []).includes(id);
+  const bellsPanel = p.getByRole("dialog", { name: "Bells and whistles" });
+  const openPanel = async () => { if (!(await bellsPanel.isVisible())) await p.getByRole("button", { name: "Bells and whistles" }).click(); };
+  const pick = async (look, picks) => {
+    await openPanel();
+    if (look) await bellsPanel.getByText(look, { exact: true }).click();
+    for (const [label, option] of picks) await p.getByRole("radiogroup", { name: `${label} style` }).getByRole("radio", { name: option }).click();
+    await p.waitForTimeout(250);
+  };
+  return { c, p, errs, has, openPanel, pick, bellsPanel };
+};
+{
+  const { c, p, errs, has, openPanel, pick, bellsPanel } = await desk(zoneFor(12));
+  // Clean site: none of the extras exist, and keys find nothing.
+  check(!(await p.locator("[data-pod-bay]").isVisible()) && !(await p.locator("[data-skeleton]").isVisible()) && !(await p.locator("[data-konami-pad]").isVisible()), "clean site: no pod bay doors, skeleton or gamepad");
+  await p.keyboard.press("Shift");
+  await p.waitForTimeout(100);
+  check(!(await has("keys")), "keyboard warrior: nothing happens on the clean site");
+  await openPanel();
+  await p.getByRole("switch", { name: "Enable bells and whistles" }).click();
+  await p.keyboard.press("Escape"); // the first key with fun on
+  await p.waitForTimeout(200);
+  check((await has("keys")) && /more secrets that need the keyboard/.test(await p.locator(".toast").innerText()), "keyboard warrior: any key is a secret, and the toast hints at more");
+  check(!(await has("nightowl")), "night owl: not at noon");
+  check(await p.locator("[data-konami-pad]").isHidden(), "gamepad: hidden on desktop (touch only)");
+
+  // Quick actions: placeholder hint, typed words, What's this?, the sandwich nudge.
+  await p.keyboard.press("Control+k");
+  const q = p.getByRole("combobox", { name: "Search actions" });
+  check(/secret word/.test(await q.getAttribute("placeholder")), `quick actions: the placeholder hints at secrets after Keyboard warrior (${await q.getAttribute("placeholder")})`);
+  check((await p.getByRole("option", { name: "Type a secret word…" }).count()) === 0, "quick actions: the touch-only word commands stay off on desktop");
+  await q.pressSequentially("hire");
+  await p.waitForTimeout(200);
+  check((await has("hire")) && /Excellent idea/.test(await p.locator("[data-palette-notice]").innerText()), "hire: typing it in Quick actions works, announced inside the dialog");
+  await q.fill("sandwich");
+  check(await p.getByRole("option", { name: "make me a sandwich" }).isVisible(), "sudo nudge: a plain sandwich request is offered (and refused)");
+  await q.fill("what");
+  await p.getByRole("option", { name: "What's this?" }).click();
+  await p.waitForTimeout(200);
+  check(await has("whatsthis"), "what's this: running the command is a secret");
+
+  // Typing words on the page.
+  for (const w of ["auhbon", "meeple", "pho"]) {
+    await p.keyboard.type(w);
+    await p.waitForTimeout(120);
+  }
+  check((await has("auhbon")) && (await has("meeple")) && (await has("pho")), "typing: auhbon, meeple and pho are secrets");
+
+  // Pod bay doors.
+  const pod = p.locator("[data-pod-bay]");
+  await pod.scrollIntoViewIfNeeded();
+  const podStyle = await pod.evaluate((el) => { const s = getComputedStyle(el); const link = getComputedStyle(el.closest("ul").querySelector("a")); return { u: s.textDecorationLine, same: s.color === link.color && s.fontSize === link.fontSize }; });
+  check((await pod.isVisible()) && podStyle.u === "underline" && podStyle.same, `pod bay doors: looks like the other Contact links (${JSON.stringify(podStyle)})`);
+  await pod.click();
+  await p.waitForTimeout(150);
+  check((await has("podbay")) && /I'm sorry, Dave\. I'm afraid I can't do that\./.test(await p.locator(".toast").innerText()), "pod bay doors: HAL refuses, and it's a secret");
+  await p.screenshot({ path: `${out}/pod-bay.png`, clip: { x: 0, y: Math.max(0, (await pod.boundingBox()).y - 160), width: 1280, height: 240 } });
+
+  // The skeleton, possessed by the Cursed ghost.
+  await pick(null, [["Cursor trail", "Cursed"]]);
+  await p.keyboard.press("Escape");
+  const skel = p.locator("[data-skeleton]");
+  await skel.evaluate((e) => e.scrollIntoView({ block: "center", behavior: "instant" }));
+  await p.waitForTimeout(150);
+  check(await skel.isVisible(), "skeleton: lying at the bottom of the timeline while fun is on");
+  const sb = await skel.boundingBox();
+  await p.screenshot({ path: `${out}/skeleton.png`, clip: { x: Math.max(0, sb.x - 120), y: sb.y - 120, width: 420, height: 180 } });
+  for (let i = 8; i >= 0; i--) {
+    await p.mouse.move(sb.x + sb.width / 2 + i * 12, sb.y + sb.height / 2 - i * 6);
+    await p.waitForTimeout(30);
+  }
+  await p.waitForTimeout(3600);
+  check((await skel.getAttribute("data-state")) === "dance" && (await has("skeleton")), "skeleton: idle over it with Cursed on, the ghost possesses it and it dances (a secret)");
+  check(!(await p.evaluate(() => document.documentElement.dataset.possessed)), "skeleton: the ghost takes the skeleton, not the cursor");
+  await p.screenshot({ path: `${out}/skeleton-dance.png`, clip: { x: Math.max(0, sb.x - 120), y: sb.y - 120, width: 420, height: 180 } });
+  await p.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+
+  // More combos.
+  for (const [id, look, picks] of [
+    ["oldmac", "Nature", [["i-dots", "Farm"], ["Sound effects", "Jungle"]]],
+    ["hacker", "Terminal", [["Buttons", "Electric"], ["Cursor trail", "Sparkle"]]],
+    ["breakfast", "Classic", [["Buttons", "Cookie"], ["Sound effects", "Cereal"], ["i-dots", "Fruit"]]],
+    ["arcade", "Pico-8", [["Buttons", "Rainbow"], ["i-dots", "Slingshot"]]],
+    ["bigtop", "Classic", [["Sound effects", "Clown"], ["Buttons", "Rainbow"], ["i-dots", "Bubbles"]]],
+  ]) {
+    await pick(look, picks);
+    check(await has(id), `combo secret: ${id}`);
+  }
+
+  // Nature's golden leaf: a rare one falls on its own; this drops one now.
+  await pick("Nature", []);
+  await p.keyboard.press("Escape");
+  await p.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await p.mouse.move(1200, 880);
+  await p.evaluate(() => window.dispatchEvent(new CustomEvent("portfolio:golden-leaf", { detail: { x: 300, y: 420 } })));
+  await p.waitForTimeout(250);
+  await p.screenshot({ path: `${out}/golden-leaf.png`, clip: { x: 200, y: 340, width: 200, height: 160 } });
+  const gold = await p.evaluate(() => { const cv = document.querySelector("canvas"); const k = cv.width / document.documentElement.clientWidth; const d = cv.getContext("2d").getImageData(260 * k, 390 * k, 80 * k, 70 * k).data; let n = 0; for (let i = 0; i < d.length; i += 4) if (d[i] > 200 && d[i + 1] > 150 && d[i + 2] < 120 && d[i + 3] > 200) n++; return n; });
+  check(gold > 40, `golden leaf: drawn gold (${gold}px)`);
+  await p.mouse.click(300, 427);
+  await p.waitForTimeout(200);
+  check(await has("leaf"), "golden leaf: clicking it is a secret");
+
+  // /dev/secrets: grouped by category, with difficulty and spoilers.
+  await p.goto(new URL("dev/secrets", url).href, { waitUntil: "networkidle" });
+  const cats = await p.locator("#implemented-heading ~ div h3").allInnerTexts();
+  check(cats.length >= 5 && cats.some((t) => t.startsWith("Combos")) && cats.some((t) => t.startsWith("Typing")) && cats.some((t) => t.startsWith("Games")), `dev/secrets: grouped by category (${cats.map((t) => t.split(" ")[0]).join(", ")})`);
+  check((await p.getByText(/^(Easy|Medium|Hard)$/).count()) >= SECRET_COUNT, "dev/secrets: every secret shows a difficulty");
+  check((await p.getByText("Show how", { exact: true }).count()) >= SECRET_COUNT, "dev/secrets: spoilers stay hidden behind “Show how”");
+  await axe(p, "dev/secrets");
+  check(errs.length === 0, `P4: no console/page errors ${errs.slice(0, 3).join(" | ")}`);
+  await c.close();
+}
+// Night owl: Bells & whistles on between midnight and 4 a.m. local time.
+{
+  const { c, p, has, openPanel } = await desk(zoneFor(2));
+  await openPanel();
+  await p.getByRole("switch", { name: "Enable bells and whistles" }).click();
+  await p.waitForTimeout(400);
+  check(await has("nightowl"), `night owl: found at 2 a.m. local (${zoneFor(2)})`);
+  await c.close();
+}
+// The in-game secrets (game modes open once every other secret is found).
+{
+  const { c, p, errs, has, openPanel, bellsPanel } = await desk(zoneFor(12));
+  const others = SECRET_DEFS.filter((s) => s.category !== "Games").map((s) => s.id);
+  await p.evaluate(([k, secrets]) => localStorage.setItem(k, JSON.stringify({ on: true, effects: { dots: { on: true, variant: "fruit" }, buttons: { on: true, variant: "rainbow" }, trail: { on: false, variant: "sparkle" }, sound: { on: false, variant: "chimes" } }, look: "classic", secrets, peeked: [], hinted: [], welcomed: true, hideSpot: 3, celebrated: [5, 10, 15, 25], motion: false, haptics: true })), [KEY, others]);
+  await p.reload({ waitUntil: "load" });
+  await p.waitForTimeout(600);
+  await openPanel();
+  check((await p.locator('[data-modes="unlocked"]').count()) === 1, `modes: unlocked by every secret outside the games (${others.length} of ${SECRET_COUNT})`);
+  const game = (f) => p.evaluate(f);
+  // Keepy Uppy: reaching 40.
+  await bellsPanel.getByRole("button", { name: "Keepy Uppy" }).click();
+  await p.waitForTimeout(300);
+  await game(() => { const g = document.querySelector(".game-canvas").game; g.score = 39; g.bump(g.balls[0], g.balls[0].x); });
+  await p.waitForTimeout(200);
+  check(await has("double"), "keepy uppy: reaching 40 is Double trouble");
+  await p.keyboard.press("Escape");
+  // Stacker: three perfect drops in a row.
+  await openPanel();
+  await bellsPanel.getByRole("button", { name: "Stacker" }).click();
+  await p.waitForTimeout(300);
+  const drops = await game(() => new Promise((done) => {
+    const g = document.querySelector(".game-canvas").game;
+    let n = 0;
+    const t0 = performance.now();
+    const step = () => {
+      const top = g.stack[g.stack.length - 1];
+      if (Math.abs(g.moving.x - top.x) < 2) { g.drop(); n++; }
+      if (n >= 3 || performance.now() - t0 > 20000) done(n);
+      else requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }));
+  await p.waitForTimeout(200);
+  check(drops === 3 && (await has("perfect")), `stacker: three perfect drops in a row is Perfectionist (${drops})`);
+  await p.keyboard.press("Escape");
+  // Asteroids: clearing the first wave.
+  await openPanel();
+  await bellsPanel.getByRole("button", { name: "Asteroids" }).click();
+  await p.waitForTimeout(300);
+  check(!(await has("cadet")), "asteroids: Space cadet isn't given away at the start");
+  await game(() => { const g = document.querySelector(".game-canvas").game; g.score = 10; g.rocks.length = 0; });
+  await p.waitForTimeout(300);
+  check(await has("cadet"), "asteroids: clearing the first wave is Space cadet");
+  await p.keyboard.press("Escape");
+  check(errs.length === 0, `games: no console/page errors ${errs.slice(0, 3).join(" | ")}`);
+  await c.close();
+}
 
 // --- Reduced motion -------------------------------------------------------------------
 const rm = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });

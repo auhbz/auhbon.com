@@ -16,6 +16,16 @@ export function burst(kind: Burst["kind"] = "confetti", x = window.innerWidth / 
   window.dispatchEvent(new CustomEvent<Burst>(BURST_EVENT, { detail: { x, y, kind } }));
 }
 
+export const SECRET_EVENT = "portfolio:secret";
+
+/**
+ * Report a found secret from code that can't import the secrets UI (the games,
+ * the canvas engine). EasterEggs picks it up and celebrates it.
+ */
+export function foundSecret(id: string) {
+  window.dispatchEvent(new CustomEvent<string>(SECRET_EVENT, { detail: id }));
+}
+
 /** Plays in the visitor's chosen sound pack, if sound effects are on. */
 export function sound(event: SoundEvent) {
   window.dispatchEvent(new CustomEvent<SoundEvent>(SOUND_EVENT, { detail: event }));

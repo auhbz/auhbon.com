@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { filterProjects, goToSection, OPEN_PALETTE_EVENT, openPalette } from "@/lib/events";
 import { setTheme, type Theme } from "@/lib/theme";
-import { toast } from "@/lib/fx";
-import { getFun, LOOKS, setFunOn, setLook } from "@/lib/fun";
-import { reveal } from "@/components/easter-eggs";
+import { TOAST_EVENT, toast } from "@/lib/fx";
+import { DEFAULT_FUN, getFun, LOOKS, setFunOn, setLook, subscribeFun, TYPED_SECRETS } from "@/lib/fun";
+import { endsWithSecretWord, reveal, typedSecret } from "@/components/easter-eggs";
 import type { Link } from "@/content/profile";
 
 type Command = {
@@ -13,8 +13,17 @@ type Command = {
   group: string;
   label: string;
   keywords?: string;
+  /** Runs without closing Quick actions. */
+  keepOpen?: boolean;
   run: () => void | Promise<void>;
 };
+
+const PLACEHOLDER = "Jump to a section, filter projects, copy my email…";
+/** Once Keyboard warrior is found, the placeholder hints that words can be secrets. */
+const PLACEHOLDER_HINT = "Jump to a section, copy my email, or try a secret word…";
+const WORD_PLACEHOLDER = "Type a secret word…";
+
+const isTouch = () => window.matchMedia("(pointer: coarse)").matches;
 
 type Props = {
   sections: { id: string; label: string }[];
@@ -30,6 +39,12 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
   const [index, setIndex] = useState(0);
   const listId = useId();
   const notify = toast;
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const touch = useSyncExternalStore(noSubscribe, isTouch, () => false);
+  /** "Type a secret word…" mode (touch): the input is waiting for a word. */
+  const [wordMode, setWordMode] = useState(false);
+  /** Messages shown inside Quick actions while it's open (the page's toasts sit behind it). */
+  const [notice, setNotice] = useState("");
 
   const commands = useMemo<Command[]>(() => {
     const list: Command[] = sections.map((s) => ({
@@ -124,11 +139,34 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
         },
       });
     }
+    list.push({
+      id: "whats-this",
+      group: "Bells and whistles",
+      label: "What's this?",
+      keywords: "what is this help question curious secret",
+      run: () => reveal("whatsthis", "This? It's a secret. You found it by asking."),
+    });
+    // Phones have no keyboard to type secret words on the page, so Quick actions takes them.
+    if (touch) {
+      list.push({
+        id: "secret-word",
+        group: "Bells and whistles",
+        label: "Type a secret word…",
+        keywords: "secret word type typing keyboard",
+        keepOpen: true,
+        run: () => {
+          setWordMode(true);
+          setQuery("");
+          setIndex(0);
+        },
+      });
+    }
     return list;
-  }, [sections, filters, email, links, notify]);
+  }, [sections, filters, email, links, notify, touch]);
 
   const results = useMemo(() => {
-    const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    const raw = query.toLowerCase().trim();
+    const terms = raw.split(/\s+/).filter(Boolean);
     if (!terms.length) return commands;
     if (terms[0] === "sudo") {
       return [
@@ -139,6 +177,30 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
           run: () => reveal("sudo", "Okay. 🥪"),
         },
       ];
+    }
+    // A nudge toward the sudo secret (it's an old joke: "make me a sandwich" / "make it yourself").
+    if (raw.includes("sandwich")) {
+      return [
+        {
+          id: "sandwich",
+          group: "Hmm",
+          label: "make me a sandwich",
+          run: () => notify("What? Make it yourself. (You might need more authority.)"),
+        },
+      ];
+    }
+    // Touch: a few letters of a secret word offer to "type" the rest.
+    const letters = raw.replace(/[^a-z]/g, "");
+    if (touch && letters.length >= 2) {
+      const words = TYPED_SECRETS.filter((t) => t.word.startsWith(letters) && t.word !== letters);
+      if (words.length) {
+        return words.map((t) => ({
+          id: `word-${t.word}`,
+          group: "Secret words",
+          label: `Type “${t.word}”`,
+          run: () => typedSecret(t.word, email),
+        }));
+      }
     }
 
     // Every term must match somewhere; whole-word hits in the label rank highest,
@@ -163,15 +225,38 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
     return scored
       .sort((a, b) => best.get(b.c.group)! - best.get(a.c.group)! || a.c.group.localeCompare(b.c.group) || b.score - a.score)
       .map((x) => x.c);
-  }, [commands, query]);
+  }, [commands, query, touch, email, notify]);
 
   const open = useCallback(() => {
     const el = dialog.current;
     if (!el || el.open) return;
     setQuery("");
     setIndex(0);
+    setWordMode(false);
+    setNotice("");
     el.showModal();
     input.current?.focus();
+  }, []);
+
+  // "Type a secret word…": straight back to the input, ready for the word.
+  useEffect(() => {
+    if (wordMode) input.current?.focus();
+  }, [wordMode]);
+
+  // While open, show the page's toasts in here too: a modal hides the page (and its live region).
+  useEffect(() => {
+    let timer = 0;
+    const onToast = (e: Event) => {
+      if (!dialog.current?.open) return;
+      setNotice((e as CustomEvent<string>).detail);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setNotice(""), 3200);
+    };
+    window.addEventListener(TOAST_EVENT, onToast);
+    return () => {
+      window.removeEventListener(TOAST_EVENT, onToast);
+      window.clearTimeout(timer);
+    };
   }, []);
 
   const close = useCallback(() => dialog.current?.close(), []);
@@ -194,6 +279,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
 
   const run = (command: Command | undefined) => {
     if (!command) return;
+    if (command.keepOpen) return void command.run();
     close();
     // Let the dialog close (and focus restore) before scrolling or navigating.
     window.setTimeout(() => void command.run(), 0);
@@ -252,10 +338,16 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
             aria-activedescendant={activeId}
             aria-autocomplete="list"
             aria-label="Search actions"
-            placeholder="Jump to a section, filter projects, copy my email…"
+            placeholder={wordMode ? WORD_PLACEHOLDER : fun.secrets.includes("keys") ? PLACEHOLDER_HINT : PLACEHOLDER}
             value={query}
             onChange={(e) => {
-              setQuery(e.target.value);
+              const next = e.target.value;
+              // Typing a secret word ("hire" and friends) works in here too, on any device.
+              if (next.length > query.length) {
+                const word = endsWithSecretWord(next);
+                if (word) typedSecret(word, email);
+              }
+              setQuery(next);
               setIndex(0);
             }}
             onKeyDown={onKeyDown}
@@ -286,6 +378,9 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
             </div>
           ))}
         </div>
+        <p role="status" data-palette-notice className="mx-2 mb-2 rounded-lg bg-paper px-3 py-2 text-sm empty:hidden">
+          {notice}
+        </p>
         {results.length === 0 ? (
           <p className="px-5 pb-6 text-muted">No actions match &ldquo;{query}&rdquo;. Try a section name or a technology.</p>
         ) : null}

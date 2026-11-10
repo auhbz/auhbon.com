@@ -12,8 +12,7 @@ import {
   modesUnlocked,
   unlockAllSecrets,
   resetSecrets,
-  dueMilestones,
-  markCelebrated,
+  hintSecret,
   peekSecret,
   SECRET_GOAL,
   SECRET_LIST,
@@ -33,7 +32,7 @@ import {
 import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
 import { GoblinGuide } from "@/components/goblin";
-import { celebrate } from "@/components/celebrations";
+import { celebrate, celebrateDue } from "@/components/celebrations";
 import { startGame } from "@/components/game-layer";
 import { GAMES } from "@/lib/games";
 import { canTilt, canVibrate, haptic, onShake, requestMotionPermission } from "@/lib/device";
@@ -349,7 +348,7 @@ function SecretsChip() {
             </svg>
           </button>
         </div>
-        <SecretsProgress found={fun.secrets} peeked={fun.peeked} />
+        <SecretsProgress found={fun.secrets} peeked={fun.peeked} hinted={fun.hinted} />
         <UnlockAll />
       </div>
     </>
@@ -392,10 +391,7 @@ function UnlockAll() {
     sound("secret");
     haptic("secret");
     toast("You know my favorite number. Every secret unlocked, and the game modes too.");
-    for (const m of dueMilestones(getFun())) {
-      markCelebrated(m.at);
-      window.setTimeout(() => celebrate(m.at), 1400);
-    }
+    celebrateDue(1400);
   };
 
   return (
@@ -416,7 +412,7 @@ function UnlockAll() {
       {resetting ? (
         <div role="group" aria-label="Reset all secrets?" className="rounded-lg border border-line p-3 text-sm">
           <p>
-            This clears the {fun.secrets.length} {fun.secrets.length === 1 ? "secret" : "secrets"} you&apos;ve found, the hints you peeked at, the
+            This clears the {fun.secrets.length} {fun.secrets.length === 1 ? "secret" : "secrets"} you&apos;ve found, the badges and hints you revealed, the
             milestone parties and the goblin&apos;s hiding place. Game modes lock again. Your effect settings stay as they are.
           </p>
           <div className="mt-2 flex gap-2">
@@ -440,7 +436,7 @@ function UnlockAll() {
         <button
           type="button"
           onClick={() => setResetting(true)}
-          disabled={!fun.secrets.length && !fun.peeked.length}
+          disabled={!fun.secrets.length && !fun.peeked.length && !fun.hinted.length}
           className="min-h-10 text-sm text-muted underline underline-offset-4 hover:text-ink disabled:cursor-not-allowed disabled:no-underline disabled:opacity-60"
         >
           Reset all secrets
@@ -525,7 +521,7 @@ function TrophyIcon() {
  * Achievements: a progress bar that opens into a badge list. Locked badges are
  * blurred; tapping one reveals its icon as a hint (the title stays hidden).
  */
-function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] }) {
+function SecretsProgress({ found, peeked, hinted }: { found: string[]; peeked: string[]; hinted: string[] }) {
   const [open, setOpen] = useState(true);
   const [detail, setDetail] = useState<string | null>(null);
   const listId = useId();
@@ -573,23 +569,51 @@ function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] 
         <ul id={listId} className="mt-2 grid grid-cols-5 gap-2" aria-label="Secrets">
           {SECRET_LIST.map((secret, i) => {
             const isFound = found.includes(secret.id);
-            const isPeeked = peeked.includes(secret.id);
+            const isHinted = !isFound && hinted.includes(secret.id);
+            const isPeeked = !isFound && (isHinted || peeked.includes(secret.id));
+            // Locked badges take two steps: reveal the icon, then (if wanted) a one-word hint.
+            const ask = isFound || isHinted ? null : isPeeked ? "One-word hint?" : "Reveal badge?";
             return (
               <li key={secret.id}>
                 <button
                   type="button"
-                  title={isFound ? `${secret.title}: ${secret.how}` : isPeeked ? "Still locked" : "Tap to peek at the hint"}
-                  aria-label={isFound ? `Found: ${secret.title}. ${secret.how}` : isPeeked ? `Locked secret ${i + 1}. Hint icon: ${secret.icon}` : `Locked secret ${i + 1}. Tap to peek at its hint icon`}
+                  data-badge={isFound ? "found" : isHinted ? "hinted" : isPeeked ? "revealed" : "locked"}
+                  title={isFound ? `${secret.title}: ${secret.how}` : (ask ?? `Hint: ${secret.hint}`)}
+                  aria-label={
+                    isFound
+                      ? `Found: ${secret.title}. ${secret.how}`
+                      : isHinted
+                        ? `Locked secret ${i + 1}, hint icon ${secret.icon}, hint: ${secret.hint}`
+                        : isPeeked
+                          ? `Locked secret ${i + 1}, hint icon ${secret.icon}. One-word hint?`
+                          : `Locked secret ${i + 1}. Reveal badge?`
+                  }
                   aria-pressed={detail === secret.id}
                   onClick={() => {
-                    if (!isFound) peekSecret(secret.id as Secret);
+                    if (!isFound && !isPeeked) peekSecret(secret.id as Secret);
+                    else if (!isFound && !isHinted) hintSecret(secret.id as Secret);
                     setDetail(secret.id);
                   }}
-                  className={`flex aspect-square w-full flex-col items-center justify-center rounded-lg border text-2xl aria-pressed:outline-2 aria-pressed:outline-offset-1 aria-pressed:outline-[var(--focus)] ${isFound ? "border-kelp bg-paper" : "border-line border-dashed"}`}
+                  className={`group relative flex aspect-square w-full flex-col items-center justify-center overflow-hidden rounded-lg border text-2xl aria-pressed:outline-2 aria-pressed:outline-offset-1 aria-pressed:outline-[var(--focus)] ${isFound ? "border-kelp bg-paper" : "border-line border-dashed"}`}
                 >
                   <span aria-hidden="true" className={isFound ? "" : isPeeked ? "opacity-70 grayscale" : "blur-[6px] grayscale"}>
                     {secret.icon}
                   </span>
+                  {isHinted ? (
+                    <span aria-hidden="true" data-badge-hint className="mt-0.5 max-w-full px-0.5 text-[10px] leading-none font-medium break-words text-ink">
+                      {secret.hint}
+                    </span>
+                  ) : null}
+                  {ask ? (
+                    // Shown on hover (mouse) or keyboard focus; on touch, the live region below explains the next tap.
+                    <span
+                      aria-hidden="true"
+                      data-badge-ask
+                      className="absolute inset-0 hidden items-center justify-center bg-surface/90 px-0.5 text-center text-[11px] leading-tight font-medium text-ink group-hover:flex group-focus-visible:flex"
+                    >
+                      {ask}
+                    </span>
+                  ) : null}
                 </button>
               </li>
             );
@@ -601,10 +625,12 @@ function SecretsProgress({ found, peeked }: { found: string[]; peeked: string[] 
           {selected
             ? found.includes(selected.id)
               ? `${selected.title}: ${selected.how}.`
-              : "Still locked. The icon is your hint."
+              : hinted.includes(selected.id)
+                ? `Hint: “${selected.hint}”. The icon is a clue too.`
+                : "Badge revealed. Select it again for a one-word hint."
             : found.length === total
               ? "You found them all. Nice."
-              : `Tap a locked badge to peek at its hint; tap a found one to see how you got it. ${SECRET_LIST.length} secrets are hidden so far, with more on the way.`}
+              : `Select a locked badge to reveal it, then again for a one-word hint; select a found one to see how you got it. ${SECRET_LIST.length} secrets are hidden so far, with more on the way.`}
         </p>
       ) : null}
       {open && reached.length ? (

@@ -73,37 +73,74 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
 /**
  * Secrets work like video-game achievements. Each has a title (hidden until
  * found) and an icon that doubles as a hint: locked icons are blurred, and a
- * visitor can tap one to peek at it.
+ * visitor can reveal one, then ask for a one-word hint.
+ *
+ * `category` groups them on /dev/secrets; `difficulty` is a rough estimate of
+ * how hard each is to stumble on or work out (1 easy, 2 medium, 3 hard).
  */
+export const SECRET_CATEGORIES = ["Hidden", "Typing", "Combos", "Effects", "Farm", "Games", "Misc"] as const;
+export type SecretCategory = (typeof SECRET_CATEGORIES)[number];
+
+type SecretDef = { id: string; title: string; icon: string; how: string; hint: string; category: SecretCategory; difficulty: 1 | 2 | 3 };
+
 export const SECRET_LIST = [
-  { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row" },
-  { id: "konami", title: "Cheat code", icon: "🎮", how: "Entered the Konami code" },
-  { id: "hire", title: "Great idea", icon: "💼", how: "Typed “hire”" },
-  { id: "diamond", title: "Shine bright", icon: "💎", how: "Clicked my current job on the timeline" },
-  { id: "sudo", title: "Superuser", icon: "🥪", how: "Asked Quick actions for a sandwich, with sudo" },
-  { id: "bat", title: "Batter up", icon: "🦇", how: "Hit a bat with a slingshot rock in the Spooky theme" },
-  { id: "egg", title: "In plain sight", icon: "🥚", how: "Selected all the text and found the egg" },
-  { id: "elements", title: "Elementalist", icon: "⚗️", how: "Electric buttons, Fire trail and Bubbles together" },
-  { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit" },
-  { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds" },
-  { id: "bunny", title: "Easter egg easter egg", icon: "🐰", how: "Had the painter paint the egg in the Farm story" },
-  { id: "golden", title: "The golden egg", icon: "🥇", how: "Farm story: kept the hen's egg warm and waited" },
-  { id: "road", title: "Why did the chicken…", icon: "🚗", how: "Farm story: crossed the road and asked why" },
-  { id: "overeasy", title: "Over easy", icon: "🍳", how: "Cooked the hidden egg with the Fire trail" },
-  { id: "sunny", title: "Sunny side up", icon: "🌞", how: "Cooked an egg in the Farm story with the Fire trail" },
-  { id: "eyes", title: "Eye spy", icon: "👀", how: "Clicked the googly o's in Contact" },
-  { id: "goblin", title: "Hide and seek", icon: "👺", how: "Found the goblin in all three of his hiding places" },
-] as const;
+  { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row", hint: "Name", category: "Hidden", difficulty: 2 },
+  { id: "konami", title: "Cheat code", icon: "🎮", how: "Entered the Konami code (on a keyboard, or the little gamepad on phones)", hint: "Arrows", category: "Typing", difficulty: 2 },
+  { id: "hire", title: "Great idea", icon: "💼", how: "Typed “hire”", hint: "Employ", category: "Typing", difficulty: 2 },
+  { id: "diamond", title: "Shine bright", icon: "💎", how: "Clicked my current job on the timeline", hint: "Timeline", category: "Hidden", difficulty: 2 },
+  { id: "sudo", title: "Superuser", icon: "🥪", how: "Asked Quick actions for a sandwich, with sudo", hint: "Sandwich", category: "Typing", difficulty: 3 },
+  { id: "bat", title: "Batter up", icon: "🦇", how: "Hit a bat with a slingshot rock in the Spooky theme", hint: "Slingshot", category: "Effects", difficulty: 3 },
+  { id: "egg", title: "In plain sight", icon: "🥚", how: "Selected all the text and found the egg", hint: "Select", category: "Hidden", difficulty: 3 },
+  { id: "elements", title: "Elementalist", icon: "⚗️", how: "Electric buttons, Fire trail and Bubbles together", hint: "Elements", category: "Combos", difficulty: 2 },
+  { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit", hint: "Birdsong", category: "Combos", difficulty: 2 },
+  { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds", hint: "Clown", category: "Combos", difficulty: 2 },
+  { id: "bunny", title: "Easter egg easter egg", icon: "🐰", how: "Farm story: had the painter paint the egg", hint: "Painter", category: "Farm", difficulty: 2 },
+  { id: "golden", title: "The golden egg", icon: "🥇", how: "Farm story: kept the hen's egg warm and waited", hint: "Patience", category: "Farm", difficulty: 2 },
+  { id: "road", title: "Why did the chicken…", icon: "🚗", how: "Farm story: crossed the road and asked why", hint: "Crossing", category: "Farm", difficulty: 1 },
+  { id: "overeasy", title: "Over easy", icon: "🍳", how: "Cooked the hidden egg with the Fire trail", hint: "Cook", category: "Effects", difficulty: 3 },
+  { id: "sunny", title: "Sunny side up", icon: "🌞", how: "Cooked an egg in the Farm story with the Fire trail", hint: "Sizzle", category: "Farm", difficulty: 3 },
+  { id: "eyes", title: "Eye spy", icon: "👀", how: "Clicked the googly o's in Contact", hint: "Contact", category: "Hidden", difficulty: 1 },
+  { id: "goblin", title: "Hide and seek", icon: "👺", how: "Found the goblin in all three of his hiding places", hint: "Seek", category: "Hidden", difficulty: 2 },
+  { id: "cookie", title: "Cookie monster", icon: "🍪", how: "Ate a whole cookie: four bites of one Cookie button", hint: "Crumbs", category: "Effects", difficulty: 1 },
+  { id: "oldmac", title: "Old MacDonald", icon: "🐄", how: "Nature theme with Farm i-dots and Jungle sounds", hint: "EIEIO", category: "Combos", difficulty: 2 },
+  { id: "double", title: "Double trouble", icon: "🏐", how: "Reached 40 in Keepy Uppy", hint: "Forty", category: "Games", difficulty: 3 },
+  { id: "perfect", title: "Perfectionist", icon: "📐", how: "Three perfect drops in a row in Stacker", hint: "Aligned", category: "Games", difficulty: 3 },
+  { id: "cadet", title: "Space cadet", icon: "🚀", how: "Cleared the first wave in Asteroids", hint: "Wave", category: "Games", difficulty: 2 },
+  { id: "nightowl", title: "Night owl", icon: "🦉", how: "Had Bells & whistles on between midnight and 4 a.m.", hint: "Midnight", category: "Misc", difficulty: 2 },
+  { id: "keys", title: "Keyboard warrior", icon: "⌨️", how: "Pressed any key with Bells & whistles on", hint: "Keyboard", category: "Typing", difficulty: 1 },
+  { id: "whatsthis", title: "Curiosity", icon: "❓", how: "Ran “What's this?” in Quick actions", hint: "Curious", category: "Misc", difficulty: 1 },
+  { id: "auhbon", title: "Name drop", icon: "📛", how: "Typed “auhbon”", hint: "Myself", category: "Typing", difficulty: 2 },
+  { id: "pho", title: "Pho real", icon: "🍜", how: "Typed “pho”", hint: "Noodles", category: "Typing", difficulty: 3 },
+  { id: "meeple", title: "Meeple people", icon: "🎲", how: "Typed “meeple”", hint: "Tabletop", category: "Typing", difficulty: 3 },
+  { id: "podbay", title: "Pod bay doors", icon: "🔴", how: "Asked Contact to open the pod bay doors", hint: "Odyssey", category: "Hidden", difficulty: 1 },
+  { id: "leaf", title: "Golden leaf", icon: "🍁", how: "Caught the rare golden leaf in the Nature theme", hint: "Gold", category: "Effects", difficulty: 2 },
+  { id: "skeleton", title: "Possessed", icon: "💀", how: "Let the Cursed ghost possess the skeleton (hold still over it, or long-press it)", hint: "Bones", category: "Effects", difficulty: 3 },
+  { id: "breakfast", title: "Breakfast of champions", icon: "🥣", how: "Cookie buttons, Cereal sounds and Fruit i-dots together", hint: "Cereal", category: "Combos", difficulty: 2 },
+  { id: "hacker", title: "Hacker", icon: "💻", how: "Terminal theme with Electric buttons and the Sparkle trail", hint: "Phosphor", category: "Combos", difficulty: 2 },
+  { id: "arcade", title: "Insert coin", icon: "🕹️", how: "Pico-8 theme with Rainbow buttons and the Slingshot", hint: "Retro", category: "Combos", difficulty: 2 },
+  { id: "bigtop", title: "Big top", icon: "🎪", how: "Clown sounds, Rainbow buttons and Bubbles together", hint: "Circus", category: "Combos", difficulty: 2 },
+] as const satisfies readonly SecretDef[];
 export type Secret = (typeof SECRET_LIST)[number]["id"];
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
+
+/** Words that are secrets when typed (on the page, or into Quick actions). */
+export const TYPED_SECRETS: { word: string; id: Secret }[] = [
+  { word: "hire", id: "hire" },
+  { word: "auhbon", id: "auhbon" },
+  { word: "meeple", id: "meeple" },
+  { word: "pho", id: "pho" },
+];
 
 /** The long-term goal. Progress counts toward it, with a celebration at each milestone. */
 export const SECRET_GOAL = 100;
 export const MILESTONES = [
-  { at: 10, name: "Animal parade", icon: "🐘" },
-  { at: 20, name: "Confetti cannons", icon: "🎉" },
-  { at: 40, name: "Fireworks", icon: "🎆" },
-  { at: 70, name: "Disco", icon: "🕺" },
+  { at: 5, name: "Animal parade", icon: "🐘" },
+  { at: 10, name: "Confetti cannons", icon: "🎉" },
+  { at: 15, name: "Fireworks", icon: "🎆" },
+  { at: 25, name: "Disco", icon: "🕺" },
+  { at: 40, name: "Marching band", icon: "🥁" },
+  { at: 65, name: "Fireworks disco", icon: "🎇" },
+  { at: 97, name: "Almost there", icon: "🎊" },
   { at: 100, name: "Grand finale", icon: "🏆" },
 ] as const;
 
@@ -119,6 +156,8 @@ export type FunState = {
   secrets: string[];
   /** Locked secrets whose hint icon the visitor chose to reveal. */
   peeked: string[];
+  /** Locked secrets whose one-word hint the visitor asked for (after revealing the icon). */
+  hinted: string[];
   /** Has the visitor ever opened Bells & whistles? Until then, the goblin points at it. */
   welcomed: boolean;
   /** Which hiding place the goblin is in (HIDE_SPOTS once he's been found everywhere). */
@@ -152,7 +191,7 @@ export const ALL_OFF: Record<Category, Effect> = {
   sound: { ...ALL_ON.sound, on: false },
 };
 
-export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [], welcomed: false, hideSpot: 0, celebrated: [], motion: false, haptics: true };
+export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [], hinted: [], welcomed: false, hideSpot: 0, celebrated: [], motion: false, haptics: true };
 
 /**
  * The master switch is a summary, not a separate layer: it's "on" whenever any
@@ -191,6 +230,7 @@ function read(): FunState {
       look: master && LOOKS.some((l) => l.id === p.look) ? (p.look as Look) : "classic",
       secrets: Array.isArray(p.secrets) ? p.secrets.filter((s) => SECRETS.includes(s as Secret)) : [],
       peeked: Array.isArray(p.peeked) ? p.peeked.filter((s) => SECRETS.includes(s as Secret)) : [],
+      hinted: Array.isArray(p.hinted) ? p.hinted.filter((s) => SECRETS.includes(s as Secret)) : [],
       // Anyone who used bells & whistles before this existed has already been welcomed.
       welcomed: p.welcomed === true || master || (Array.isArray(p.secrets) && p.secrets.length > 0),
       hideSpot: Number.isInteger(p.hideSpot) ? Math.min(HIDE_SPOTS, Math.max(0, p.hideSpot as number)) : 0,
@@ -278,6 +318,12 @@ export function shuffle() {
 export const peekSecret = (id: Secret) =>
   updateFun((s) => (s.peeked.includes(id) ? s : { ...s, peeked: [...s.peeked, id] }));
 
+/** Show a revealed badge's one-word hint (it stays under the icon). */
+export const hintSecret = (id: Secret) =>
+  updateFun((s) =>
+    s.hinted.includes(id) ? s : { ...s, hinted: [...s.hinted, id], peeked: s.peeked.includes(id) ? s.peeked : [...s.peeked, id] },
+  );
+
 /** The first time the visitor opens Bells & whistles, the guide goblin runs off to hide. */
 export const markWelcomed = () => updateFun((s) => (s.welcomed ? s : { ...s, welcomed: true }));
 
@@ -290,11 +336,14 @@ export function advanceHide() {
 /** The favorite-number unlock: every secret found at once. */
 export const unlockAllSecrets = () => updateFun((s) => ({ ...s, secrets: [...SECRETS] }));
 
-/** Back to square one: secrets, peeks, milestone parties and the goblin's hiding place. */
-export const resetSecrets = () => updateFun((s) => ({ ...s, secrets: [], peeked: [], celebrated: [], hideSpot: 0 }));
+/** Back to square one: secrets, peeks, hints, milestone parties and the goblin's hiding place. */
+export const resetSecrets = () => updateFun((s) => ({ ...s, secrets: [], peeked: [], hinted: [], celebrated: [], hideSpot: 0 }));
 
-/** Game modes open up once every secret hidden so far has been found. */
-export const modesUnlocked = (s: FunState) => SECRETS.every((id) => s.secrets.includes(id));
+/**
+ * Game modes open up once every secret hidden so far has been found, except the
+ * ones inside the games themselves (those can only be found once the modes are open).
+ */
+export const modesUnlocked = (s: FunState) => SECRET_LIST.every((x) => x.category === "Games" || s.secrets.includes(x.id));
 
 /** Milestones reached but not yet celebrated (normally zero or one). */
 export function dueMilestones(s: FunState) {
@@ -303,14 +352,23 @@ export function dueMilestones(s: FunState) {
 export const markCelebrated = (at: number) =>
   updateFun((s) => (s.celebrated.includes(at) ? s : { ...s, celebrated: [...s.celebrated, at] }));
 
-/** Which combination secret, if any, the current settings unlock. */
-export function comboSecret(s: FunState): Secret | null {
+/** Every combination secret the current settings unlock (usually none or one). */
+export function comboSecrets(s: FunState): Secret[] {
   const v = (c: Category) => (s.effects[c].on ? s.effects[c].variant : null);
-  if (v("buttons") === "electric" && v("trail") === "fire" && v("dots") === "bubbles") return "elements";
-  if (s.look === "nature" && v("sound") === "birds" && v("dots") === "fruit") return "wild";
-  if (s.look === "spooky" && v("trail") === "cursed" && v("sound") === "clown") return "haunted";
-  return null;
+  const out: Secret[] = [];
+  if (v("buttons") === "electric" && v("trail") === "fire" && v("dots") === "bubbles") out.push("elements");
+  if (s.look === "nature" && v("sound") === "birds" && v("dots") === "fruit") out.push("wild");
+  if (s.look === "spooky" && v("trail") === "cursed" && v("sound") === "clown") out.push("haunted");
+  if (s.look === "nature" && v("dots") === "farm" && v("sound") === "jungle") out.push("oldmac");
+  if (v("buttons") === "cookie" && v("sound") === "cereal" && v("dots") === "fruit") out.push("breakfast");
+  if (s.look === "terminal" && v("buttons") === "electric" && v("trail") === "sparkle") out.push("hacker");
+  if (s.look === "pico8" && v("buttons") === "rainbow" && v("dots") === "slingshot") out.push("arcade");
+  if (v("sound") === "clown" && v("buttons") === "rainbow" && v("dots") === "bubbles") out.push("bigtop");
+  return out;
 }
+
+/** The first combination secret the current settings unlock, if any. */
+export const comboSecret = (s: FunState): Secret | null => comboSecrets(s)[0] ?? null;
 
 /** Returns true the first time a secret is found. */
 export function findSecret(id: Secret): boolean {

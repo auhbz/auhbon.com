@@ -40,7 +40,14 @@ type Particle = {
   flap?: boolean;
   /** Curious bats drift toward the cursor until this time (ms), then fly off. */
   curious?: number;
+  /** Nature's rare golden leaf: catch it (click or tap) for a secret. */
+  golden?: boolean;
 };
+
+/** Secrets the engine can find. */
+export type EngineSecret = "bat" | "cookie" | "leaf" | "skeleton";
+/** Dispatch this (optionally with {x, y}) to drop a golden leaf right away; the QA suite uses it. */
+export const GOLDEN_LEAF_EVENT = "portfolio:golden-leaf";
 
 type Scorch = { x: number; y: number; r: number; life: number };
 
@@ -140,6 +147,8 @@ export class FxEngine {
   private tiltBase: { beta: number; gamma: number } | null = null;
   private nextBubble = new WeakMap<Element, number>();
   private nextAmbient = 0;
+  /** When the next golden leaf falls (Nature theme; 0 = not scheduled yet). */
+  private nextGolden = 0;
   private boltSeed = 0;
   private lastBolt = 0;
   private dark = false;
@@ -150,7 +159,7 @@ export class FxEngine {
     private canvas: HTMLCanvasElement,
     private sound: (e: SoundEvent) => void,
     /** Called when something in the engine unlocks a secret. */
-    private secret: (id: "bat") => void = () => {},
+    private secret: (id: EngineSecret) => void = () => {},
   ) {
     this.ctx = canvas.getContext("2d")!;
     this.resize();
@@ -175,7 +184,10 @@ export class FxEngine {
     }
     if (next.buttons !== "cookie") for (const pill of document.querySelectorAll<HTMLElement>(".pill[data-bites]")) delete pill.dataset.bites;
     // Leaves and bats belong to their look; clear them when the look changes.
-    if (prev.look !== next.look) this.particles = this.particles.filter((p) => !p.ambient);
+    if (prev.look !== next.look) {
+      this.particles = this.particles.filter((p) => !p.ambient);
+      this.nextGolden = 0;
+    }
     this.readColors();
     this.ensure();
   }
@@ -339,6 +351,12 @@ export class FxEngine {
       document.addEventListener(t, f);
       this.cleanup.push(() => document.removeEventListener(t, f));
     }
+    const golden = (e: Event) => {
+      const d = (e as CustomEvent<{ x?: number; y?: number } | null>).detail;
+      this.spawnGolden(d?.x, d?.y);
+    };
+    window.addEventListener(GOLDEN_LEAF_EVENT, golden);
+    this.cleanup.push(() => window.removeEventListener(GOLDEN_LEAF_EVENT, golden));
     const theme = new MutationObserver(() => requestAnimationFrame(() => this.readColors()));
     theme.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "data-look"] });
     this.cleanup.push(() => theme.disconnect());
@@ -412,6 +430,15 @@ export class FxEngine {
       return;
     }
 
+    // Nature: catch the golden leaf.
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const leaf = this.particles[i];
+      if (!leaf.golden || Math.hypot(leaf.x - e.clientX, leaf.y - e.clientY) > leaf.size * 0.9) continue;
+      this.particles.splice(i, 1);
+      this.sparkleBurst(leaf.x, leaf.y);
+      this.secret("leaf");
+    }
+
     // Curious bats scatter from a click.
     for (const bat of this.particles) {
       if (!bat.flap || !bat.ambient) continue;
@@ -433,11 +460,21 @@ export class FxEngine {
       this.burst("sparks", e.clientX, e.clientY);
       if (e.pointerType !== "mouse") this.electric = { el: pill, until: performance.now() + 1200 };
     }
-    // Cookie buttons: each press takes a bite; after three, a fresh cookie.
+    // Cookie buttons: each press takes a bite. The fourth finishes it: a shower of
+    // crumbs (and a secret), then a fresh cookie.
     if (pill && this.settings.buttons === "cookie") {
       const bites = Number(pill.dataset.bites ?? 0);
-      pill.dataset.bites = String((bites + 1) % 4);
       this.burst("crumbs", e.clientX, e.clientY);
+      if (bites < 3) pill.dataset.bites = String(bites + 1);
+      else if (bites === 3) {
+        pill.dataset.bites = "4";
+        const r = pill.getBoundingClientRect();
+        for (let i = 0; i < 3; i++) this.burst("crumbs", r.left + (r.width * (i + 0.5)) / 3, r.top + r.height / 2);
+        this.secret("cookie");
+        window.setTimeout(() => {
+          if (pill.dataset.bites === "4") pill.dataset.bites = "0";
+        }, 600);
+      }
     }
     // Every trail reacts to a click or tap, anywhere on the page.
     const trail = this.settings.trail;
@@ -747,6 +784,11 @@ export class FxEngine {
     ctx.globalAlpha = Math.min(1, p.life * 1.4);
     ctx.translate(p.x, p.y);
     ctx.rotate(p.angle);
+    if (p.golden) {
+      this.drawGoldenLeaf(ctx, p.size);
+      ctx.restore();
+      return;
+    }
     switch (p.kind) {
       case "flame": {
         // White-hot core cooling to orange, red, then smoke.
@@ -818,6 +860,43 @@ export class FxEngine {
       }
     }
     ctx.restore();
+  }
+
+  /** A glowing gold leaf with a stem and veins, drawn at the origin (about `size` px long). */
+  private drawGoldenLeaf(ctx: CanvasRenderingContext2D, size: number) {
+    const s = size / 2;
+    const shimmer = 0.6 + 0.4 * Math.sin(performance.now() / 220);
+    ctx.shadowColor = `rgba(255, 210, 60, ${0.6 + 0.3 * shimmer})`;
+    ctx.shadowBlur = 14 + 8 * shimmer;
+    const g = ctx.createLinearGradient(-s, -s * 0.5, s, s * 0.5);
+    g.addColorStop(0, "#fff3b0");
+    g.addColorStop(0.45, "#ffd23c");
+    g.addColorStop(1, "#c98a00");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(-s, 0);
+    ctx.bezierCurveTo(-s * 0.4, -s * 0.75, s * 0.5, -s * 0.6, s, 0);
+    ctx.bezierCurveTo(s * 0.5, s * 0.6, -s * 0.4, s * 0.75, -s, 0);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = "#8a5a00";
+    ctx.lineWidth = 1.3;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-s * 1.25, s * 0.08); // stem
+    ctx.lineTo(s * 0.85, 0);
+    for (const t of [-0.45, 0, 0.4]) {
+      ctx.moveTo(s * t, 0);
+      ctx.lineTo(s * (t + 0.28), -s * 0.32);
+      ctx.moveTo(s * t, 0);
+      ctx.lineTo(s * (t + 0.28), s * 0.32);
+    }
+    ctx.stroke();
+    // A glint.
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.5 * shimmer})`;
+    ctx.beginPath();
+    ctx.ellipse(-s * 0.2, -s * 0.22, s * 0.18, s * 0.07, -0.3, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   private updateScorches(ctx: CanvasRenderingContext2D, dt: number) {
@@ -1224,15 +1303,29 @@ export class FxEngine {
     // Hold still with a mouse and it possesses your cursor.
     // (A finger long-pressing on a phone counts as holding still too.)
     const possess = (this.pointer?.type === "mouse" || this.holding) && !this.drag && now - g.lastMove > 1400;
+    // Holding still over the skeleton: the ghost possesses it instead of the cursor.
+    const skeleton = possess && this.pointer ? this.skeletonAt(this.pointer.x, this.pointer.y) : null;
+    const bones = skeleton?.getBoundingClientRect();
     // Otherwise it hangs back behind you, and drifts a little when you stop.
-    const tx = possess ? target.x + 2 : target.x - 34 * g.dir + (idle ? Math.sin(g.t) * 30 : 0);
-    const ty = possess ? target.y - 4 : target.y + 26 + (idle ? Math.cos(g.t * 0.7) * 14 : 0);
+    const tx = bones ? bones.left + bones.width / 2 : possess ? target.x + 2 : target.x - 34 * g.dir + (idle ? Math.sin(g.t) * 30 : 0);
+    const ty = bones ? bones.top + bones.height / 2 : possess ? target.y - 4 : target.y + 26 + (idle ? Math.cos(g.t * 0.7) * 14 : 0);
     const nx = g.x + (tx - g.x) * 0.06 * f;
     if (Math.abs(nx - g.x) > 0.4) g.dir = nx > g.x ? 1 : -1;
     g.x = nx;
     g.y += (ty - g.y) * 0.06 * f;
     g.alpha += ((possess ? 0.45 : idle ? 0.25 : 0.85) - g.alpha) * 0.05 * f;
-    this.setPossessed(possess && Math.hypot(g.x - tx, g.y - ty) < 10);
+    if (skeleton && Math.hypot(g.x - tx, g.y - ty) < 14) {
+      // In it goes: the skeleton gets up and dances, and the ghost is spent for now.
+      this.setPossessed(false);
+      skeleton.dataset.state = "dance";
+      window.setTimeout(() => {
+        if (skeleton.dataset.state === "dance") delete skeleton.dataset.state;
+      }, 4200);
+      this.ghost = null;
+      this.secret("skeleton");
+      return;
+    }
+    this.setPossessed(possess && !skeleton && Math.hypot(g.x - tx, g.y - ty) < 10);
     if (Math.random() < 0.25 * f) {
       this.add({ kind: "wisp", x: g.x - g.dir * 6, y: g.y + 14, vx: -g.dir * 0.3, vy: 0.2, life: 1, decay: 0.02, size: 10 + Math.random() * 8, hue: 0, gravity: -0.01, spin: 0, angle: 0 });
     }
@@ -1356,6 +1449,12 @@ export class FxEngine {
 
   // ---------------------------------------------------------------- still states
 
+  /** The skeleton (lying in the Experience timeline) under a point, unless it's already up and dancing. */
+  private skeletonAt(x: number, y: number) {
+    const el = document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-skeleton]");
+    return el && el.dataset.state !== "dance" ? el : null;
+  }
+
   /** The real cursor is hidden while the ghost holds it; a wiggling fake takes its place. */
   private setPossessed(on: boolean) {
     if (on === this.possessed) return;
@@ -1457,12 +1556,27 @@ export class FxEngine {
     return !this.settings.reduced && (this.settings.look === "nature" || this.settings.look === "spooky");
   }
 
+  /** Nature's rare golden leaf: bigger, gold and glowing, every 45 to 90 seconds. */
+  private spawnGolden(x?: number, y?: number) {
+    if (!this.ambientOn() || this.settings.look !== "nature") return;
+    const fixed = x !== undefined;
+    this.add({ kind: "glyph", ambient: true, golden: true, x: x ?? 40 + Math.random() * (this.W - 80), y: y ?? -30, vx: fixed ? 0 : (Math.random() - 0.5) * 0.4, vy: fixed ? 0.35 : 0.55 + Math.random() * 0.3, life: 1, decay: 0, size: 34, hue: Math.random() * 10, gravity: 0, spin: fixed ? 0 : (Math.random() - 0.5) * 0.02, angle: fixed ? 0.3 : Math.random() * 6 });
+  }
+
   private updateAmbient(now: number) {
-    if (!this.ambientOn() || now < this.nextAmbient) return;
+    if (!this.ambientOn()) return;
+    if (this.settings.look === "nature") {
+      if (!this.nextGolden) this.nextGolden = now + 45000 + Math.random() * 45000;
+      else if (now >= this.nextGolden) {
+        this.nextGolden = now + 45000 + Math.random() * 45000;
+        this.spawnGolden();
+      }
+    }
+    if (now < this.nextAmbient) return;
     const W = this.W;
     if (this.settings.look === "nature") {
       this.nextAmbient = now + 1300 + Math.random() * 1200;
-      if (this.particles.filter((p) => p.ambient).length > 10) return;
+      if (this.particles.filter((p) => p.ambient && !p.golden).length > 10) return;
       this.add({ kind: "glyph", ambient: true, x: Math.random() * W, y: -24, vx: (Math.random() - 0.5) * 0.6, vy: 0.5 + Math.random() * 0.6, life: 1, decay: 0, size: 16 + Math.random() * 10, hue: Math.random() * 10, glyph: ["🍃", "🌿", "🍂", "🍃"][Math.floor(Math.random() * 4)], gravity: 0, spin: (Math.random() - 0.5) * 0.03, angle: Math.random() * 6 });
     } else {
       this.nextAmbient = now + 5000 + Math.random() * 5000;

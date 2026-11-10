@@ -7,6 +7,8 @@ import { HiddenEgg } from "@/components/hidden-egg";
 import { GoblinSpot } from "@/components/goblin";
 import { GooglyOs } from "@/components/googly-eyes";
 import { DocumentLink, ExternalLink } from "@/components/external-link";
+import { PodBayDoors } from "@/components/pod-bay-doors";
+import { Skeleton } from "@/components/skeleton";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 
@@ -171,6 +173,7 @@ export default function Home() {
             </li>
           ))}
         </ol>
+        <Skeleton />
       </Section>
 
       <Section id="education" title="Education">
@@ -233,6 +236,10 @@ export default function Home() {
                 </DocumentLink>
               </li>
             ))}
+            {/* Only while Bells & whistles is on. */}
+            <li className="fun-only">
+              <PodBayDoors />
+            </li>
           </ul>
           <HiddenEgg />
         </div>

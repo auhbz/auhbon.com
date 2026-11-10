@@ -368,8 +368,9 @@ const vibrateSpy = () => {
 // ------------------------------------------------------------ games, touch-first
 {
   const { ctx, page, errors, touch } = await newPhone();
-  const all = ["name", "konami", "hire", "diamond", "sudo", "bat", "egg", "elements", "wild", "haunted", "bunny", "golden", "road", "overeasy", "sunny", "eyes", "goblin"];
-  await setFun(page, { effects: effects({ buttons: "rainbow" }), secrets: all, celebrated: [10] });
+  // Every secret outside the games themselves (read from the source), which opens the game modes.
+  const all = [...(await import("node:fs")).readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "(\w+)", title: .*?category: "(\w+)"/g)].filter((m) => m[2] !== "Games").map((m) => m[1]);
+  await setFun(page, { effects: effects({ buttons: "rainbow" }), secrets: all, celebrated: [5, 10, 15, 25] });
   await page.getByRole("button", { name: "Bells and whistles" }).tap();
   await page.getByRole("button", { name: "Asteroids" }).tap();
   await page.waitForTimeout(500);
@@ -415,6 +416,63 @@ const vibrateSpy = () => {
   check((await page.evaluate(() => visualViewport.scale)) === zoom && (await page.evaluate(() => scrollY)) === 0, "Keepy Uppy: double tap doesn't zoom or scroll");
   await page.keyboard.press("Escape");
   check(errors.length === 0, `games: no errors ${errors.join(" | ")}`);
+  await ctx.close();
+}
+
+// ------------------------------------------------------------ secrets on touch (P4)
+{
+  const { ctx, page, errors, touch } = await newPhone();
+  const has = async (id) => (JSON.parse(await page.evaluate((k) => localStorage.getItem(k), KEY))?.secrets ?? []).includes(id);
+  check(await page.locator("[data-konami-pad]").isHidden(), "gamepad: hidden on the clean site");
+  await setFun(page, { effects: effects({ trail: "cursed" }) });
+  // The Konami gamepad, from the footer.
+  const padBtn = page.getByRole("button", { name: "Gamepad", exact: true });
+  await padBtn.scrollIntoViewIfNeeded();
+  check(await padBtn.isVisible(), "gamepad: a small icon in the footer on touch, while fun is on");
+  const pb = await padBtn.boundingBox();
+  check(pb.width >= 24 && pb.height >= 24, `gamepad: the icon is a usable target (${Math.round(pb.width)}x${Math.round(pb.height)})`);
+  await padBtn.tap();
+  const pad = page.getByRole("dialog", { name: "Gamepad" });
+  check(await pad.isVisible(), "gamepad: tapping it opens the on-screen pad");
+  check(!(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)), "gamepad: fits at 375px");
+  await page.screenshot({ path: `${out}/m-gamepad.png` });
+  await axe(page, "gamepad open");
+  for (const k of ["Up", "Up", "Down", "Down", "Left", "Right", "Left", "Right", "B", "A"]) await pad.getByRole("button", { name: k, exact: true }).tap();
+  await page.waitForTimeout(200);
+  check(!(await pad.isVisible()) && (await has("konami")), "gamepad: ↑↑↓↓←→←→BA on the pad is the Cheat code secret");
+
+  // Quick actions: typing words on a phone.
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await page.getByRole("button", { name: "Quick actions" }).tap();
+  const q = page.getByRole("combobox", { name: "Search actions" });
+  const wordCmd = page.getByRole("option", { name: "Type a secret word…" });
+  check(await wordCmd.isVisible(), "quick actions (touch): a “Type a secret word…” command");
+  await wordCmd.tap();
+  check((await q.getAttribute("placeholder")) === "Type a secret word…" && (await page.getByRole("dialog", { name: "Quick actions" }).isVisible()), "quick actions (touch): it waits for a word, palette still open");
+  await q.fill("hir");
+  const hireCmd = page.getByRole("option", { name: "Type “hire”" });
+  check(await hireCmd.isVisible(), "quick actions (touch): a few letters offer the rest of a secret word");
+  await hireCmd.tap();
+  await page.waitForTimeout(200);
+  check(await has("hire"), "quick actions (touch): tapping it is the hire secret");
+  await page.getByRole("button", { name: "Quick actions" }).tap();
+  await q.fill("auhbon");
+  await page.waitForTimeout(200);
+  check(await has("auhbon"), "quick actions (touch): typing a whole word works too (auhbon)");
+  await page.keyboard.press("Escape");
+
+  // Long-press the skeleton with Cursed on: the ghost possesses it. (The cheat code switched
+  // everything on with the first options, so pick Cursed again.)
+  await setFun(page, { effects: effects({ trail: "cursed" }) });
+  const skel = page.locator("[data-skeleton]");
+  await skel.evaluate((e) => e.scrollIntoView({ block: "center", behavior: "instant" }));
+  await page.waitForTimeout(200);
+  const sb = await skel.boundingBox();
+  await touch("touchStart", sb.x + sb.width / 2, sb.y + sb.height / 2);
+  await page.waitForTimeout(3200);
+  check((await skel.getAttribute("data-state")) === "dance" && (await has("skeleton")), "skeleton: a long-press with Cursed on makes it dance (a secret)");
+  await touch("touchEnd");
+  check(errors.length === 0, `secrets on touch: no errors ${errors.slice(0, 3).join(" | ")}`);
   await ctx.close();
 }
 
