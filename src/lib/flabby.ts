@@ -83,8 +83,10 @@ type Pipe = { x: number; base: number; gap: number; amp: number; phase: number; 
 export const flabbySpeed = (score: number) => 1 + Math.min(score, 25) * 0.036;
 /** Gap height for a score: 40 at the start, 36 from 20 points. */
 export const flabbyGap = (score: number) => 40 - Math.min(4, Math.floor(score / 5));
-/** How far new pipes drift (0 below 20 points, growing slowly to 14). */
-export const flabbyDrift = (score: number) => (score < 20 ? 0 : Math.min(14, 4 + (score - 20) * 0.6));
+/** How far new pipes drift (0 below 20 points, growing slowly to 10). */
+export const flabbyDrift = (score: number) => (score < 20 ? 0 : Math.min(10, 3 + (score - 20) * 0.5));
+/** Most a gap can move from the last one: less as it speeds up, so every gap stays reachable. */
+export const flabbyStep = (score: number) => 36 - Math.min(score, 25) * 0.32;
 
 /** One run of the mini game on a 128×128 screen. step() runs at 30 fps, like the cart. */
 export class FlabbyGame {
@@ -119,9 +121,9 @@ export class FlabbyGame {
     const amp = this.reduced ? Math.min(6, flabbyDrift(this.score)) : flabbyDrift(this.score);
     const lo = 14 + amp;
     const hi = 128 - 14 - gap - amp;
-    // Fair: never more than 36 px from the last gap, so every jump is makeable at full speed.
+    // Fair: each gap is within reach of the last one, even at full speed with drift.
     const prev = near ?? this.pipes[this.pipes.length - 1]?.base ?? 44;
-    const base = Math.round(Math.max(lo, Math.min(hi, prev + (Math.random() * 2 - 1) * 36)));
+    const base = Math.round(Math.max(lo, Math.min(hi, prev + (Math.random() * 2 - 1) * flabbyStep(this.score))));
     return { x, base, gap, amp, phase: Math.random() * Math.PI * 2, passed: false };
   }
 

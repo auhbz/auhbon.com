@@ -148,7 +148,8 @@ export function GameLayer() {
     const up = (e: KeyboardEvent) => {
       const k = KEYMAP[e.key];
       // "fire" is consumed by the games that use it as a single press.
-      if (k && k !== "fire") input.keys.delete(k);
+      // "pause" is a single press too (the game consumes it), so a quick tap isn't lost.
+      if (k && k !== "fire" && k !== "pause") input.keys.delete(k);
       if (k === "fire" && mode === "asteroids") input.keys.delete(k);
     };
     window.addEventListener("keydown", down);

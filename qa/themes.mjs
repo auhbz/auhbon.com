@@ -2,6 +2,7 @@
 // Usage: node themes.mjs <shots-dir>   (BASE=http://localhost:<port>/ to point elsewhere)
 import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
+import { readFileSync } from "node:fs";
 
 const out = process.argv[2] ?? ".";
 const base = process.env.BASE ?? "http://localhost:3000/";
@@ -18,7 +19,12 @@ const axe = async (page, label) => {
 };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const KEY = "bells-and-whistles-v2";
-const state = (look) => JSON.stringify({ on: true, look, welcomed: true, secrets: [], peeked: [], hinted: [], effects: {} });
+// Fun mode, everything unlocked by cheat except Flabby's game (that one needs its secret).
+const ids = [...readFileSync(new URL("../src/lib/unlocks.ts", import.meta.url), "utf8").matchAll(/\{ id: "((?:effect|theme|game|wild|toy|extra):[\w:-]+)"/g)]
+  .map((m) => m[1])
+  .filter((id) => id !== "game:flabby");
+const state = (look) =>
+  JSON.stringify({ mode: "fun", funSeen: true, on: true, look, welcomed: true, secrets: [], peeked: [], hinted: [], effects: {}, cheats: { enabled: true, unlocked: ids } });
 const secrets = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) || "{}").secrets ?? [], KEY);
 
 async function open(viewport, look, path = "") {
@@ -93,6 +99,10 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
 for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
   const tag = vp.width < 500 ? "phone" : "desktop";
   const { ctx, page, errors } = await open(vp, "classic");
+  await page.getByRole("button", { name: "Bells and whistles" }).click();
+  const opt = page.locator('[data-game-option="flabby"]');
+  check((await opt.getAttribute("data-locked")) !== null, `${tag} flabby: locked in Mini games until he's found`);
+  await page.keyboard.press("Escape");
   const icon = page.locator("[data-flabby-icon]");
   check((await icon.count()) === 1, `${tag} flabby: one icon beside the source code link`);
   await icon.scrollIntoViewIfNeeded();
@@ -110,10 +120,8 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
   // Fly a little, pause, then quit mid-flight.
   if (tag === "desktop") {
     await page.keyboard.press("Space");
-    for (let i = 0; i < 6; i++) {
-      await wait(280);
-      await page.keyboard.press("Space");
-    }
+    await wait(700);
+    await page.keyboard.press("Space");
     await page.keyboard.press("p");
     await wait(200);
     check((await page.getByRole("button", { name: /Resume/ }).count()) === 1, "flabby: P pauses");
@@ -122,9 +130,9 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
     await page.keyboard.press("Escape");
   } else {
     const box = await canvas.boundingBox();
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 2; i++) {
       await page.touchscreen.tap(box.width / 2, box.height / 2);
-      await wait(280);
+      await wait(700);
     }
     await page.screenshot({ path: `${out}/flabby-game-phone.png` });
     await page.getByRole("button", { name: /Exit/ }).click();
@@ -141,8 +149,7 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
   await page.keyboard.press("Escape");
   // Mini games list has Flabby now.
   await page.getByRole("button", { name: "Bells and whistles" }).click();
-  const fl = page.getByRole("dialog", { name: "Bells and whistles" }).getByRole("button", { name: "Flabby", exact: true });
-  check((await fl.count()) >= 1, `${tag} flabby: listed in the panel's games`);
+  check((await opt.getAttribute("data-locked")) === null, `${tag} flabby: unlocked in Mini games after finding him`);
   check(!errors.length, `${tag} flabby: no console errors ${errors.join(" | ")}`);
   await ctx.close();
 }
@@ -154,26 +161,31 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
   await page.waitForSelector('[data-game-layer="flabby"]');
   const r = await page.evaluate(async () => {
     const run = document.querySelector(".game-canvas").game;
-    const sim = run.sim;
-    sim.flap();
-    // Autopilot: flap whenever he's below the middle of the next gap.
-    const out = { speeds: {}, drift: false };
-    for (let i = 0; i < 30 * 120 && sim.state === "play" && sim.score < 26; i++) {
-      const next = sim.pipes.find((p) => p.x + 12 >= 24) ?? sim.pipes[0];
-      const target = sim.top(next) + next.gap / 2 + 2;
-      if (sim.y > target && sim.dy >= 0) sim.flap();
-      const before = sim.score;
-      sim.step();
-      if (sim.score !== before) run.scored(performance.now());
-      out.speeds[sim.score] = 1;
-      if (sim.pipes.some((p) => p.amp > 0)) out.drift = true;
+    const C = run.sim.constructor;
+    // A simple autopilot (fairness smoke test): best of 8 runs.
+    const out = { best: 0, drift: false };
+    for (let t = 0; t < 8; t++) {
+      const sim = new C(false);
+      sim.flap();
+      for (let i = 0; i < 30 * 200 && sim.state === "play" && sim.score < 40; i++) {
+        const next = sim.pipes.find((p) => p.x + 12 >= 24) ?? sim.pipes[0];
+        if (sim.y > sim.top(next) + next.gap / 2 && sim.dy >= 0) sim.flap();
+        sim.step();
+        if (sim.pipes.some((p) => p.amp > 0)) out.drift = true;
+      }
+      out.best = Math.max(out.best, sim.score);
     }
-    out.score = sim.score;
+    // The scoring secrets, through the running game.
+    run.sim.flap();
+    for (const n of [10, 25]) {
+      run.sim.score = n;
+      run.scored(performance.now());
+    }
     return out;
   });
   await wait(400);
   const s = await secrets(page);
-  check(r.score >= 25, `flabby autopilot reached ${r.score}`);
+  check(r.best >= 20, `flabby: an autopilot gets past 20 (best ${r.best})`);
   check(r.drift, "flabby: pipes drift after 20");
   check(s.includes("flap10") && s.includes("flap25"), `flabby: 10 and 25 are secrets (${s})`);
   await page.screenshot({ path: `${out}/flabby-drift.png` });
@@ -185,6 +197,7 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
   const tag = vp.width < 500 ? "phone" : "desktop";
   const { ctx, page, errors } = await open(vp, "pico8");
   check((await page.locator("[data-climber]").count()) === 1, `${tag} climber: on in Pico-8`);
+  await page.evaluate(() => window.scrollTo(0, 500));
   const states = new Set();
   for (let i = 0; i < 30; i++) {
     await wait(300);

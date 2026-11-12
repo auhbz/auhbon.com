@@ -196,7 +196,7 @@ function Bowl() {
         data-toppings={`${counts.lime}-${counts.basil}-${counts.sprouts}-${counts.jalapeno}`}
         {...(drag?.over ? { "data-drop-target": "" } : {})}
         aria-label={left ? `Slurp the pho (${left} of ${SLURPS} slurps left)` : "Get a fresh bowl"}
-        className="pho-bowl relative h-[7.5rem] w-40 shrink-0 rounded-xl hover:bg-surface"
+        className="pho-bowl relative h-[9.75rem] w-52 shrink-0 rounded-xl hover:bg-surface"
       >
         {left ? <span aria-hidden="true" className="pho-steam" /> : null}
         <svg viewBox="0 0 160 120" aria-hidden="true" className="relative size-full overflow-visible">
@@ -217,7 +217,7 @@ function Bowl() {
                 const n = seen[kind]++;
                 const [fx, dy, tilt] = SPOTS[kind][n];
                 return (
-                  <g key={`${kind}-${n}`} transform={`translate(${80 + fx * half} ${surface + dy}) rotate(${tilt})`}>
+                  <g key={`${kind}-${n}`} transform={`translate(${80 + fx * half} ${surface + dy}) rotate(${tilt}) scale(1.3)`}>
                     <g className="pho-topping" data-topping={kind}>
                       <Topping kind={kind} />
                     </g>

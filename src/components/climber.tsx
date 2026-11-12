@@ -169,6 +169,19 @@ function ClimberCanvas() {
           else grab(wall, c.dir > 0 ? "left" : "right", -1);
           return;
         }
+        // A ledge just above his head at its edge: jump up and grab its side.
+        const ledge = blocks.find((k) => {
+          if (k === c.on || k.b > c.y || k.b < c.y - 16) return false;
+          const gap = c.dir > 0 ? k.l - (c.x + 8) : c.x - k.r;
+          return gap >= 0 && gap < 1.5;
+        });
+        if (ledge && Math.random() < 0.6) {
+          c.state = "air";
+          c.on = null;
+          c.vy = -2.7;
+          c.vx = c.dir * 0.3;
+          return;
+        }
         c.x = nx;
         // Screen edges: turn around.
         if (c.x <= 0 || c.x >= W - 8) {
@@ -202,7 +215,7 @@ function ClimberCanvas() {
           }
         } else c.y = floorY();
         // Now and then he changes his mind.
-        if (Math.random() < 0.003) c.dir = -c.dir;
+        if (Math.random() < 0.0008) c.dir = -c.dir;
         return;
       }
       if (c.state === "climb") {
@@ -265,7 +278,14 @@ function ClimberCanvas() {
         if (feet >= H) return land(null);
       }
       const side = blocks.find((k) => hits(c.x, c.y, k));
-      if (side) {
+      const prevY = prevFeet - 8;
+      if (side && !(prevY < side.b && prevY + 8 > side.t)) {
+        // Came at it from above or below: a head bonk sends him back down.
+        if (c.vy < 0) {
+          c.y = side.b;
+          c.vy = 0.4;
+        } else land(side);
+      } else if (side) {
         const fromLeft = c.x + 4 < (side.l + side.r) / 2;
         if (c.dazedFall || c.y + 8 < side.t + 2) {
           // Bounce off rather than grab.
@@ -373,6 +393,7 @@ function ClimberCanvas() {
         on: c.on ? { ...c.on } : null,
         dazed: c.state === "dazed" || c.dazedFall,
         blocks: blocks.length,
+        list: blocks.map((k) => [k.l, k.t, k.r, k.b].map((v) => Math.round(v * S))),
       }),
     };
     return () => {
