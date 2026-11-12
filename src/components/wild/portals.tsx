@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { Slot } from "@/components/draft/slot";
-import { revealDraft } from "@/lib/draft/store";
+import { Slot } from "@/components/page-slot";
+import { reveal } from "@/components/easter-eggs";
+import { useExtraVisible } from "@/lib/unlocks";
 import { burst, sound, toast } from "@/lib/fx";
 
 /**
- * Portal puzzles (draft only). A generic sci-fi device is hidden in Education.
+ * Portal puzzles: an extra ("extra:portal") that unlocks with secrets and can be
+ * hidden from Bells & whistles → "Unlocked toys, features, & elements".
+ * A generic sci-fi device is tucked into Education.
  * Picking it up opens three small test chambers around the page, made of white
  * panels that take portals. Place an orange and a blue portal; whatever sits
  * on one panel comes out of the other, and falls onto whatever is below it.
@@ -64,6 +67,11 @@ const START: State = {
 };
 
 export function Portals() {
+  const visible = useExtraVisible("extra:portal");
+  return visible ? <PortalPuzzles /> : null;
+}
+
+function PortalPuzzles() {
   const [s, setS] = useState<State>(START);
 
   const pickUp = () => {
@@ -125,7 +133,7 @@ export function Portals() {
     } else if (thing === "cake" && to === "over-plate") {
       solved.cake = true;
       burst("confetti", at.x, at.y + 40);
-      revealDraft("d-cake", "It was a lie.");
+      reveal("portal-cake", "It was a lie.");
     } else {
       things[to] = thing;
       toast(`${capitalize(THING_LABEL[thing])} came out of the ${from === a ? "blue" : "orange"} portal.`);
@@ -138,9 +146,9 @@ export function Portals() {
   return (
     <>
       {/* The device itself, tucked into the corner of Education. */}
-      <Slot id="portal-gun" target="#education .min-w-0" className="draft-portal-gun-slot mt-6 flex justify-end">
+      <Slot id="portal-gun" target="#education .min-w-0" className="mt-6 flex justify-end">
         {s.held ? null : (
-          <button type="button" onClick={pickUp} data-portal-gun aria-label="A strange device. Pick it up" title="Hmm, what's this?" className="draft-portal-gun rounded-md p-1 opacity-70 hover:opacity-100">
+          <button type="button" onClick={pickUp} data-portal-gun aria-label="A strange device. Pick it up" title="Hmm, what's this?" className="portal-gun rounded-md p-1 opacity-70 hover:opacity-100">
             <GunArt />
           </button>
         )}
@@ -167,7 +175,7 @@ export function Portals() {
             </Chamber>
           </Slot>
           <Slot id="chamber-target" target="#experience .min-w-0" className="mt-10">
-            <div className="draft-chamber grid grid-cols-3 gap-2 rounded-lg border border-line p-3" aria-label="Drop zone: three ceiling panels over a target" role="group">
+            <div className="portal-chamber grid grid-cols-3 gap-2 rounded-lg border border-line p-3" aria-label="Drop zone: three ceiling panels over a target" role="group">
               {(["panel-a", "panel-b", "panel-c"] as const).map((p) => (
                 <div key={p} className="flex flex-col items-center gap-2">
                   {surface(p)}
@@ -176,7 +184,7 @@ export function Portals() {
                       🎯
                     </span>
                   ) : (
-                    <span aria-hidden="true" className="draft-wall" />
+                    <span aria-hidden="true" className="portal-wall" />
                   )}
                   <span className="sr-only">{p === "panel-c" ? "A target, behind glass" : "A wall"}</span>
                 </div>
@@ -186,21 +194,21 @@ export function Portals() {
           </Slot>
 
           <Slot id="chamber-vault" target="#skills .min-w-0" className="mt-6">
-            <Chamber n={3} title="The cake" hint="The cake is locked in a vault. Something heavy on the button might help. Then the plate is in “I ❤️”.">
+            <Chamber n={3} title="The cake" hint="The cake is locked in a vault. Something heavy on the button might help. Then the plate is in Contact.">
               <div className="flex flex-wrap items-end gap-4">
-                <div className={`draft-vault rounded-md border-2 p-2 ${s.solved.vault ? "border-kelp" : "border-dashed border-muted"}`}>
+                <div className={`portal-vault rounded-md border-2 p-2 ${s.solved.vault ? "border-kelp" : "border-dashed border-muted"}`}>
                   <span className="mb-1 block text-xs text-muted">{s.solved.vault ? "Vault: open" : "Vault: locked behind glass"}</span>
                   {surface("vault-shelf")}
                 </div>
                 <div className="flex flex-col items-center gap-2">
                   {surface("over-button")}
-                  <span aria-hidden="true" className={`draft-vault-button ${s.solved.vault ? "is-pressed" : ""}`} />
+                  <span aria-hidden="true" className={`portal-vault-button ${s.solved.vault ? "is-pressed" : ""}`} />
                   <span className="sr-only">{s.solved.vault ? "The vault button, pressed" : "The vault button"}</span>
                 </div>
               </div>
             </Chamber>
           </Slot>
-          <Slot id="chamber-plate" target="#loves .min-w-0" className="mt-10">
+          <Slot id="chamber-plate" target="#contact .min-w-0" className="mt-8">
             <div className="flex flex-col items-start gap-2">
               {surface("over-plate")}
               <span aria-hidden="true" className="text-3xl">
@@ -226,7 +234,7 @@ function rectOf(id: Surface) {
 
 function Chamber({ n, title, hint, children }: { n: number; title: string; hint: string; children: ReactNode }) {
   return (
-    <div className="draft-chamber rounded-lg border border-line p-4" role="group" aria-label={`Test chamber ${n}: ${title}`}>
+    <div className="portal-chamber rounded-lg border border-line p-4" role="group" aria-label={`Test chamber ${n}: ${title}`}>
       <p className="font-mono text-sm font-semibold">
         Test chamber {n}: {title}
       </p>
@@ -252,11 +260,11 @@ function PortalPanel({ id, state, onPlace }: { id: Surface; state: State; onPlac
       data-locked={locked || undefined}
       aria-label={`${label}. Place the ${state.next} portal`}
       onClick={() => onPlace(id)}
-      className="draft-panel relative inline-flex min-h-11 min-w-24 items-center justify-center rounded-md px-3 py-1 text-sm font-medium"
+      className="portal-panel relative inline-flex min-h-11 min-w-24 items-center justify-center rounded-md px-3 py-1 text-sm font-medium"
     >
       {thing ? (
-        <span key={`${thing}-${state.arrived}`} className="draft-thing" aria-hidden="true">
-          {thing === "word" ? <span className="font-display text-xl">hello</span> : thing === "rock" ? <span className="draft-rock" /> : <span className="text-2xl">🎂</span>}
+        <span key={`${thing}-${state.arrived}`} className="portal-thing" aria-hidden="true">
+          {thing === "word" ? <span className="font-display text-xl">hello</span> : thing === "rock" ? <span className="portal-rock" /> : <span className="text-2xl">🎂</span>}
         </span>
       ) : (
         <span aria-hidden="true" className="text-xs text-muted">
@@ -264,7 +272,7 @@ function PortalPanel({ id, state, onPlace }: { id: Surface; state: State; onPlac
         </span>
       )}
       {portal ? (
-        <span aria-hidden="true" className="draft-portal-tag">
+        <span aria-hidden="true" className="portal-tag">
           {portal}
         </span>
       ) : null}
@@ -275,9 +283,9 @@ function PortalPanel({ id, state, onPlace }: { id: Surface; state: State; onPlac
 function Hud({ state, setState }: { state: State; setState: (f: (s: State) => State) => void }) {
   const done = Object.values(state.solved).filter(Boolean).length;
   return (
-    <div role="group" aria-label="Portal device" data-portal-hud className="fixed right-3 bottom-3 z-[57] flex flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-2 text-sm shadow-lg">
+    <div role="group" aria-label="Portal device" data-portal-hud data-wild-ui className="fixed top-28 right-3 z-[57] flex max-w-[calc(100vw-1.5rem)] flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-2 text-sm shadow-lg sm:top-20">
       <span className="flex items-center gap-1.5 px-1">
-        <span aria-hidden="true" className={`draft-portal-dot is-${state.next}`} />
+        <span aria-hidden="true" className={`portal-dot is-${state.next}`} />
         Next: <strong>{state.next}</strong>
       </span>
       <button
@@ -291,6 +299,9 @@ function Hud({ state, setState }: { state: State; setState: (f: (s: State) => St
         Clear portals
       </button>
       <span className="px-1 text-muted">{done} of 4 steps</span>
+      <button type="button" onClick={() => setState(() => START)} className="min-h-11 rounded-full border border-line px-3 hover:border-ink/40">
+        Put it down
+      </button>
     </div>
   );
 }

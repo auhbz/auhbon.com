@@ -1,7 +1,7 @@
 /* ======================================================================
  * Draft-only styles (/dev/draft). Loaded by that route alone, and every
  * rule is keyed off a class or data-* attribute that only the draft page
- * sets (data-draft, data-draft-look, data-draft-stolen, ...), so the live
+ * sets (data-draft, data-draft-look, ...), so the live
  * site is untouched even after a client-side navigation away.
  * Palette checked in scripts/contrast.mjs ("boardgames").
  * ====================================================================== */
@@ -79,31 +79,6 @@ html[data-draft-look="boardgames"] .hero-name {
   box-shadow: inset 0 0 0 4px #5b3a1d, inset 0 6px 14px rgba(0, 0, 0, 0.45);
 }
 
-/* --- Chaos: stolen elements, the dock. --- */
-html[data-draft] [data-draft-stolen] {
-  opacity: 0.28 !important;
-  outline: 2px dashed var(--muted);
-  outline-offset: 2px;
-}
-.draft-chaos-dock button {
-  touch-action: none;
-}
-.draft-glass,
-.draft-crate {
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .draft-glass:active {
-    transform: scale(0.94) rotate(-2deg);
-  }
-  .draft-crate svg {
-    transition: transform 300ms cubic-bezier(0.3, 1.6, 0.5, 1);
-  }
-}
-.draft-crate-tipped {
-  transform: rotate(-38deg) translate(-4px, 6px);
-}
-
 /* --- "I ❤️": every line a little longer than the last; their ends make a staircase. --- */
 .draft-loves {
   container-type: inline-size;
@@ -130,92 +105,3 @@ html[data-draft] [data-draft-stolen] {
   color: var(--muted);
 }
 
-/* --- Portals: white panels, orange/blue portals, the chamber props. --- */
-.draft-panel {
-  background: #f3f5f6;
-  color: #13232c;
-  border: 1px solid #9eabb1;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.08);
-}
-.draft-panel .text-muted {
-  color: #4b5b63;
-}
-.draft-panel[data-locked] {
-  background: linear-gradient(135deg, #cfe9f7, #f3f5f6 60%, #cfe9f7);
-  border-style: dashed;
-}
-.draft-panel[data-portal="orange"] {
-  box-shadow: 0 0 0 3px #ff8a00, 0 0 14px 2px rgba(255, 138, 0, 0.6);
-}
-.draft-panel[data-portal="blue"] {
-  box-shadow: 0 0 0 3px #1f9bff, 0 0 14px 2px rgba(31, 155, 255, 0.6);
-}
-.draft-portal-tag {
-  position: absolute;
-  top: -0.7rem;
-  right: 0.3rem;
-  border-radius: 999px;
-  padding: 0 0.4rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 1.4;
-  color: #13232c;
-}
-[data-portal="orange"] > .draft-portal-tag {
-  background: #ffb04d;
-}
-[data-portal="blue"] > .draft-portal-tag {
-  background: #8fd0ff;
-}
-.draft-portal-dot {
-  display: inline-block;
-  width: 0.8rem;
-  height: 1.1rem;
-  border-radius: 50%;
-  border: 3px solid;
-}
-.draft-portal-dot.is-orange {
-  border-color: #ff8a00;
-}
-.draft-portal-dot.is-blue {
-  border-color: #1f9bff;
-}
-.draft-rock {
-  display: inline-block;
-  width: 1.5rem;
-  height: 1.1rem;
-  border-radius: 50% 45% 40% 55%;
-  background: radial-gradient(circle at 35% 30%, #b7b2aa, #6e6a63);
-}
-.draft-wall {
-  display: block;
-  width: 2rem;
-  height: 1.4rem;
-  background:
-    linear-gradient(#e9e3d8 1px, transparent 1px) 0 0 / 100% 0.47rem,
-    linear-gradient(90deg, #e9e3d8 1px, transparent 1px) 0 0 / 0.66rem 100%,
-    #b5523b;
-}
-.draft-vault-button {
-  display: block;
-  width: 1.8rem;
-  height: 0.7rem;
-  border-radius: 0.3rem 0.3rem 0 0;
-  background: #d22f3a;
-  border-bottom: 3px solid #5f574f;
-}
-.draft-vault-button.is-pressed {
-  height: 0.3rem;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .draft-thing {
-    display: inline-block;
-    animation: draft-pop 360ms cubic-bezier(0.3, 1.6, 0.5, 1);
-  }
-}
-@keyframes draft-pop {
-  from {
-    transform: scale(0.2);
-    opacity: 0;
-  }
-}

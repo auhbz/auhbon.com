@@ -20,28 +20,22 @@ export const DRAFT_LOOKS: { id: DraftLook; label: string; description: string }[
  * only looks at SECRET_LIST).
  */
 export const DRAFT_SECRETS = [
-  { id: "d-bonk", title: "Monkey business", icon: "🐒", how: "Bonked 10 monkeys", feature: "chaos" },
-  { id: "d-troop", title: "Barrel of monkeys", icon: "🙈", how: "Let the troop grow to its full size", feature: "chaos" },
-  { id: "d-gorilla", title: "Release the gorilla", icon: "🦍", how: "Broke the gorilla's emergency glass", feature: "chaos" },
-  { id: "d-frenzy", title: "Banana frenzy", icon: "🍌", how: "Knocked the banana crate over with the peanut hammer", feature: "chaos" },
   { id: "d-snake", title: "Snake eyes", icon: "🐍", how: "Rolled two ones in Free roll (Board games theme)", feature: "boardgames" },
   { id: "d-hot", title: "Hot dice", icon: "🎲", how: "Rolled doubles three times in a row in Free roll", feature: "boardgames" },
   { id: "d-bullseye", title: "Bullseye", icon: "🎯", how: "Stood on exactly the limit in Push your luck", feature: "boardgames" },
   { id: "d-thrifty", title: "Waste not", icon: "💰", how: "Stood on exactly the limit in Push your luck after spending at most one die", feature: "boardgames" },
   { id: "d-pig", title: "Hog wild", icon: "🐷", how: "Beat the house at Pig", feature: "boardgames" },
-  { id: "d-cake", title: "Cake", icon: "🎂", how: "Solved the last portal test chamber", feature: "portal" },
 ] as const;
 export type DraftSecret = (typeof DRAFT_SECRETS)[number]["id"];
 const DRAFT_SECRET_IDS: readonly string[] = DRAFT_SECRETS.map((s) => s.id);
 
 export type DraftState = {
-  chaos: boolean;
   look: DraftLook | null;
   secrets: DraftSecret[];
   peeked: DraftSecret[];
 };
 
-export const DEFAULT_DRAFT: DraftState = { chaos: false, look: null, secrets: [], peeked: [] };
+export const DEFAULT_DRAFT: DraftState = { look: null, secrets: [], peeked: [] };
 export const DRAFT_EVENT = "portfolio:draft";
 const KEY = "draft-playground-v1";
 
@@ -54,7 +48,6 @@ function read(): DraftState {
     const p = JSON.parse(raw) as Partial<DraftState>;
     const ids = (v: unknown) => (Array.isArray(v) ? (v.filter((s) => DRAFT_SECRET_IDS.includes(s)) as DraftSecret[]) : []);
     return {
-      chaos: p.chaos === true,
       look: DRAFT_LOOKS.some((l) => l.id === p.look) ? (p.look as DraftLook) : null,
       secrets: ids(p.secrets),
       peeked: ids(p.peeked),
@@ -95,7 +88,6 @@ export function updateDraft(change: (s: DraftState) => DraftState) {
   window.dispatchEvent(new Event(DRAFT_EVENT));
 }
 
-export const setChaos = (chaos: boolean) => updateDraft((s) => ({ ...s, chaos }));
 export const setDraftLook = (look: DraftLook | null) => updateDraft((s) => ({ ...s, look }));
 export const peekDraftSecret = (id: DraftSecret) =>
   updateDraft((s) => (s.peeked.includes(id) ? s : { ...s, peeked: [...s.peeked, id] }));
@@ -121,5 +113,4 @@ export function applyDraftAttributes(s: DraftState) {
     else delete d[key];
   };
   set("draftLook", s.look);
-  set("draftChaos", s.chaos && "on");
 }
