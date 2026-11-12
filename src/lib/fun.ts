@@ -82,60 +82,100 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
  *
  * `category` groups them on /dev/secrets; `difficulty` is a rough estimate of
  * how hard each is to stumble on or work out (1 easy, 2 medium, 3 hard).
+ * `area` says which part of the site it belongs to (counted on /dev/goals).
  */
 export const SECRET_CATEGORIES = ["Hidden", "Typing", "Combos", "Effects", "Farm", "Games", "Misc"] as const;
 export type SecretCategory = (typeof SECRET_CATEGORIES)[number];
 
-/** Which part of the site a secret belongs to (CORE uses it to group and gate). */
-export type SecretArea = "site" | "effects" | "themes" | "games" | "wild" | "toys" | "extras";
+export const SECRET_AREAS = ["site", "effects", "themes", "games", "wild", "toys", "extras"] as const;
+export type SecretArea = (typeof SECRET_AREAS)[number];
+export const SECRET_AREA_LABELS: Record<SecretArea, string> = {
+  site: "The site itself",
+  effects: "Effects",
+  themes: "Themes",
+  games: "Mini games",
+  wild: "Wild & Wondrous",
+  toys: "Toys",
+  extras: "Extras",
+};
 
-type SecretDef = { id: string; title: string; icon: string; how: string; hint: string; category: SecretCategory; difficulty: 1 | 2 | 3; area?: SecretArea };
+export type SecretDef = {
+  id: string;
+  title: string;
+  icon: string;
+  how: string;
+  hint: string;
+  category: SecretCategory;
+  difficulty: 1 | 2 | 3;
+  area: SecretArea;
+};
 
 export const SECRET_LIST = [
-  { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row", hint: "Name", category: "Hidden", difficulty: 2 },
-  { id: "konami", title: "Cheat code", icon: "🎮", how: "Entered the Konami code (on a keyboard, or the little gamepad on phones)", hint: "Arrows", category: "Typing", difficulty: 2 },
-  { id: "hire", title: "Great idea", icon: "💼", how: "Typed “hire”", hint: "Employ", category: "Typing", difficulty: 2 },
-  { id: "diamond", title: "Shine bright", icon: "💎", how: "Clicked my current job on the timeline", hint: "Timeline", category: "Hidden", difficulty: 2 },
-  { id: "sudo", title: "Superuser", icon: "🥪", how: "Asked Quick actions for a sandwich, with sudo", hint: "Sandwich", category: "Typing", difficulty: 3 },
-  { id: "bat", title: "Batter up", icon: "🦇", how: "Hit a bat with a slingshot rock in the Spooky theme", hint: "Slingshot", category: "Effects", difficulty: 3 },
-  { id: "egg", title: "In plain sight", icon: "🥚", how: "Selected all the text and found the egg", hint: "Select", category: "Hidden", difficulty: 3 },
-  { id: "elements", title: "Elementalist", icon: "⚗️", how: "Electric buttons, Fire trail and Bubbles together", hint: "Elements", category: "Combos", difficulty: 2 },
-  { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit", hint: "Birdsong", category: "Combos", difficulty: 2 },
-  { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds", hint: "Clown", category: "Combos", difficulty: 2 },
-  { id: "bunny", title: "Easter egg easter egg", icon: "🐰", how: "Farm story: had the painter paint the egg", hint: "Painter", category: "Farm", difficulty: 2 },
-  { id: "golden", title: "The golden egg", icon: "🥇", how: "Farm story: kept the hen's egg warm and waited", hint: "Patience", category: "Farm", difficulty: 2 },
-  { id: "road", title: "Why did the chicken…", icon: "🚗", how: "Farm story: crossed the road and asked why", hint: "Crossing", category: "Farm", difficulty: 1 },
-  { id: "overeasy", title: "Over easy", icon: "🍳", how: "Cooked the hidden egg with the Fire trail", hint: "Cook", category: "Effects", difficulty: 3 },
-  { id: "sunny", title: "Sunny side up", icon: "🌞", how: "Cooked an egg in the Farm story with the Fire trail", hint: "Sizzle", category: "Farm", difficulty: 3 },
-  { id: "eyes", title: "Eye spy", icon: "👀", how: "Clicked the googly o's in Contact", hint: "Contact", category: "Hidden", difficulty: 1 },
-  { id: "goblin", title: "Hide and seek", icon: "👺", how: "Found the goblin in all three of his hiding places", hint: "Seek", category: "Hidden", difficulty: 2 },
-  { id: "cookie", title: "Cookie monster", icon: "🍪", how: "Ate a whole cookie: four bites of one Cookie button", hint: "Crumbs", category: "Effects", difficulty: 1 },
-  { id: "oldmac", title: "Old MacDonald", icon: "🐄", how: "Nature theme with Farm i-dots and Jungle sounds", hint: "EIEIO", category: "Combos", difficulty: 2 },
-  { id: "double", title: "Double trouble", icon: "🏐", how: "Reached 40 in Keepy Uppy", hint: "Forty", category: "Games", difficulty: 3 },
-  { id: "perfect", title: "Perfectionist", icon: "📐", how: "Three perfect drops in a row in Stacker", hint: "Aligned", category: "Games", difficulty: 3 },
-  { id: "cadet", title: "Space cadet", icon: "🚀", how: "Cleared the first wave in Asteroids", hint: "Wave", category: "Games", difficulty: 2 },
-  { id: "nightowl", title: "Night owl", icon: "🦉", how: "Had Bells & whistles on between midnight and 4 a.m.", hint: "Midnight", category: "Misc", difficulty: 2 },
-  { id: "keys", title: "Keyboard warrior", icon: "⌨️", how: "Pressed any key with Bells & whistles on", hint: "Keyboard", category: "Typing", difficulty: 1 },
-  { id: "whatsthis", title: "Curiosity", icon: "❓", how: "Ran “What's this?” in Quick actions", hint: "Curious", category: "Misc", difficulty: 1 },
-  { id: "auhbon", title: "Name drop", icon: "📛", how: "Typed “auhbon”", hint: "Myself", category: "Typing", difficulty: 2 },
-  { id: "pho", title: "Pho real", icon: "🍜", how: "Typed “pho”", hint: "Noodles", category: "Typing", difficulty: 3 },
-  { id: "meeple", title: "Meeple people", icon: "🎲", how: "Typed “meeple”", hint: "Tabletop", category: "Typing", difficulty: 3 },
-  { id: "podbay", title: "Pod bay doors", icon: "🔴", how: "Asked Contact to open the pod bay doors", hint: "Odyssey", category: "Hidden", difficulty: 1 },
-  { id: "leaf", title: "Golden leaf", icon: "🍁", how: "Caught the rare golden leaf in the Nature theme", hint: "Gold", category: "Effects", difficulty: 2 },
-  { id: "skeleton", title: "Possessed", icon: "💀", how: "Let the Cursed ghost possess the skeleton (hold still over it, or long-press it)", hint: "Bones", category: "Effects", difficulty: 3 },
-  { id: "breakfast", title: "Breakfast of champions", icon: "🥣", how: "Cookie buttons, Cereal sounds and Fruit i-dots together", hint: "Cereal", category: "Combos", difficulty: 2 },
-  { id: "hacker", title: "Hacker", icon: "💻", how: "Terminal theme with Electric buttons and the Sparkle trail", hint: "Phosphor", category: "Combos", difficulty: 2 },
-  { id: "arcade", title: "Insert coin", icon: "🕹️", how: "Pico-8 theme with Rainbow buttons and the Slingshot", hint: "Retro", category: "Combos", difficulty: 2 },
-  { id: "bigtop", title: "Big top", icon: "🎪", how: "Clown sounds, Rainbow buttons and Bubbles together", hint: "Circus", category: "Combos", difficulty: 2 },
+  { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row", hint: "Name", category: "Hidden", difficulty: 2, area: "site" },
+  { id: "konami", title: "Cheat code", icon: "🎮", how: "Entered the Konami code (on a keyboard, or the little gamepad on phones)", hint: "Arrows", category: "Typing", difficulty: 2, area: "site" },
+  { id: "hire", title: "Great idea", icon: "💼", how: "Typed “hire”", hint: "Employ", category: "Typing", difficulty: 2, area: "site" },
+  { id: "diamond", title: "Shine bright", icon: "💎", how: "Clicked my current job on the timeline", hint: "Timeline", category: "Hidden", difficulty: 2, area: "site" },
+  { id: "sudo", title: "Superuser", icon: "🥪", how: "Asked Quick actions for a sandwich, with sudo", hint: "Sandwich", category: "Typing", difficulty: 3, area: "site" },
+  { id: "bat", title: "Batter up", icon: "🦇", how: "Hit a bat with a slingshot rock in the Spooky theme", hint: "Slingshot", category: "Effects", difficulty: 3, area: "effects" },
+  { id: "egg", title: "In plain sight", icon: "🥚", how: "Selected all the text and found the egg", hint: "Select", category: "Hidden", difficulty: 3, area: "site" },
+  { id: "elements", title: "Elementalist", icon: "⚗️", how: "Electric buttons, Fire trail and Bubbles together", hint: "Elements", category: "Combos", difficulty: 2, area: "effects" },
+  { id: "wild", title: "Back to nature", icon: "🌳", how: "Nature theme with Birds and Fruit", hint: "Birdsong", category: "Combos", difficulty: 2, area: "themes" },
+  { id: "haunted", title: "Creepy clown", icon: "🤡", how: "Spooky theme with the Cursed trail and Clown sounds", hint: "Clown", category: "Combos", difficulty: 2, area: "themes" },
+  { id: "bunny", title: "Easter egg easter egg", icon: "🐰", how: "Farm story: had the painter paint the egg", hint: "Painter", category: "Farm", difficulty: 2, area: "effects" },
+  { id: "golden", title: "The golden egg", icon: "🥇", how: "Farm story: kept the hen's egg warm and waited", hint: "Patience", category: "Farm", difficulty: 2, area: "effects" },
+  { id: "road", title: "Why did the chicken…", icon: "🚗", how: "Farm story: crossed the road and asked why", hint: "Crossing", category: "Farm", difficulty: 1, area: "effects" },
+  { id: "overeasy", title: "Over easy", icon: "🍳", how: "Cooked the hidden egg with the Fire trail", hint: "Cook", category: "Effects", difficulty: 3, area: "effects" },
+  { id: "sunny", title: "Sunny side up", icon: "🌞", how: "Cooked an egg in the Farm story with the Fire trail", hint: "Sizzle", category: "Farm", difficulty: 3, area: "effects" },
+  { id: "eyes", title: "Eye spy", icon: "👀", how: "Clicked the googly o's in Contact", hint: "Contact", category: "Hidden", difficulty: 1, area: "site" },
+  { id: "goblin", title: "Hide and seek", icon: "👺", how: "Found the goblin in all three of his hiding places", hint: "Seek", category: "Hidden", difficulty: 2, area: "site" },
+  { id: "cookie", title: "Cookie monster", icon: "🍪", how: "Ate a whole cookie: four bites of one Cookie button", hint: "Crumbs", category: "Effects", difficulty: 1, area: "effects" },
+  { id: "oldmac", title: "Old MacDonald", icon: "🐄", how: "Nature theme with Farm i-dots and Jungle sounds", hint: "EIEIO", category: "Combos", difficulty: 2, area: "themes" },
+  { id: "double", title: "Double trouble", icon: "🏐", how: "Reached 40 in Keepy Uppy", hint: "Forty", category: "Games", difficulty: 3, area: "games" },
+  { id: "perfect", title: "Perfectionist", icon: "📐", how: "Three perfect drops in a row in Stacker", hint: "Aligned", category: "Games", difficulty: 3, area: "games" },
+  { id: "cadet", title: "Space cadet", icon: "🚀", how: "Cleared the first wave in Asteroids", hint: "Wave", category: "Games", difficulty: 2, area: "games" },
+  { id: "nightowl", title: "Night owl", icon: "🦉", how: "Had Bells & whistles on between midnight and 4 a.m.", hint: "Midnight", category: "Misc", difficulty: 2, area: "site" },
+  { id: "keys", title: "Keyboard warrior", icon: "⌨️", how: "Pressed any key with Bells & whistles on", hint: "Keyboard", category: "Typing", difficulty: 1, area: "site" },
+  { id: "whatsthis", title: "Curiosity", icon: "❓", how: "Ran “What's this?” in Quick actions", hint: "Curious", category: "Misc", difficulty: 1, area: "site" },
+  { id: "auhbon", title: "Name drop", icon: "📛", how: "Typed “auhbon”", hint: "Myself", category: "Typing", difficulty: 2, area: "site" },
+  { id: "pho", title: "Pho real", icon: "🍜", how: "Typed “pho”", hint: "Noodles", category: "Typing", difficulty: 3, area: "site" },
+  { id: "meeple", title: "Meeple people", icon: "🎲", how: "Typed “meeple”", hint: "Tabletop", category: "Typing", difficulty: 3, area: "site" },
+  { id: "podbay", title: "Pod bay doors", icon: "🔴", how: "Asked Contact to open the pod bay doors", hint: "Odyssey", category: "Hidden", difficulty: 1, area: "site" },
+  { id: "leaf", title: "Golden leaf", icon: "🍁", how: "Caught the rare golden leaf in the Nature theme", hint: "Gold", category: "Effects", difficulty: 2, area: "themes" },
+  { id: "skeleton", title: "Possessed", icon: "💀", how: "Let the Cursed ghost possess the skeleton (hold still over it, or long-press it)", hint: "Bones", category: "Effects", difficulty: 3, area: "extras" },
+  { id: "breakfast", title: "Breakfast of champions", icon: "🥣", how: "Cookie buttons, Cereal sounds and Fruit i-dots together", hint: "Cereal", category: "Combos", difficulty: 2, area: "effects" },
+  { id: "hacker", title: "Hacker", icon: "💻", how: "Terminal theme with Electric buttons and the Sparkle trail", hint: "Phosphor", category: "Combos", difficulty: 2, area: "themes" },
+  { id: "arcade", title: "Insert coin", icon: "🕹️", how: "Pico-8 theme with Rainbow buttons and the Slingshot", hint: "Retro", category: "Combos", difficulty: 2, area: "themes" },
+  { id: "bigtop", title: "Big top", icon: "🎪", how: "Clown sounds, Rainbow buttons and Bubbles together", hint: "Circus", category: "Combos", difficulty: 2, area: "effects" },
+  // MP5 (EFFECTS): effects, visits, hidden extras and the mini games.
+  { id: "breakaway", title: "Breakaway", icon: "🐹", how: "Clicked a hamster wheel so fast it broke off and rolled away", hint: "Faster", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "sweep", title: "Clean sweep", icon: "💨", how: "Kept the screen clear of bubbles for a whole second", hint: "Spotless", category: "Effects", difficulty: 3, area: "effects" },
+  { id: "clicky", title: "Click happy", icon: "🖱️", how: "Clicked or tapped 100 times in one visit", hint: "Hundred", category: "Misc", difficulty: 1, area: "site" },
+  { id: "shuffling", title: "Every day I'm…", icon: "🔀", how: "Shuffled Bells & whistles five times in one visit", hint: "Shuffle", category: "Effects", difficulty: 1, area: "effects" },
+  { id: "back", title: "Welcome back", icon: "👋", how: "Left and came back (another day, or after a break of 20 seconds or more)", hint: "Return", category: "Misc", difficulty: 1, area: "site" },
+  { id: "earlybird", title: "Early bird", icon: "🐦", how: "Had Fun mode on between 5 and 8 a.m.", hint: "Sunrise", category: "Misc", difficulty: 2, area: "site" },
+  { id: "sleepy", title: "Forty winks", icon: "😴", how: "Sat still for 45 seconds and let the page doze off", hint: "Idle", category: "Misc", difficulty: 1, area: "site" },
+  { id: "fowl", title: "Fowl play", icon: "🐔", how: "Bothered the wandering chicken until its friends showed up", hint: "Cluck", category: "Hidden", difficulty: 2, area: "extras" },
+  { id: "gems", title: "Pot luck", icon: "🏺", how: "Broke clay pots and collected 10 glimmers", hint: "Smash", category: "Hidden", difficulty: 2, area: "extras" },
+  { id: "leaflings", title: "Hide and leaf", icon: "🍃", how: "Found all three leaflings hiding around the page", hint: "Peek", category: "Hidden", difficulty: 3, area: "extras" },
+  { id: "overload", title: "Short circuit", icon: "⚡", how: "Pressed Electric buttons so fast they overloaded", hint: "Overload", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "scorched", title: "Scorched earth", icon: "🔥", how: "Ran the Fire trail over every section heading", hint: "Headings", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "shakeoff", title: "Shake it off", icon: "👻", how: "Shook the Cursed ghost off by wiggling the cursor hard", hint: "Wiggle", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "donuts", title: "Donut shop", icon: "🍩", how: "Let the Car trail do donuts for eight seconds straight", hint: "Spin", category: "Effects", difficulty: 1, area: "effects" },
+  { id: "deepspace", title: "Deep space", icon: "🌌", how: "Reached wave 4 in Asteroids", hint: "Waves", category: "Games", difficulty: 3, area: "games" },
+  { id: "pacifist", title: "Pacifist", icon: "🕊️", how: "Survived 30 seconds of Asteroids without firing a shot", hint: "Peace", category: "Games", difficulty: 2, area: "games" },
+  { id: "warmup", title: "Warmed up", icon: "👟", how: "Reached 15 in Keepy Uppy", hint: "Fifteen", category: "Games", difficulty: 1, area: "games" },
+  { id: "skyhigh", title: "Sky high", icon: "☁️", how: "Bounced the Keepy Uppy ball off the ceiling three times in one game", hint: "Ceiling", category: "Games", difficulty: 2, area: "games" },
+  { id: "tower", title: "Tower", icon: "🗼", how: "Stacked 10 blocks in Stacker", hint: "Ten", category: "Games", difficulty: 1, area: "games" },
+  { id: "skyscraper", title: "Skyscraper", icon: "🏙️", how: "Stacked 20 blocks in Stacker", hint: "Twenty", category: "Games", difficulty: 3, area: "games" },
   // THEMES (MP5): the Pho theme's bowl, the Pico-8 climber, and Flabby's mini game.
   { id: "auhbonsway", title: "Auhbon's way", icon: "🌶️", how: "Pho theme: topped the bowl with exactly 3 limes, all the jalapeños, and all the basil", hint: "Spicy", category: "Effects", difficulty: 3, area: "themes" },
   { id: "naturalist", title: "Naturalist", icon: "🌿", how: "Pho theme: slurped a whole bowl without adding a single topping", hint: "Plain", category: "Effects", difficulty: 2, area: "themes" },
   { id: "cleanbowl", title: "Clean bowl", icon: "🥢", how: "Pho theme: slurped a whole bowl you'd topped", hint: "Slurp", category: "Effects", difficulty: 1, area: "themes" },
   { id: "dazed", title: "Dazed and confused", icon: "💫", how: "Pico-8 theme: scrolled the little climber into the edge of the screen while he was climbing", hint: "Bonk", category: "Effects", difficulty: 2, area: "extras" },
   { id: "flabby", title: "Found Flabby", icon: "🐤", how: "Clicked the tiny Flabby beside his project's source code link in Selected work", hint: "Source", category: "Hidden", difficulty: 2, area: "games" },
-  { id: "flap10", title: "Flap happy", icon: "🐦", how: "Scored 10 in Flabby", hint: "Ten", category: "Games", difficulty: 2, area: "games" },
+  { id: "flap10", title: "Flap happy", icon: "🎈", how: "Scored 10 in Flabby", hint: "Ten", category: "Games", difficulty: 2, area: "games" },
   { id: "flap25", title: "Frequent flapper", icon: "🏅", how: "Scored 25 in Flabby", hint: "Drift", category: "Games", difficulty: 3, area: "games" },
-  { id: "coward", title: "Coward", icon: "🐔", how: "Quit Flabby mid-flight (he says so himself)", hint: "Quit", category: "Games", difficulty: 1, area: "games" },
+  { id: "coward", title: "Coward", icon: "🏳️", how: "Quit Flabby mid-flight (he says so himself)", hint: "Quit", category: "Games", difficulty: 1, area: "games" },
 ] as const satisfies readonly SecretDef[];
 export type Secret = (typeof SECRET_LIST)[number]["id"];
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
@@ -148,12 +188,16 @@ export const TYPED_SECRETS: { word: string; id: Secret }[] = [
   { word: "pho", id: "pho" },
 ];
 
-/** The long-term goal. Progress counts toward it, with a celebration at each milestone. */
+/**
+ * The long-term goal: 100 secrets. Fewer exist today (SECRET_LIST.length, "N"),
+ * so every milestone and unlock threshold is written on the 100 scale and
+ * scaled down to N (see scaledThreshold), which keeps them all reachable.
+ */
 export const SECRET_GOAL = 100;
 export const MILESTONES = [
   { at: 5, name: "Animal parade", icon: "🐘" },
-  { at: 10, name: "Confetti cannons", icon: "🎉" },
-  { at: 15, name: "Fireworks", icon: "🎆" },
+  { at: 10, name: "Fireworks", icon: "🎆" },
+  { at: 15, name: "Lantern festival", icon: "🏮" },
   { at: 25, name: "Disco", icon: "🕺" },
   { at: 40, name: "Marching band", icon: "🥁" },
   { at: 65, name: "Fireworks disco", icon: "🎇" },
@@ -161,12 +205,49 @@ export const MILESTONES = [
   { at: 100, name: "Grand finale", icon: "🏆" },
 ] as const;
 
+/** How many secrets are live today (draft secrets never count). */
+export const liveSecretCount = () => SECRET_LIST.length;
+
+/**
+ * A 100-scale threshold scaled down to `n` live secrets. Small values barely
+ * move, far ones are pulled back much more, 100 becomes exactly n, and with
+ * n = 100 every value is unchanged: f(m) = round(100·n·m / (100·n + m·(100 − n))).
+ */
+export function scaledThreshold(at: number, n: number = liveSecretCount()): number {
+  if (at <= 0) return 0;
+  if (n >= SECRET_GOAL) return Math.round(at);
+  const v = Math.round((100 * n * at) / (100 * n + at * (100 - n)));
+  return Math.max(1, Math.min(n, v));
+}
+
+/**
+ * Every milestone with its scaled count (`count`), kept distinct and increasing:
+ * scaled, then walked down from the top so each is at most the next minus one
+ * (and at least 1). The last one is always n ("100%" becomes all live secrets).
+ */
+export function scaledMilestones(n: number = liveSecretCount()) {
+  const counts = MILESTONES.map((m) => scaledThreshold(m.at, n));
+  counts[counts.length - 1] = n;
+  for (let i = counts.length - 2; i >= 0; i--) counts[i] = Math.max(1, Math.min(counts[i], counts[i + 1] - 1));
+  return MILESTONES.map((m, i) => ({ ...m, count: counts[i] }));
+}
+
 /** How many places the goblin hides before he gives up. */
 export const HIDE_SPOTS = 3;
+
+/** The toggle at the top: Boring is the plain portfolio (the default), Fun is the playground. */
+export type SiteMode = "boring" | "fun";
+
+/** Cheats (behind my favorite number): unlock fun features without finding secrets. */
+export type Cheats = { enabled: boolean; unlocked: string[] };
 
 /** `hover` only applies to sound effects: whether hovering plays sounds. */
 export type Effect = { on: boolean; variant: string; hover?: boolean };
 export type FunState = {
+  /** Fun or Boring. Boring hides every fun feature and secret, whatever the settings below say. */
+  mode: SiteMode;
+  /** Has the visitor ever switched to Fun? Until then, the goblin points at the toggle. */
+  funSeen: boolean;
   on: boolean;
   effects: Record<Category, Effect>;
   look: Look;
@@ -175,16 +256,17 @@ export type FunState = {
   peeked: string[];
   /** Locked secrets whose one-word hint the visitor asked for (after revealing the icon). */
   hinted: string[];
-  /** Has the visitor ever opened Bells & whistles? Until then, the goblin points at it. */
+  /** Has the visitor ever opened Bells & whistles? (Kept for older saves; the goblin now goes by funSeen.) */
   welcomed: boolean;
   /** Which hiding place the goblin is in (HIDE_SPOTS once he's been found everywhere). */
   hideSpot: number;
-  /** Milestones already celebrated. */
+  /** Milestones already celebrated, keyed by their 100-scale `at`. */
   celebrated: number[];
   /** Phones: tilt steers bubbles and aims the slingshot; a shake shuffles. Off by default (iOS asks permission). */
   motion: boolean;
   /** Phones that can vibrate: a light buzz on presses while Bells & whistles is on. */
   haptics: boolean;
+  cheats: Cheats;
 };
 
 export const FUN_EVENT = "portfolio:fun";
@@ -208,7 +290,61 @@ export const ALL_OFF: Record<Category, Effect> = {
   sound: { ...ALL_ON.sound, on: false },
 };
 
-export const DEFAULT_FUN: FunState = { on: false, effects: ALL_OFF, look: "classic", secrets: [], peeked: [], hinted: [], welcomed: false, hideSpot: 0, celebrated: [], motion: false, haptics: true };
+export const NO_CHEATS: Cheats = { enabled: false, unlocked: [] };
+
+export const DEFAULT_FUN: FunState = {
+  mode: "boring",
+  funSeen: false,
+  on: false,
+  effects: ALL_OFF,
+  look: "classic",
+  secrets: [],
+  peeked: [],
+  hinted: [],
+  welcomed: false,
+  hideSpot: 0,
+  celebrated: [],
+  motion: false,
+  haptics: true,
+  cheats: NO_CHEATS,
+};
+
+/** Fun mode (whatever the effects are set to). */
+export const isFunMode = (s: FunState) => s.mode === "fun";
+/** Fun mode with at least one effect or theme on: the playground is actually running. */
+export const funActive = (s: FunState) => s.mode === "fun" && s.on;
+
+/*
+ * Locks. The rules live in src/lib/unlocks.ts (which imports this file), so it
+ * registers them here rather than this file importing it back. Until it does,
+ * everything counts as unlocked.
+ */
+type LockCheck = (id: string, s: FunState) => boolean;
+let lockCheck: LockCheck = () => true;
+export function registerLockCheck(check: LockCheck) {
+  lockCheck = check;
+  if (cache) cache = withLocks(cache);
+}
+export const effectId = (c: Category, variant: string) => `effect:${c}:${variant}`;
+export const themeId = (look: Look) => `theme:${look}`;
+export const optionUnlocked = (c: Category, variant: string, s: FunState) => lockCheck(effectId(c, variant), s);
+export const lookUnlocked = (look: Look, s: FunState) => look === "classic" || lockCheck(themeId(look), s);
+
+/** A saved choice that's locked (secrets reset, cheats off) falls back to an unlocked one. */
+function withLocks(s: FunState): FunState {
+  let changed = false;
+  const effects = { ...s.effects };
+  for (const c of CATEGORIES) {
+    const e = s.effects[c.id];
+    if (optionUnlocked(c.id, e.variant, s)) continue;
+    const fallback = c.options.find((o) => optionUnlocked(c.id, o.id, s)) ?? c.options[0];
+    effects[c.id] = { ...e, variant: fallback.id };
+    changed = true;
+  }
+  const look = lookUnlocked(s.look, s) ? s.look : "classic";
+  if (look !== s.look) changed = true;
+  return changed ? withSummary({ ...s, effects, look }) : s;
+}
 
 /**
  * The master switch is a summary, not a separate layer: it's "on" whenever any
@@ -223,6 +359,8 @@ function withSummary(s: FunState): FunState {
 function validVariant(c: Category, v: unknown) {
   return CATEGORIES.find((d) => d.id === c)!.options.some((o) => o.id === v);
 }
+
+const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
 
 let cache: FunState | null = null;
 
@@ -240,21 +378,28 @@ function read(): FunState {
         if (c.id === "sound") effects.sound.hover = e.hover !== false;
       }
     }
-    return withSummary({
-      on: master,
-      effects,
-      // Older saves kept a look while switched off; treat "off" as the clean site.
-      look: master && LOOKS.some((l) => l.id === p.look) ? (p.look as Look) : "classic",
-      secrets: Array.isArray(p.secrets) ? p.secrets.filter((s) => SECRETS.includes(s as Secret)) : [],
-      peeked: Array.isArray(p.peeked) ? p.peeked.filter((s) => SECRETS.includes(s as Secret)) : [],
-      hinted: Array.isArray(p.hinted) ? p.hinted.filter((s) => SECRETS.includes(s as Secret)) : [],
-      // Anyone who used bells & whistles before this existed has already been welcomed.
-      welcomed: p.welcomed === true || master || (Array.isArray(p.secrets) && p.secrets.length > 0),
-      hideSpot: Number.isInteger(p.hideSpot) ? Math.min(HIDE_SPOTS, Math.max(0, p.hideSpot as number)) : 0,
-      celebrated: Array.isArray(p.celebrated) ? p.celebrated.filter((n) => MILESTONES.some((m) => m.at === n)) : [],
-      motion: p.motion === true,
-      haptics: p.haptics !== false,
-    });
+    const cheats = p.cheats && typeof p.cheats === "object" ? p.cheats : NO_CHEATS;
+    return withLocks(
+      withSummary({
+        // No saved choice means Boring (older saves included).
+        mode: p.mode === "fun" ? "fun" : "boring",
+        funSeen: p.funSeen === true,
+        on: master,
+        effects,
+        // Older saves kept a look while switched off; treat "off" as the clean site.
+        look: master && LOOKS.some((l) => l.id === p.look) ? (p.look as Look) : "classic",
+        secrets: Array.isArray(p.secrets) ? p.secrets.filter((s) => SECRETS.includes(s as Secret)) : [],
+        peeked: Array.isArray(p.peeked) ? p.peeked.filter((s) => SECRETS.includes(s as Secret)) : [],
+        hinted: Array.isArray(p.hinted) ? p.hinted.filter((s) => SECRETS.includes(s as Secret)) : [],
+        // Anyone who used bells & whistles before this existed has already been welcomed.
+        welcomed: p.welcomed === true || master || (Array.isArray(p.secrets) && p.secrets.length > 0),
+        hideSpot: Number.isInteger(p.hideSpot) ? Math.min(HIDE_SPOTS, Math.max(0, p.hideSpot as number)) : 0,
+        celebrated: Array.isArray(p.celebrated) ? p.celebrated.filter((n) => MILESTONES.some((m) => m.at === n)) : [],
+        motion: p.motion === true,
+        haptics: p.haptics !== false,
+        cheats: { enabled: cheats.enabled === true, unlocked: strings(cheats.unlocked) },
+      }),
+    );
   } catch {
     return DEFAULT_FUN;
   }
@@ -282,7 +427,10 @@ export function subscribeFun(onChange: () => void) {
 }
 
 export function updateFun(change: (s: FunState) => FunState) {
-  cache = withSummary(change(getFun()));
+  const prev = getFun();
+  const next = change(prev);
+  if (next === prev) return;
+  cache = withLocks(withSummary(next));
   try {
     localStorage.setItem(KEY, JSON.stringify(cache));
   } catch {
@@ -291,6 +439,22 @@ export function updateFun(change: (s: FunState) => FunState) {
   applyFunAttributes(cache);
   window.dispatchEvent(new Event(FUN_EVENT));
 }
+
+/**
+ * Fun or Boring. The first switch to Fun also turns the default effects on (if
+ * none were on), so the difference is obvious; after that, switching only shows
+ * or hides whatever the visitor had. Never touches secrets, unlocks, milestones,
+ * cheats or scores.
+ */
+export const setMode = (mode: SiteMode) =>
+  updateFun((s) => {
+    if (s.mode === mode) return s;
+    if (mode === "fun" && !s.funSeen) {
+      const anyOn = CATEGORIES.some((c) => s.effects[c.id].on);
+      return { ...s, mode, funSeen: true, welcomed: true, effects: anyOn ? s.effects : ALL_ON };
+    }
+    return { ...s, mode };
+  });
 
 /**
  * The master switch. On: every effect on with its first option (look unchanged).
@@ -303,9 +467,9 @@ export const setFunOn = (on: boolean) =>
 export const setEffectOn = (c: Category, on: boolean) =>
   updateFun((s) => ({ ...s, effects: { ...s.effects, [c]: { ...s.effects[c], on } } }));
 
-/** Picking a style switches that one effect on. Touches nothing else. */
+/** Picking a style switches that one effect on. Touches nothing else. Locked styles are ignored. */
 export const setVariant = (c: Category, variant: string) =>
-  updateFun((s) => ({ ...s, effects: { ...s.effects, [c]: { ...s.effects[c], on: true, variant } } }));
+  updateFun((s) => (optionUnlocked(c, variant, s) ? { ...s, effects: { ...s.effects, [c]: { ...s.effects[c], on: true, variant } } } : s));
 
 /** The "hover sounds" sub-switch inside Sound effects. Touches nothing else. */
 export const setSoundHover = (hover: boolean) =>
@@ -317,17 +481,24 @@ export const setMotion = (motion: boolean) => updateFun((s) => ({ ...s, motion }
 /** The "Haptics" switch (phones that can vibrate). Touches nothing else. */
 export const setHaptics = (haptics: boolean) => updateFun((s) => ({ ...s, haptics }));
 
-/** Picking a look (shown as "Theme" in the panel). Touches nothing else. */
-export const setLook = (look: Look) => updateFun((s) => ({ ...s, look }));
+/** Picking a look (shown as "Theme" in the panel). Touches nothing else. Locked themes are ignored. */
+export const setLook = (look: Look) => updateFun((s) => (lookUnlocked(look, s) ? { ...s, look } : s));
 
-/** Everything on with random options; the look stays Classic. Returns the picks. */
+/** Fired after each shuffle (a secret counts them). */
+export const SHUFFLE_EVENT = "portfolio:shuffle";
+
+/** Everything on with random unlocked options; the look stays Classic. Returns the picks. */
 export function shuffle() {
+  const s = getFun();
   const effects = {} as Record<Category, Effect>;
   for (const c of CATEGORIES) {
-    const pick = c.options[Math.floor(Math.random() * c.options.length)];
+    const open = c.options.filter((o) => optionUnlocked(c.id, o.id, s));
+    const pool = open.length ? open : c.options.slice(0, 1);
+    const pick = pool[Math.floor(Math.random() * pool.length)];
     effects[c.id] = { on: true, variant: pick.id, ...(c.id === "sound" ? { hover: true } : {}) };
   }
-  updateFun((s) => ({ ...s, effects, look: "classic" }));
+  updateFun((st) => ({ ...st, effects, look: "classic" }));
+  window.dispatchEvent(new Event(SHUFFLE_EVENT));
   return CATEGORIES.map((c) => c.options.find((o) => o.id === effects[c.id].variant)!.label);
 }
 
@@ -341,7 +512,7 @@ export const hintSecret = (id: Secret) =>
     s.hinted.includes(id) ? s : { ...s, hinted: [...s.hinted, id], peeked: s.peeked.includes(id) ? s.peeked : [...s.peeked, id] },
   );
 
-/** The first time the visitor opens Bells & whistles, the guide goblin runs off to hide. */
+/** The first time the visitor opens Bells & whistles. */
 export const markWelcomed = () => updateFun((s) => (s.welcomed ? s : { ...s, welcomed: true }));
 
 /** The goblin was found: he moves to the next hiding place. Returns the new spot. */
@@ -350,27 +521,33 @@ export function advanceHide() {
   return getFun().hideSpot;
 }
 
-/** The favorite-number unlock: every secret found at once. */
+/** The "Unlock all secrets" cheat: every secret marked found at once. */
 export const unlockAllSecrets = () => updateFun((s) => ({ ...s, secrets: [...SECRETS] }));
 
-/** Back to square one: secrets, peeks, hints, milestone parties and the goblin's hiding place. */
+/** Back to square one: secrets, peeks, hints, milestone parties and the goblin's hiding place. Cheats stay. */
 export const resetSecrets = () => updateFun((s) => ({ ...s, secrets: [], peeked: [], hinted: [], celebrated: [], hideSpot: 0 }));
 
-/**
- * Game modes open up once every secret hidden so far has been found, except the
- * ones inside the games themselves (those can only be found once the modes are open).
- */
-export const modesUnlocked = (s: FunState) => SECRET_LIST.every((x) => x.category === "Games" || s.secrets.includes(x.id));
+/** Cheats: switched on with my favorite number; off clears every cheat unlock (secrets stay as they are). */
+export const setCheatsEnabled = (enabled: boolean) => updateFun((s) => ({ ...s, cheats: enabled ? { ...s.cheats, enabled: true } : NO_CHEATS }));
 
-/** Milestones reached but not yet celebrated (normally zero or one). */
+/** Unlock (or lock again) fun features by cheat. Only while cheats are on. */
+export const setCheatUnlocked = (ids: string[], unlocked: boolean) =>
+  updateFun((s) => {
+    if (!s.cheats.enabled) return s;
+    const rest = s.cheats.unlocked.filter((x) => !ids.includes(x));
+    return { ...s, cheats: { enabled: true, unlocked: unlocked ? [...rest, ...ids] : rest } };
+  });
+
+/** Milestones reached (on today's scale) but not yet celebrated (normally zero or one). */
 export function dueMilestones(s: FunState) {
-  return MILESTONES.filter((m) => s.secrets.length >= m.at && !s.celebrated.includes(m.at));
+  return scaledMilestones().filter((m) => s.secrets.length >= m.count && !s.celebrated.includes(m.at));
 }
 export const markCelebrated = (at: number) =>
   updateFun((s) => (s.celebrated.includes(at) ? s : { ...s, celebrated: [...s.celebrated, at] }));
 
-/** Every combination secret the current settings unlock (usually none or one). */
+/** Every combination secret the current settings unlock (usually none or one). Never in Boring mode. */
 export function comboSecrets(s: FunState): Secret[] {
+  if (!funActive(s)) return [];
   const v = (c: Category) => (s.effects[c].on ? s.effects[c].variant : null);
   const out: Secret[] = [];
   if (v("buttons") === "electric" && v("trail") === "fire" && v("dots") === "bubbles") out.push("elements");
@@ -387,10 +564,11 @@ export function comboSecrets(s: FunState): Secret[] {
 /** The first combination secret the current settings unlock, if any. */
 export const comboSecret = (s: FunState): Secret | null => comboSecrets(s)[0] ?? null;
 
-/** Returns true the first time a secret is found. */
+/** Returns true the first time a secret is found. Secrets can't be found in Boring mode. */
 export function findSecret(id: Secret): boolean {
-  if (getFun().secrets.includes(id)) return false;
-  updateFun((s) => ({ ...s, secrets: [...s.secrets, id] }));
+  const s = getFun();
+  if (!isFunMode(s) || s.secrets.includes(id)) return false;
+  updateFun((st) => ({ ...st, secrets: [...st.secrets, id] }));
   return true;
 }
 
@@ -399,14 +577,15 @@ export function blockedByMotion(c: Category, variant: string) {
   return prefersReducedMotion() && (c === "trail" || (c === "dots" && variant === "bubbles"));
 }
 
-/** The variant in use for a category, or null if that effect is off. */
+/** The variant in use for a category, or null if that effect is off (always null in Boring mode). */
 export function activeVariant(s: FunState, c: Category): string | null {
   const e = s.effects[c];
-  if (!s.on || !e.on || blockedByMotion(c, e.variant)) return null;
+  if (!funActive(s) || !e.on || blockedByMotion(c, e.variant)) return null;
   return e.variant;
 }
 
-export const lookActive = (s: FunState): Look => (s.on ? s.look : "classic");
+/** The theme in use: always Classic in Boring mode. */
+export const lookActive = (s: FunState): Look => (funActive(s) ? s.look : "classic");
 
 /** Mirrors the state onto <html> so CSS can respond without extra JavaScript. */
 export function applyFunAttributes(s: FunState) {
@@ -415,7 +594,8 @@ export function applyFunAttributes(s: FunState) {
     if (value) d[key] = value;
     else delete d[key];
   };
-  set("fun", s.on && "on");
+  set("mode", isFunMode(s) && "fun");
+  set("fun", funActive(s) && "on");
   set("fxButtons", activeVariant(s, "buttons"));
   set("fxDots", activeVariant(s, "dots"));
   set("look", lookActive(s) !== "classic" && s.look);
@@ -423,6 +603,7 @@ export function applyFunAttributes(s: FunState) {
 
 /**
  * Inline, pre-hydration version of applyFunAttributes (keep the two in sync),
- * so a saved look paints correctly on the first frame.
+ * so the saved mode and look paint correctly on the first frame. No saved
+ * choice (or Boring) sets nothing: the plain portfolio.
  */
-export const funInitScript = `try{var f=JSON.parse(localStorage.getItem("${KEY}")||"null");if(f&&f.on===true){var d=document.documentElement.dataset,e=f.effects||{};d.fun="on";var b=e.buttons;if(!b||b.on!==false)d.fxButtons=(b&&b.variant)||"rainbow";if(["terminal","pico8","nature","spooky","pho"].indexOf(f.look)>-1)d.look=f.look}}catch(e){}`;
+export const funInitScript = `try{var f=JSON.parse(localStorage.getItem("${KEY}")||"null");if(f&&f.mode==="fun"){var d=document.documentElement.dataset;d.mode="fun";if(f.on===true){var e=f.effects||{};d.fun="on";var b=e.buttons;if(!b||b.on!==false)d.fxButtons=(b&&b.variant)||"rainbow";if(${JSON.stringify(LOOKS.map((l) => l.id).filter((id) => id !== "classic"))}.indexOf(f.look)>-1)d.look=f.look}}}catch(e){}`;

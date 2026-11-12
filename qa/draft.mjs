@@ -1,11 +1,13 @@
 // Draft playground (/dev/draft), /dev/draft/diff and /dev/visuals.
 // Usage: node draft.mjs <shots-dir>   (BASE=http://localhost:<port>/ to point elsewhere)
 import { chromium } from "playwright";
+import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
 const out = process.argv[2] ?? ".";
 const base = process.env.BASE ?? "http://localhost:3000/";
 const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => {
   console.log(`${ok ? "pass" : "FAIL"}  ${msg}`);
@@ -120,7 +122,7 @@ await page.screenshot({ path: `${out}/draft-frenzy.png` });
 let ds = await draftState(page);
 check(ds.secrets.includes("d-gorilla") && ds.secrets.includes("d-frenzy"), `chaos draft secrets found (${ds.secrets})`);
 check((await liveSecrets(page)).length === 0, "draft secrets don't touch the live secrets");
-check(await page.getByRole("button", { name: /^Secrets: 0 of 100 found/ }).isVisible(), "live trophy count still 0");
+check(await page.getByRole("button", { name: /^Secrets: 0 of \d+ found/ }).isVisible(), "live trophy count still 0");
 await openPanel(page);
 await page.locator("[data-draft-panel]").getByRole("switch", { name: /Chaos/ }).click();
 await closePanel(page);
@@ -237,7 +239,7 @@ const stray = (await liveSecrets(page)).filter((id) => id !== "keys");
 check(stray.length === 0, `after every draft secret, no draft play counted as a live secret (${stray})`);
 await openPanel(page);
 check(/^\s*\d+ of 10/.test(await page.locator("[data-draft-secret-count]").innerText()), "draft secrets have their own counter");
-check(await page.locator("[data-modes='locked']").isVisible(), "game modes stay locked");
+// MP5: mini games unlock by count or cheats; the live-secrets check above covers "draft never counts".
 await closePanel(page);
 
 // Leaving the draft cleans up.

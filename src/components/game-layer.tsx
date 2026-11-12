@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { getFun, isFunMode, subscribeFun } from "@/lib/fun";
+import { isUnlocked } from "@/lib/unlocks";
 import { Asteroids, bestLocal, clearInput, GAMES, KeepyUppy, localScores, saveLocalScore, Stacker, type Game, type GameMode, type Input, type Score } from "@/lib/games";
 import { cssVar } from "@/lib/fx/text";
 import { FlabbyRun } from "@/lib/flabby";
@@ -8,8 +10,9 @@ import { prefersReducedMotion } from "@/lib/events";
 
 export const GAME_EVENT = "portfolio:game";
 
-/** Start a game mode (from the Bells & whistles panel). */
+/** Start a mini game (from the Bells & whistles panel). Only in Fun mode, and only once it's unlocked. */
 export function startGame(mode: GameMode) {
+  if (!isFunMode(getFun()) || !isUnlocked(`game:${mode}`)) return;
   window.dispatchEvent(new CustomEvent<GameMode>(GAME_EVENT, { detail: mode }));
 }
 
@@ -68,6 +71,14 @@ export function GameLayer() {
     window.addEventListener(GAME_EVENT, onStart);
     return () => window.removeEventListener(GAME_EVENT, onStart);
   }, []);
+
+  // Switching to Boring mode closes the game layer.
+  useEffect(() => {
+    if (!mode) return;
+    return subscribeFun(() => {
+      if (!isFunMode(getFun())) exit();
+    });
+  }, [mode, exit]);
 
   // Esc leaves the game at any point, including the game-over card.
   useEffect(() => {

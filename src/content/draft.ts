@@ -31,7 +31,7 @@ export const DRAFT_FEATURES: DraftFeature[] = [
     feature: "Draft section in Bells & whistles",
     where: "Bells & whistles panel, only on /dev/draft",
     status: "testing",
-    notes: "Each draft option carries a small “draft” tag. Draft secrets are tracked separately and never count toward the live total, milestones or game modes.",
+    notes: "Each draft option carries a small “draft” tag. Draft secrets are tracked separately and never count toward the live total, milestones, or mini games.",
   },
   {
     id: "chaos",

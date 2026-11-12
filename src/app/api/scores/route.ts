@@ -1,5 +1,5 @@
 /**
- * Global leaderboards for the game modes, stored in Upstash Redis (Vercel's
+ * Global leaderboards for the mini games, stored in Upstash Redis (Vercel's
  * Marketplace "Upstash for Redis" sets KV_REST_API_URL / KV_REST_API_TOKEN).
  * Without that storage connected, GET answers { connected: false } and POST 503,
  * and the site falls back to local (this-browser) leaderboards.

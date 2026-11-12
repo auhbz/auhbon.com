@@ -516,3 +516,80 @@ export function play(pack: SoundPack, event: SoundEvent) {
     // Web Audio unavailable: stay silent.
   }
 }
+
+// ----------------------------------------------------------------- fireworks
+
+/**
+ * Fireworks for the milestone show (see fireworks.tsx). These play regardless of
+ * the chosen pack; the caller checks that sound effects are on. `pan` is -1..1.
+ */
+export const fireworkSound = {
+  /** A rising whistle with a fizz of burning fuse under it. */
+  whistle(duration = 1.1) {
+    try {
+      level = 1;
+      const from = rand(700, 1000);
+      tone(from, { type: "sine", attack: 0.05, decay: duration, glideTo: from * rand(2.2, 2.8), peak: 0.022, vibrato: 18, vibratoRate: 23 });
+      hiss({ attack: 0.05, decay: duration * 0.9, peak: 0.05, freq: 3200, q: 0.8 });
+    } catch {
+      // Web Audio unavailable: stay silent.
+    }
+  },
+  /** The burst: a soft, deep thump with a crack on top. `size` 0.5..1.5. */
+  boom(size = 1) {
+    try {
+      level = 1;
+      tone(rand(60, 80), { type: "sine", attack: 0.004, decay: 0.7 * size, glideTo: 32, peak: 0.22 * size });
+      hiss({ peak: 0.32 * size, attack: 0.003, decay: 0.9 * size, type: "lowpass", freq: 420, q: 0.7 });
+      hiss({ peak: 0.12, attack: 0.001, decay: 0.05, freq: 2200, q: 1.2 });
+    } catch {
+      // Web Audio unavailable: stay silent.
+    }
+  },
+  /** Glittering crackle: a scatter of tiny bright pops. */
+  crackle(count = 14, spread = 0.7) {
+    try {
+      level = 1;
+      for (let i = 0; i < count; i++) hiss({ at: 0.15 + Math.random() * spread, peak: rand(0.04, 0.09), attack: 0.001, decay: rand(0.01, 0.022), freq: rand(2800, 6000), q: 2 });
+    } catch {
+      // Web Audio unavailable: stay silent.
+    }
+  },
+};
+
+/** Little creature voices for the hidden extras (caller checks that sound effects are on). */
+export const extraSound = {
+  /** A chicken's "buk-buk-BAWK". `angry` makes it louder and higher. */
+  cluck(angry = false) {
+    try {
+      level = 1;
+      const base = angry ? 620 : 480;
+      vowel(base, AAH, { decay: 0.06, peak: 0.05 });
+      vowel(base * 1.05, AAH, { at: 0.11, decay: 0.06, peak: 0.05 });
+      vowel(base * 1.5, AAH, { at: 0.24, attack: 0.02, decay: angry ? 0.22 : 0.14, glideTo: base * 1.1, peak: angry ? 0.09 : 0.06 });
+    } catch {
+      // Web Audio unavailable: stay silent.
+    }
+  },
+  /** A clay pot breaking, then gems tinkling. */
+  smash(gems = 3) {
+    try {
+      level = 1;
+      hiss({ peak: 0.35, decay: 0.12, freq: 1400, q: 0.9 });
+      hiss({ peak: 0.2, decay: 0.2, freq: 600, q: 0.8, at: 0.02 });
+      for (let i = 0; i < gems; i++) tone(rand(1800, 2600), { at: 0.25 + i * 0.09, decay: 0.25, peak: 0.03 });
+    } catch {
+      // Web Audio unavailable: stay silent.
+    }
+  },
+  /** A leafling's tiny two-note piping. */
+  pip() {
+    try {
+      level = 1;
+      tone(1760, { decay: 0.09, peak: 0.04, vibrato: 30 });
+      tone(2349, { at: 0.12, decay: 0.16, peak: 0.04, vibrato: 30 });
+    } catch {
+      // Web Audio unavailable: stay silent.
+    }
+  },
+};

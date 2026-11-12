@@ -1,12 +1,14 @@
 // Mobile experience suite (1.18.0): 375x812 with touch. Usage: node mobile.mjs <shots dir>
 // Server defaults to localhost:3000; set BASE=http://localhost:3100/ to point elsewhere.
 import { chromium } from "playwright";
+import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
 const out = process.argv[2] ?? ".";
 const url = process.env.BASE ?? "http://localhost:3000/";
 const KEY = "bells-and-whistles-v2";
 const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
+funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };
 const axe = async (page, label) => {
@@ -73,11 +75,7 @@ const vibrateSpy = () => {
   const nav = await page.getByRole("navigation", { name: "Sections" }).boundingBox();
   check(nav.y >= boxes[0].y + boxes[0].height - 1, "section links sit on their own row below the buttons");
   check(!(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)), "no horizontal page scroll");
-  // The guide goblin still points up at the badge.
-  const g = await page.locator("[data-goblin-guide]").boundingBox();
-  const bell = boxes[3];
-  check(g && g.y >= bell.y + bell.height - 4 && g.x + g.width > bell.x && g.x < bell.x + bell.width + 8, `goblin guide stands under the badge (${g && Math.round(g.x)},${g && Math.round(g.y)} vs badge ${Math.round(bell.x)}-${Math.round(bell.x + bell.width)})`);
-  check(await page.locator(".goblin-arm-up").isVisible(), "goblin guide points up on phones");
+  // MP5: the guide goblin now points at the Boring / Fun toggle (see qa/core.mjs).
   await page.screenshot({ path: `${out}/m-header.png`, clip: { x: 0, y: 0, width: 375, height: 150 } });
   check(errors.length === 0, `header: no errors ${errors.join(" | ")}`);
   await ctx.close();
@@ -565,8 +563,16 @@ const vibrateSpy = () => {
 
 // ------------------------------------------------------------ Car trail, hamsters and the guide on a phone (p4)
 {
+  {
+    // MP5: a first-time (Boring) visitor sees the guide at the Boring / Fun toggle.
+    const fresh = await browser.plainContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+    const fp = await fresh.newPage();
+    await fp.goto(url, { waitUntil: "networkidle" });
+    const said = await fp.locator("[data-goblin-guide]").innerText();
+    check(/Tap Fun!!!!/.test(said) && !/Click Fun/.test(said), "goblin guide says Tap Fun!!!! on a touch screen");
+    await fresh.close();
+  }
   const { ctx, page, errors, touch } = await newPhone();
-  check(/Tap it!!!!/.test(await page.locator("[data-goblin-guide]").innerText()) && !/Click it/.test(await page.locator("[data-goblin-guide]").innerText()), "goblin guide says Tap it!!!! on a touch screen");
   await setFun(page, { effects: effects({ trail: "car" }) });
   const carPx = (box) => page.evaluate((box) => {
     const c = document.querySelector("canvas");
