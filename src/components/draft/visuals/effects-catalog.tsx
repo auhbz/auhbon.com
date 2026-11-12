@@ -1,5 +1,6 @@
 import { CATEGORIES, LOOKS, SECRET_LIST } from "@/lib/fun";
 import { DRAFT_LOOKS, DRAFT_SECRETS } from "@/lib/draft/store";
+import { WILD_MODES } from "@/lib/wild/modes";
 
 /**
  * Everything Bells & whistles can do, generated from fun.ts (live) and the
@@ -10,9 +11,9 @@ export function EffectsCatalog() {
   const rows = [
     ...CATEGORIES.map((c) => ({ id: c.id, label: c.label, options: c.options.map((o) => ({ label: o.label, description: o.description, draft: false })) })),
     {
-      id: "chaos",
-      label: "Chaos",
-      options: [{ label: "Unleash the monkeys", description: "Monkeys, bananas, a gorilla and a peanut hammer", draft: true }],
+      id: "wild",
+      label: "Wild & Wondrous",
+      options: WILD_MODES.map((m) => ({ label: m.label, description: m.description, draft: false })),
     },
     {
       id: "themes",

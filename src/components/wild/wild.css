@@ -1,0 +1,363 @@
+/* ======================================================================
+ * Wild & Wondrous (Monkey Mode, Gravity Mode), toys and the portal device.
+ * Imported by src/components/wild/wild-layer.tsx. Everything here is keyed
+ * off attributes and classes those features set, so with them off the page
+ * is untouched.
+ * ====================================================================== */
+
+/* --- Loot: the piece stays put (invisible, so the gap stays); a look-alike moves. --- */
+[data-wild-gone] {
+  visibility: hidden !important;
+}
+.wild-ghosts {
+  position: fixed;
+  inset: 0;
+  z-index: 56;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wild-ghost {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: center;
+  will-change: transform;
+}
+.wild-ghost > * {
+  pointer-events: none;
+}
+.wild-ghost[data-gravity-piece] {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+.wild-ghost[data-grabbed] {
+  cursor: grabbing;
+  filter: drop-shadow(0 8px 10px rgb(0 0 0 / 0.25));
+}
+
+/* --- A short shake of the page (gorilla chest beats, ground pounds, gravity). --- */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-wild-shake] :is(main, footer) {
+    animation: wild-shake 0.42s linear;
+  }
+  html[data-wild-shake="2"] :is(main, footer) {
+    --shake: 5px;
+  }
+  html[data-wild-shake="3"] :is(main, footer) {
+    --shake: 9px;
+  }
+}
+@keyframes wild-shake {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  20% {
+    translate: calc(var(--shake, 3px) * -1) calc(var(--shake, 3px) * 0.5);
+  }
+  40% {
+    translate: var(--shake, 3px) calc(var(--shake, 3px) * -0.5);
+  }
+  60% {
+    translate: calc(var(--shake, 3px) * -0.6) 0;
+  }
+  80% {
+    translate: calc(var(--shake, 3px) * 0.4) calc(var(--shake, 3px) * 0.3);
+  }
+}
+
+/* --- Monkey Mode dock: the banana crate, emergency glass, the bowling ball. --- */
+.wild-dock button {
+  touch-action: none;
+}
+.wild-glass,
+.wild-crate {
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+}
+.wild-ball {
+  filter: drop-shadow(0 4px 4px rgb(0 0 0 / 0.35));
+  cursor: grab;
+  will-change: transform;
+}
+.wild-ball:active {
+  cursor: grabbing;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wild-glass:active {
+    transform: scale(0.94) rotate(-2deg);
+  }
+  .wild-crate svg {
+    transition: transform 420ms cubic-bezier(0.3, 1.7, 0.5, 1);
+  }
+}
+.wild-crate-tipped {
+  transform: rotate(-72deg) translate(-6px, 10px);
+}
+
+/* --- The monkey who announces Wild & Wondrous (comes back from the parade). --- */
+.wild-herald {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+  z-index: 59;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  pointer-events: none;
+}
+.wild-herald > * {
+  pointer-events: auto;
+}
+.wild-herald-monkey {
+  font-size: 3.4rem;
+  line-height: 1;
+  margin-left: min(18vw, 12rem);
+}
+.wild-herald-hop {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+.wild-herald-bubble {
+  position: relative;
+  margin-bottom: 3rem;
+  max-width: 17rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .wild-herald-monkey {
+    animation: wild-herald-in 1.4s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+  .wild-herald-hop {
+    animation: wild-herald-hop 0.32s ease-in-out 1.4s 6 alternate;
+  }
+  .wild-herald-bubble {
+    animation: wild-herald-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) 1.3s both;
+  }
+  [data-wild-herald="leaving"] .wild-herald-monkey {
+    animation: wild-herald-out 1.2s ease-in both;
+  }
+  [data-wild-herald="leaving"] .wild-herald-bubble {
+    animation: wild-herald-pop 0.25s ease-in reverse both;
+  }
+}
+@keyframes wild-herald-in {
+  from {
+    transform: translateX(-40vw);
+  }
+}
+@keyframes wild-herald-out {
+  to {
+    transform: translateX(110vw);
+  }
+}
+@keyframes wild-herald-hop {
+  to {
+    transform: scaleX(-1) translateY(-0.35em) rotate(-8deg);
+  }
+}
+@keyframes wild-herald-pop {
+  from {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* --- Paper airplane bumps, smoke-bomb vanishes. --- */
+@media (prefers-reduced-motion: no-preference) {
+  [data-wild-bump] {
+    animation: wild-bump 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  [data-wild-reappear] {
+    animation: wild-reappear 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+}
+@keyframes wild-bump {
+  30% {
+    translate: 0 -6px;
+    rotate: -2deg;
+  }
+  60% {
+    rotate: 1.5deg;
+  }
+}
+[data-wild-vanish] {
+  visibility: hidden;
+}
+@keyframes wild-reappear {
+  from {
+    scale: 0.6;
+    opacity: 0;
+  }
+}
+
+/* --- Toy box. --- */
+/* Locked toys: a flat, muted shape (works in light and dark). */
+.toy-silhouette {
+  filter: grayscale(1) brightness(0.55) contrast(3) opacity(0.35);
+}
+.toy-slot-empty {
+  border: 2px dashed var(--line);
+  border-radius: 0.5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .toy-box-lid {
+    transition: transform 250ms ease;
+  }
+}
+.paint-canvas[data-held] {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M26 2 12 16l-2-2L24 0z' fill='%23c98b4a' stroke='%23553' stroke-width='1'/%3E%3Cpath d='M9 15c-3 0-6 2-6 6 0 3-1 4-3 5 6 1 12-1 12-6z' fill='%23e2453c' stroke='%23553' stroke-width='1'/%3E%3C/svg%3E")
+      1 26,
+    crosshair;
+}
+.smoke-catcher {
+  cursor: crosshair;
+}
+
+/* --- Sticky notes. --- */
+.sticky-note {
+  color: #2a2622;
+  border-radius: 2px;
+}
+.sticky-note[data-dragging] {
+  box-shadow: 0 16px 28px rgb(0 0 0 / 0.3);
+  z-index: 55;
+}
+.sticky-note-bar {
+  background: rgb(0 0 0 / 0.06);
+}
+.sticky-note-tool:hover {
+  background: rgb(0 0 0 / 0.1);
+}
+.sticky-note-text {
+  color: #2a2622;
+}
+.sticky-note-text::placeholder {
+  color: #6d6150;
+}
+.sticky-note-text:focus-visible {
+  outline: 2px solid #2a2622;
+  outline-offset: -4px;
+}
+
+/* --- Paper airplane. --- */
+.paper-plane {
+  cursor: grab;
+  will-change: transform;
+  filter: drop-shadow(0 3px 3px rgb(0 0 0 / 0.25));
+}
+@media (prefers-reduced-motion: no-preference) {
+  .paper-plane-folding {
+    animation: paper-fold 0.75s ease-in-out both;
+  }
+}
+@keyframes paper-fold {
+  0% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    transform: scale(0.8) rotate(-10deg);
+  }
+  45% {
+    clip-path: polygon(0 50%, 100% 0, 100% 100%, 0 50%);
+    transform: scaleY(0.4);
+  }
+  70% {
+    transform: scaleY(1.15) rotate(4deg);
+  }
+  100% {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+}
+
+/* ======================================================================
+ * Portal device and its test chambers.
+ * ====================================================================== */
+/* --- Portals: white panels, orange/blue portals, the chamber props. --- */
+.portal-panel {
+  background: #f3f5f6;
+  color: #13232c;
+  border: 1px solid #9eabb1;
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.08);
+}
+.portal-panel .text-muted {
+  color: #4b5b63;
+}
+.portal-panel[data-locked] {
+  background: linear-gradient(135deg, #cfe9f7, #f3f5f6 60%, #cfe9f7);
+  border-style: dashed;
+}
+.portal-panel[data-portal="orange"] {
+  box-shadow: 0 0 0 3px #ff8a00, 0 0 14px 2px rgba(255, 138, 0, 0.6);
+}
+.portal-panel[data-portal="blue"] {
+  box-shadow: 0 0 0 3px #1f9bff, 0 0 14px 2px rgba(31, 155, 255, 0.6);
+}
+.portal-portal-tag {
+  position: absolute;
+  top: -0.7rem;
+  right: 0.3rem;
+  border-radius: 999px;
+  padding: 0 0.4rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #13232c;
+}
+[data-portal="orange"] > .portal-portal-tag {
+  background: #ffb04d;
+}
+[data-portal="blue"] > .portal-portal-tag {
+  background: #8fd0ff;
+}
+.portal-portal-dot {
+  display: inline-block;
+  width: 0.8rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  border: 3px solid;
+}
+.portal-portal-dot.is-orange {
+  border-color: #ff8a00;
+}
+.portal-portal-dot.is-blue {
+  border-color: #1f9bff;
+}
+.portal-rock {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.1rem;
+  border-radius: 50% 45% 40% 55%;
+  background: radial-gradient(circle at 35% 30%, #b7b2aa, #6e6a63);
+}
+.portal-wall {
+  display: block;
+  width: 2rem;
+  height: 1.4rem;
+  background:
+    linear-gradient(#e9e3d8 1px, transparent 1px) 0 0 / 100% 0.47rem,
+    linear-gradient(90deg, #e9e3d8 1px, transparent 1px) 0 0 / 0.66rem 100%,
+    #b5523b;
+}
+.portal-vault-button {
+  display: block;
+  width: 1.8rem;
+  height: 0.7rem;
+  border-radius: 0.3rem 0.3rem 0 0;
+  background: #d22f3a;
+  border-bottom: 3px solid #5f574f;
+}
+.portal-vault-button.is-pressed {
+  height: 0.3rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .portal-thing {
+    display: inline-block;
+    animation: portal-pop 360ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+}
+@keyframes portal-pop {
+  from {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+}

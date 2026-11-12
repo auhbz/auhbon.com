@@ -43,6 +43,7 @@ import { SecretsBar } from "@/components/secrets-bar";
 import { DraftPanelSection } from "@/components/draft/panel-section"; // draft-only
 import { CheatsSection } from "@/components/cheats";
 import { LockIcon, Switch } from "@/components/panel-bits";
+import { ExtrasSection, WildRow } from "@/components/wild/panel-sections";
 
 const PANEL_ID = "bells-panel";
 const SECRETS_ID = "secrets-panel";
@@ -190,12 +191,15 @@ export function BellsPanel() {
           {CATEGORIES.map((c) => (
             <EffectRow key={c.id} category={c.id} reduced={reduced} />
           ))}
+          <WildRow />
           <PhoneSwitches />
         </div>
 
         <ThemeSection />
 
         <MiniGamesSection />
+
+        <ExtrasSection />
 
         <CheatsSection />
 

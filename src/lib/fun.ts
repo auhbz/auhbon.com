@@ -176,6 +176,20 @@ export const SECRET_LIST = [
   { id: "flap10", title: "Flap happy", icon: "🎈", how: "Scored 10 in Flabby", hint: "Ten", category: "Games", difficulty: 2, area: "games" },
   { id: "flap25", title: "Frequent flapper", icon: "🏅", how: "Scored 25 in Flabby", hint: "Drift", category: "Games", difficulty: 3, area: "games" },
   { id: "coward", title: "Coward", icon: "🏳️", how: "Quit Flabby mid-flight (he says so himself)", hint: "Quit", category: "Games", difficulty: 1, area: "games" },
+  // Wild & Wondrous (src/components/wild/).
+  { id: "monkey-bonk", title: "Monkey business", icon: "🐒", how: "Bonked 10 monkeys in Monkey Mode", hint: "Bonk", category: "Effects", difficulty: 1, area: "wild" },
+  { id: "monkey-troop", title: "Barrel of monkeys", icon: "🙈", how: "Let the troop in Monkey Mode grow to its full size", hint: "Troop", category: "Effects", difficulty: 2, area: "wild" },
+  { id: "monkey-gorilla", title: "Release the gorilla", icon: "🦍", how: "Broke the gorilla's emergency glass in Monkey Mode", hint: "Glass", category: "Effects", difficulty: 1, area: "wild" },
+  { id: "monkey-frenzy", title: "Banana frenzy", icon: "🍌", how: "Knocked the banana crate over with the bowling ball", hint: "Strike", category: "Effects", difficulty: 2, area: "wild" },
+  { id: "gravity-toss", title: "Escape velocity", icon: "🌠", how: "Threw something so hard in Gravity Mode that it hit the top of the screen", hint: "Orbit", category: "Effects", difficulty: 2, area: "wild" },
+  { id: "gravity-name", title: "Down to earth", icon: "🍎", how: "Picked up my fallen name in Gravity Mode and tossed it", hint: "Newton", category: "Effects", difficulty: 2, area: "wild" },
+  // Toys (src/components/toys/).
+  { id: "toy-paint", title: "Happy little accidents", icon: "🎨", how: "Painted over the whole intro with the paint brush", hint: "Canvas", category: "Misc", difficulty: 2, area: "toys" },
+  { id: "toy-note", title: "Note to self", icon: "📝", how: "Stuck a sticky note on my name", hint: "Sticky", category: "Misc", difficulty: 2, area: "toys" },
+  { id: "toy-plane", title: "Return to sender", icon: "✈️", how: "Flew the paper airplane back into the toy box", hint: "Hangar", category: "Misc", difficulty: 3, area: "toys" },
+  { id: "toy-smoke", title: "Now you see me", icon: "🌫️", how: "Made my name vanish in a puff of smoke", hint: "Vanish", category: "Misc", difficulty: 2, area: "toys" },
+  // Extras.
+  { id: "portal-cake", title: "Cake", icon: "🎂", how: "Solved the last portal test chamber", hint: "Lie", category: "Hidden", difficulty: 3, area: "extras" },
 ] as const satisfies readonly SecretDef[];
 export type Secret = (typeof SECRET_LIST)[number]["id"];
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);

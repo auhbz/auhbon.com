@@ -7,6 +7,8 @@ import { dueMilestones, getFun, markCelebrated, scaledMilestones } from "@/lib/f
 import { Fireworks } from "@/components/fireworks";
 
 export const CELEBRATE_EVENT = "portfolio:celebrate";
+/** Fired when an animal parade has walked off screen (Wild & Wondrous listens for it). */
+export const PARADE_END_EVENT = "portfolio:parade-end";
 
 /** Throw the party for a secrets milestone (see MILESTONES), by its 100-scale `at`. */
 export function celebrate(at: number) {
@@ -78,7 +80,10 @@ export function Celebrations() {
         hop: 0.28 + Math.random() * 0.2,
       }));
       setParade({ id, animals });
-      later(14000, () => setParade((p) => (p?.id === id ? null : p)));
+      later(14000, () => {
+        setParade((p) => (p?.id === id ? null : p));
+        window.dispatchEvent(new Event(PARADE_END_EVENT));
+      });
     };
     // Rockets, bursts and a finale, on their own canvas (see fireworks.tsx).
     const fireworks = () => setShow(Date.now());
