@@ -1,7 +1,7 @@
 /**
  * The draft playground's own settings store, kept apart from the live
  * Bells & whistles store (src/lib/fun.ts) on purpose: nothing here can change
- * the live site, its secrets count, its milestones or its game-mode unlock.
+ * the live site, its secrets count, its milestones, or its unlocks.
  *
  * Like fun.ts, state is mirrored onto <html> data-* attributes, but only while
  * the draft page is mounted (DraftRoot sets data-draft="on").
@@ -17,7 +17,7 @@ export const DRAFT_LOOKS: { id: DraftLook; label: string; description: string }[
 
 /**
  * Draft-only secrets. Never part of SECRET_LIST, so they can't count toward
- * the live total (fun.ts read() drops ids it doesn't know, and modesUnlocked
+ * the live total (fun.ts read() drops ids it doesn't know, and unlocks
  * only looks at SECRET_LIST).
  */
 export const DRAFT_SECRETS = [

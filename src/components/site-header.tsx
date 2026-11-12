@@ -26,12 +26,12 @@ export function SiteHeader() {
           {profile.domain}
         </Link>
         <nav aria-label="Sections" className="order-last w-full min-w-0 sm:order-none sm:w-auto max-sm:col-span-2 max-sm:col-start-1 max-sm:row-start-2">
-          <ul className="-mx-2 flex flex-wrap text-[0.95rem] max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
+          <ul className="-mx-2 flex flex-wrap text-[0.95rem] max-sm:-mx-[5px] max-sm:flex-nowrap max-sm:overflow-x-auto max-sm:[scrollbar-width:none]">
             {nav.map((item) => (
               <li key={item.href}>
                 <a
                   href={item.href}
-                  className="inline-flex min-h-11 items-center rounded px-2 text-muted hover:text-ink max-sm:whitespace-nowrap"
+                  className="inline-flex min-h-11 items-center rounded px-2 text-muted hover:text-ink max-sm:px-[5px] max-sm:whitespace-nowrap"
                 >
                   {item.label}
                 </a>

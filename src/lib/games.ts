@@ -1,5 +1,5 @@
 /**
- * Game modes: Asteroids, Keepy Uppy and Stacker. Each is a small simulation
+ * Mini games: Asteroids, Keepy Uppy and Stacker. Each is a small simulation
  * drawn on its own canvas over a blurred page, built from the page itself
  * (its headings, tags and buttons become asteroids and blocks).
  */

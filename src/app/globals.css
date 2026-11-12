@@ -1698,7 +1698,7 @@ html[data-mode="fun"] .fun-toggle > [data-mode-option="fun"] {
     padding: 0.1875rem;
   }
   .fun-toggle > button {
-    padding: 0 0.6rem;
+    padding: 0 0.5rem;
     font-size: 0.8125rem;
   }
 }

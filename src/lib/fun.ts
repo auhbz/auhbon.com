@@ -88,6 +88,15 @@ export type SecretCategory = (typeof SECRET_CATEGORIES)[number];
 
 export const SECRET_AREAS = ["site", "effects", "themes", "games", "wild", "toys", "extras"] as const;
 export type SecretArea = (typeof SECRET_AREAS)[number];
+export const SECRET_AREA_LABELS: Record<SecretArea, string> = {
+  site: "The site itself",
+  effects: "Effects",
+  themes: "Themes",
+  games: "Mini games",
+  wild: "Wild & Wondrous",
+  toys: "Toys",
+  extras: "Extras",
+};
 
 export type SecretDef = {
   id: string;

@@ -1,5 +1,9 @@
 import { DEV_AS_OF, roughSecretIdeas } from "@/content/dev";
-import { MILESTONES, SECRET_CATEGORIES, SECRET_GOAL, SECRET_LIST, type SecretCategory } from "@/lib/fun";
+import { SECRET_AREA_LABELS, SECRET_CATEGORIES, SECRET_GOAL, SECRET_LIST, scaledMilestones, type SecretCategory } from "@/lib/fun";
+import { DRAFT_SECRETS } from "@/lib/draft/store";
+import { AreaCounts, Unlockables } from "@/components/dev/fun-dev";
+import { SecretsBar } from "@/components/secrets-bar";
+import Link from "next/link";
 import { DevPageHeader, DevSection, ResponsiveTable, StatusPill, devMetadata } from "@/components/dev/ui";
 
 export const metadata = devMetadata("Secrets", "/dev/secrets", "Every secret on auhbon.com, with spoilers hidden.");
@@ -22,7 +26,7 @@ const CATEGORY_NOTES: Record<SecretCategory, string> = {
   Combos: "Themes and effects switched on together in Bells & whistles.",
   Effects: "Playing with a particular effect or theme.",
   Farm: "Endings and tricks in the Farm i-dots story.",
-  Games: "Inside the game modes (these don't count toward unlocking them).",
+  Games: "Inside the mini games.",
   Misc: "Everything else.",
 };
 
@@ -40,41 +44,32 @@ function Difficulty({ level }: { level: 1 | 2 | 3 }) {
   );
 }
 
-const summaryClass =
-  "inline-flex min-h-11 cursor-pointer items-center text-kelp underline decoration-1 underline-offset-[0.2em] hover:decoration-2";
-
 export default function Secrets() {
   const count = SECRET_LIST.length;
-  const pct = Math.min(100, (count / SECRET_GOAL) * 100);
-  const next = MILESTONES.find((m) => m.at > count);
+  const milestones = scaledMilestones(count);
   return (
     <>
       <DevPageHeader
         title="Secrets"
         asOf={DEV_AS_OF}
-        intro="Every secret hidden on the site. How each one is found is a spoiler, so it stays hidden until you open it."
+        intro="Every secret hidden on the site, with its one-word hint and how it's found (spoilers!), plus what secrets unlock."
       />
 
       <DevSection id="progress" title="Progress">
         <p className="font-display text-xl font-semibold tracking-tight">
           {count} of {SECRET_GOAL} secrets implemented
         </p>
-        <div aria-hidden="true" className="relative mt-3 h-2.5 max-w-xl rounded-full border border-muted">
-          <div className="h-full rounded-full bg-kelp" style={{ width: `${pct}%` }} />
-          {MILESTONES.filter((m) => m.at < SECRET_GOAL).map((m) => (
-            <span key={m.at} className="absolute -top-1 -bottom-1 w-0.5 bg-ink" style={{ left: `${(m.at / SECRET_GOAL) * 100}%` }} />
-          ))}
-        </div>
-        <p className="mt-3 text-muted">
-          {next ? `Next milestone at ${next.at}: ${next.name}.` : "Every milestone reached."}
+        <SecretsBar className="mt-3 max-w-xl" found={count} live={count} goal={SECRET_GOAL} notches={milestones.slice(0, -1).map((m) => m.count)} />
+        <p className="mt-3 max-w-prose text-muted">
+          Milestone celebrations are set on the 100 scale and scaled down to the {count} live secrets, so every one is reachable today (and they move
+          automatically as secrets are added). See them move on <Link className="text-link" href="/dev/milestones">Milestones</Link>.
         </p>
         <ul className="mt-4 grid gap-1.5 text-[0.95rem] sm:grid-cols-2" aria-label="Milestones">
-          {MILESTONES.map((m) => (
+          {milestones.map((m) => (
             <li key={m.at} className="flex items-baseline gap-2">
               <span aria-hidden="true">{m.icon}</span>
               <span>
-                <span className="font-medium">{m.at}</span>: {m.name}{" "}
-                <span className="text-muted">({count >= m.at ? "reached" : `${m.at - count} to go`})</span>
+                <span className="font-medium">{m.count}</span> secrets: {m.name} <span className="text-muted">({m.at} on the 100 scale)</span>
               </span>
             </li>
           ))}
@@ -84,8 +79,12 @@ export default function Secrets() {
       <DevSection
         id="implemented"
         title="Implemented"
-        intro="Grouped by kind. Difficulty is a rough estimate of how hard each one is to stumble on or work out."
+        intro="Grouped by kind. Difficulty is a rough estimate of how hard each one is to stumble on or work out. The hint is what a visitor sees after revealing a badge; the note is what they see once it's found."
       >
+        <h3 className="font-display text-lg font-semibold tracking-tight">By area</h3>
+        <p className="mt-1 mb-3 max-w-prose text-sm text-muted">Which part of the site each secret belongs to.</p>
+        <AreaCounts />
+        <div className="mt-10" />
         {SECRET_CATEGORIES.map((category) => {
           const rows = secrets.filter((s) => s.category === category);
           if (!rows.length) return null;
@@ -101,21 +100,11 @@ export default function Secrets() {
                   rows={rows}
                   rowKey={(r) => r.id}
                   columns={[
-                    { header: "Secret", cell: (r) => <><span className="text-muted">{r.n}.</span> <Title row={r} /></>, className: "w-[38%]" },
-                    { header: "Difficulty", cell: (r) => <Difficulty level={r.difficulty} />, className: "w-40" },
-                    {
-                      header: "How it's found",
-                      cell: (r) => (
-                        <details className="group">
-                          <summary className={summaryClass}>
-                            <span className="group-open:hidden">Show how</span>
-                            <span className="hidden group-open:inline">Hide how</span>
-                            <span className="sr-only"> to find {r.title}</span>
-                          </summary>
-                          <p className="pb-1">{r.how}</p>
-                        </details>
-                      ),
-                    },
+                    { header: "Secret", cell: (r) => <><span className="text-muted">{r.n}.</span> <Title row={r} /></>, className: "w-[24%]" },
+                    { header: "Difficulty", cell: (r) => <Difficulty level={r.difficulty} />, className: "w-36" },
+                    { header: "Hint", cell: (r) => <span className="font-medium">{r.hint}</span>, className: "w-28" },
+                    { header: "Area", cell: (r) => SECRET_AREA_LABELS[r.area], className: "w-32" },
+                    { header: "Unlocked note", cell: (r) => r.how },
                   ]}
                 />
               </div>
@@ -123,19 +112,27 @@ export default function Secrets() {
           );
         })}
 
-        <details className="group mt-6 rounded-lg border border-line bg-surface px-4">
-          <summary className={`${summaryClass} font-medium`}>
-            <span className="group-open:hidden">Show all answers</span>
-            <span className="hidden group-open:inline">Hide all answers</span>
-          </summary>
-          <ol className="list-decimal space-y-1.5 pb-4 pl-6">
-            {secrets.map((s) => (
-              <li key={s.id}>
-                <span className="font-medium">{s.title}</span>: {s.how}
-              </li>
-            ))}
-          </ol>
-        </details>
+      </DevSection>
+
+      <DevSection
+        id="draft"
+        title="Draft secrets"
+        intro="Only on /dev/draft, in their own store: they never count toward the live total, milestones, or unlocks."
+      >
+        <ResponsiveTable
+          caption="Draft secrets"
+          rows={[...DRAFT_SECRETS]}
+          rowKey={(r) => r.id}
+          columns={[
+            { header: "Secret", cell: (r) => <Title row={r} />, className: "w-[30%]" },
+            { header: "Feature", cell: (r) => r.feature, className: "w-32" },
+            { header: "How it's found", cell: (r) => r.how },
+          ]}
+        />
+      </DevSection>
+
+      <DevSection id="unlockables" title="Unlockables" intro="Every fun feature that can be unlocked, by kind.">
+        <Unlockables />
       </DevSection>
 
       <DevSection id="ideas" title="Rough ideas" intro="Not built yet. Any of these might change or never ship.">
