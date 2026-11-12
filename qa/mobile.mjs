@@ -367,7 +367,7 @@ const vibrateSpy = () => {
 {
   const { ctx, page, errors, touch } = await newPhone();
   // Every secret outside the games themselves (read from the source), which opens the game modes.
-  const all = [...(await import("node:fs")).readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "(\w+)", title: .*?category: "(\w+)"/g)].filter((m) => m[2] !== "Games").map((m) => m[1]);
+  const all = [...(await import("node:fs")).readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "([\w-]+)", title: .*?category: "(\w+)"/g)].filter((m) => m[2] !== "Games").map((m) => m[1]);
   await setFun(page, { effects: effects({ buttons: "rainbow" }), secrets: all, celebrated: [5, 10, 15, 25] });
   await page.getByRole("button", { name: "Bells and whistles" }).tap();
   await page.getByRole("button", { name: "Asteroids" }).tap();

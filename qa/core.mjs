@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 
 const out = process.argv[2] ?? "/tmp";
 const url = process.env.BASE ?? "http://localhost:3000/";
-const N = [...readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "(\w+)", title: .*?category: "(\w+)"/g)].length;
+const N = [...readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "([\w-]+)", title: .*?category: "(\w+)"/g)].length;
 const KEY = "bells-and-whistles-v2";
 const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome" });
 const issues = [];

@@ -308,9 +308,9 @@ const wildState = (mode, on = true) => JSON.stringify({ on, mode, seen: ["wild",
 
 // --- Unlocks earned with secrets: announcements, silhouettes ------------------------
 {
-  const earned = (n) => JSON.stringify({ mode: "fun", funSeen: true, on: false, welcomed: true, secrets: SECRET_IDS.slice(0, n), peeked: [], hinted: [], effects: {}, celebrated: [] });
+  const earned = (n) => JSON.stringify({ mode: "fun", funSeen: true, on: false, welcomed: true, secrets: SECRET_IDS.slice(0, n), peeked: [], hinted: [], effects: {}, celebrated: Array.from({ length: 100 }, (_, i) => i + 1) });
   const { ctx, page, errors } = await open({ width: 1280, height: 900 }, { fun: earned(1) });
-  await wait(2800);
+  await page.waitForSelector("[data-unlock-note]", { timeout: 8000 }).catch(() => null);
   const noteShown = await page.locator("[data-unlock-note]").count();
   const boxShown = await page.locator("[data-toy-box]").count();
   check(boxShown === noteShown, `the toy box note appears with the box (${boxShown}, ${noteShown})`);
@@ -324,7 +324,7 @@ const wildState = (mode, on = true) => JSON.stringify({ on, mode, seen: ["wild",
   }
   await ctx.close();
   // Enough secrets for Wild & Wondrous: the herald monkey (the parade is already done here).
-  const r = await open({ width: 1280, height: 900 }, { fun: JSON.stringify({ ...JSON.parse(earned(8)), celebrated: [1, 2, 3, 4, 5, 6, 7, 8] }) });
+  const r = await open({ width: 1280, height: 900 }, { fun: JSON.stringify({ ...JSON.parse(earned(8)), celebrated: Array.from({ length: 100 }, (_, i) => i + 1) }) });
   await r.page.waitForSelector("[data-wild-herald]", { timeout: 12000 }).catch(() => null);
   check((await r.page.locator("[data-wild-herald]").count()) === 1, "a monkey announces Wild & Wondrous");
   await wait(1600);
