@@ -38,6 +38,21 @@ export const REVIEW: ReviewTier[] = [
     intro: "Quick or important. Work top to bottom; tick things off in your MP6 notes as you go.",
     items: [
       {
+        id: "how-we-work",
+        title: "How we work: three versions of the site",
+        kind: "review",
+        area: "Workflow",
+        effort: "2 min",
+        summary: "Public (auhbon.com), Preview (every MP lands here first), and Draft (/dev/draft, experiments and parked work). Nothing goes public until you merge the MP pull request.",
+        details: [
+          "Public: auhbon.com, the main branch. Only what you've approved.",
+          "Preview: the next branch, at preview.auhbon.com once it's set up. Public plus everything from the latest MP. Shareable without a login, not indexed by search engines. Planned: a 'What's new' list and a 'Highlight changes' toggle.",
+          "Draft: /dev/draft. Experiments and anything you want to hold back. To publish an MP except one item, move that item to draft and merge the rest.",
+          "Full details and the preview.auhbon.com setup steps: docs/HANDOFF.md in the repo.",
+        ],
+        links: [{ label: "HANDOFF.md", href: "https://github.com/auhbz/auhbon.com/blob/main/docs/HANDOFF.md" }],
+      },
+      {
         id: "preview",
         title: "Try the MP5 preview",
         kind: "review",
