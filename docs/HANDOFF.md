@@ -29,21 +29,33 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 
 1. Auhbon drafts a **Major Push (MP)** in a Google Doc: numbered notes, grouped in sections (Admin/Workflow, Approvals, Copy, Secrets, Effects & Themes, Modes & Toys, Notes to self). If he doesn't mention something, assume it's fine as is.
 2. Before building, the assistant **audits the MP**: rough usage cost per item, items that are cheaper for Auhbon to do by hand (LinkedIn edits, GitHub or Vercel UI clicks, visual checks), and items worth deferring. Auhbon picks what to build now.
-3. **All MP work goes to the `next` branch.** Vercel publishes it as the draft site (preview URL below; planned nicer address: draft.auhbon.com). **Nothing reaches the public site until Auhbon approves.**
-4. Auhbon reviews the draft site against **/dev/review**, which is rewritten at the end of every MP and lists everything that needs his eyes, a decision, or his hands (sorted Now / Soon / Ongoing). Anything not listed is done.
-5. **To publish**, Auhbon merges the `next` → `main` pull request on GitHub. Partial approval is fine ("ship everything except X").
+3. **All MP work goes to the `next` branch**, which Vercel publishes as the **preview site** (planned address: preview.auhbon.com). **Nothing reaches the public site until Auhbon approves.**
+4. Auhbon reviews the preview against **/dev/review**, which is rewritten at the end of every MP and lists everything that needs his eyes, a decision, or his hands (sorted Now / Soon / Ongoing). Anything not listed is done.
+5. **To publish**, Auhbon merges the `next` → `main` pull request on GitHub. Partial approval is fine: anything he isn't ready to publish gets moved to draft (see below) and everything else ships.
 6. Exceptions that may go straight to `main`: copy he has already approved word for word, and urgent fixes.
 7. **Every MP ends with:** CHANGELOG.md and package.json version, `src/content/dev.ts` (roadmap and DEV_AS_OF), a rewritten /dev/review, GitHub issues updated (overview issue #185), and this file updated if anything about the project changed.
 
-**Draft site vs /dev/draft.** /dev/draft is an overlay inside the site for trying individual experimental features (today: the Board games theme and the "I love" list). It can't show changes to things that already exist (copy, effect tweaks, Boring mode itself), so whole MPs go to the draft site. Use /dev/draft only for experiments that aren't ready to be judged as part of the real site.
+**Three versions of the site (decided Nov 12, 2026):**
+
+| Version | What it is | Where | Who sees it |
+|---|---|---|---|
+| Public | What's live and approved | auhbon.com (`main`) | Everyone |
+| Preview | Public plus everything from the latest MP: the default home for all new work and revisions | `next` branch → preview.auhbon.com (until set up: the Vercel preview URL) | Anyone with the link; unlisted and not indexed by search engines |
+| Draft | Experiments and parked work-in-progress, shown on top of the site at /dev/draft with diff indicators | /dev/draft on both public and preview | Anyone with the link |
+
+- **Why preview is a separate copy of the site, not a page inside it:** an MP changes things that already exist (copy, effects, Boring mode itself). Showing those requires running the whole next version of the site, which is what a branch deployment is. A page like auhbon.com/dev/preview can't run a different version of the site without fragile proxying. preview.auhbon.com is just as easy to share.
+- **Draft is the parking lot.** New fun features carry a stage flag (draft or ready). Draft-stage features only show on /dev/draft, with its diff indicators (dotted outlines, notes, and a "what's different" list). To hold one thing back when publishing an MP, flip that feature to draft and publish everything else.
+- **Planned for MP6 (approved idea):** on the preview site, a small "Preview of MPx" banner with a "What's new" list (drawn from /dev/review) and a "Highlight changes" toggle that outlines new or changed elements, like /dev/draft's indicators. Off on the public site.
+- **Public access:** the preview must not require a Vercel login. Turn off Vercel Authentication for preview deployments, or at least for the preview.auhbon.com domain (Vercel → Project → Settings → Deployment Protection), and add a noindex header on the preview host so search engines skip it.
 
 ## 3. Where everything lives
 
 | What | Where |
 |---|---|
 | Public site | https://auhbon.com (the `main` branch) |
-| Draft site (MP5 and later) | https://auhbon-com-git-next-auhbon-3857.vercel.app (the `next` branch; planned: draft.auhbon.com) |
-| Review list | /dev/review on the draft site |
+| Preview site (MP5 and later) | https://auhbon-com-git-next-auhbon-3857.vercel.app (the `next` branch; planned: preview.auhbon.com) |
+| Draft (experiments) | /dev/draft on public or preview |
+| Review list | /dev/review on the preview site |
 | Dev pages | /dev: review, roadmap, versions, secrets (with hints, unlockables, draft secrets, and secret ideas), goals, milestones (scaling slider), draft, visuals |
 | Code, history, changelog | github.com/auhbz/auhbon.com; CHANGELOG.md; release/x.y.z checkpoint branches |
 | This handoff | docs/HANDOFF.md (on `main` and `next`) |
@@ -53,7 +65,7 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 
 ## 4. MP5 status
 
-**Done (on the draft site, waiting for approval in PR #187 "MP5 → live"):**
+**Done (on the preview site, waiting for approval in PR #187 "MP5 → live"):**
 - Fun / Boring toggle, Boring by default; secrets only in Fun; the guide goblin points at the toggle until Fun is tried.
 - Cheats (type 137 on the numpad): unlock everything, unlock all secrets, and a switch per unlockable, independent of secrets found.
 - Unlock progression: effects and themes open within about 7 secrets, mini games one at a time; locked items show with a padlock and how many secrets they need; "Unlocked: …" toasts.
@@ -77,7 +89,8 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 5. **Draft secrets** Auhbon found on /dev/draft for the monkeys and the portal cake weren't carried over to the live secrets.
 6. **Small known rough edges:** with Monkey Mode on, vines hang over text on phones; on touch, starting a scroll while holding a smoke bomb also throws one.
 7. **Release checkpoint.** When PR #187 is merged, create the `release/2.0.0` branch from main (CHANGELOG already lists it).
-8. **Open decisions for Auhbon** are on /dev/review ("Small calls the builders left for you", the Copy Discuss items, the slideshows, the "I love" list).
+8. **Preview polish (MP6):** the preview banner, "What's new" list, and "Highlight changes" toggle; stage flags so any fun feature can be parked in draft; noindex on the preview host.
+9. **Open decisions for Auhbon** are on /dev/review ("Small calls the builders left for you", the Copy Discuss items, the slideshows, the "I love" list).
 
 ## 5. Copy Review status
 
@@ -106,7 +119,8 @@ The site
 
 How we work
 - I send big batches of notes called Major Pushes (MPs). Before building, audit the MP: estimate the cost/effort of each item, flag expensive items, and flag anything that's quicker or cheaper for me to do myself (LinkedIn edits, UI clicks, visual checks). I decide what gets built now.
-- All MP work goes to the `next` branch (the draft site). Nothing reaches the public site until I approve by merging the `next` → `main` pull request.
+- Three versions of the site: public (auhbon.com, the `main` branch), preview (the `next` branch at preview.auhbon.com: public plus everything from the latest MP; shareable without logging in, not indexed), and draft (/dev/draft: experiments and parked work-in-progress with visible diff indicators).
+- All MP work goes to the preview. Nothing reaches the public site until I approve by merging the `next` → `main` pull request. To hold one item back, move it to draft and publish the rest.
 - /dev/review is my single review list. Rewrite it at the end of every MP: everything that needs my eyes, a decision, or my hands, sorted Now / Soon / Ongoing. If I don't mention something in an MP, assume it's fine.
 - Every MP ends with: CHANGELOG and version bump, roadmap (src/content/dev.ts), /dev/review, GitHub issues (overview issue #185), and docs/HANDOFF.md if anything changed.
 - Before a batch starts, list every login, permission, or approval you'll need from me so the work can run without stopping.
@@ -186,7 +200,7 @@ When I change or approve copy for my career materials:
 ## 9. Accounts and services
 
 - **GitHub:** auhbz. The assistant can push to the repo; settings like repo visibility need Auhbon to confirm access with his password or passkey.
-- **Vercel:** project "auhbon-com" (team auhbon-3857). Pushes to `main` deploy the public site; pushes to `next` deploy the draft site. Upstash Redis is connected through Vercel Storage.
-- **Spaceship:** DNS for auhbon.com (www redirects to the apex). To get draft.auhbon.com: in Vercel → Project → Settings → Domains, add `draft.auhbon.com` and set its Git branch to `next`; then in Spaceship add the CNAME record Vercel shows (usually `draft` → `cname.vercel-dns.com`).
+- **Vercel:** project "auhbon-com" (team auhbon-3857). Pushes to `main` deploy the public site; pushes to `next` deploy the preview site. Upstash Redis is connected through Vercel Storage.
+- **Spaceship:** DNS for auhbon.com (www redirects to the apex). To get preview.auhbon.com: in Vercel → Project → Settings → Domains, add `preview.auhbon.com` and set its Git branch to `next`; then in Spaceship add the CNAME record Vercel shows (usually `preview` → `cname.vercel-dns.com`). Then make it public: Settings → Deployment Protection → turn off Vercel Authentication for previews (check the current Vercel wording; setting names change).
 - **Google Drive:** CV, resumes, About Me, Cover Letter Bank (one folder).
 - **LinkedIn:** linkedin.com/in/auhbon. Auhbon edits it himself from paste-ready text.
