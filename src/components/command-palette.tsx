@@ -7,6 +7,8 @@ import { TOAST_EVENT, toast } from "@/lib/fx";
 import { DEFAULT_FUN, getFun, LOOKS, setFunOn, setLook, subscribeFun, TYPED_SECRETS } from "@/lib/fun";
 import { endsWithSecretWord, reveal, typedSecret } from "@/components/easter-eggs";
 import type { Link } from "@/content/profile";
+import { ASK_QUESTIONS } from "@/components/ask-me";
+import { funMode } from "@/lib/unlocks";
 
 type Command = {
   id: string;
@@ -146,6 +148,25 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
       keywords: "what is this help question curious secret",
       run: () => reveal("whatsthis", "This? It's a secret. You found it by asking."),
     });
+    // Fun mode: questions whose answers are secret words (typing the answer, in here or on the page, finds them).
+    if (funMode(fun) === "fun") {
+      for (const q of ASK_QUESTIONS) {
+        if (fun.secrets.includes(q.id)) continue;
+        list.push({
+          id: `ask-${q.id}`,
+          group: "Ask me",
+          label: q.question,
+          keywords: "ask question quiz guess",
+          keepOpen: true,
+          run: () => {
+            setWordMode(true);
+            setQuery("");
+            setIndex(0);
+            setNotice(`${q.question} ${q.hint} Type your answer here, or anywhere on the page.`);
+          },
+        });
+      }
+    }
     // Phones have no keyboard to type secret words on the page, so Quick actions takes them.
     if (touch) {
       list.push({
@@ -162,7 +183,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
       });
     }
     return list;
-  }, [sections, filters, email, links, notify, touch]);
+  }, [sections, filters, email, links, notify, touch, fun]);
 
   const results = useMemo(() => {
     const raw = query.toLowerCase().trim();

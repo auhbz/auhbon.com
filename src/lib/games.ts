@@ -75,6 +75,10 @@ export class Asteroids implements Game {
   private wave = 0;
   private thrustUntil = 0;
   private tapFire = false;
+  /** For the Pacifist secret: when the game began, and whether a shot has been fired. */
+  private startedAt = performance.now();
+  private fired = false;
+  private pacifist = false;
 
   constructor(private colors: Colors) {
     this.nextWave(performance.now());
@@ -83,6 +87,8 @@ export class Asteroids implements Game {
   private nextWave(now: number) {
     // Clearing the first wave (one that actually had rocks in it) is a secret.
     if (this.wave === 1 && this.score > 0) foundSecret("cadet");
+    // Clearing three waves (reaching the fourth) is a bigger one.
+    if (this.wave === 3 && this.score > 0) foundSecret("deepspace");
     this.wave++;
     const speed = 0.5 + this.wave * 0.25;
     const shapes = pageShapes(14);
@@ -119,6 +125,7 @@ export class Asteroids implements Game {
     if ((k.has("fire") || this.tapFire) && now - this.lastShot > 220) {
       this.lastShot = now;
       this.tapFire = false;
+      this.fired = true;
       this.shots.push({ x: s.x + Math.cos(s.angle) * 14, y: s.y + Math.sin(s.angle) * 14, vx: Math.cos(s.angle) * 9 + s.vx, vy: Math.sin(s.angle) * 9 + s.vy, life: 70 });
       sound("launch");
     }
@@ -160,6 +167,11 @@ export class Asteroids implements Game {
       }
     }
     if (!this.rocks.length) this.nextWave(now);
+    // Thirty seconds without firing a shot, and still flying.
+    if (!this.pacifist && !this.fired && !this.over && now - this.startedAt > 30_000) {
+      this.pacifist = true;
+      foundSecret("pacifist");
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D, now: number) {
@@ -223,6 +235,8 @@ export class KeepyUppy implements Game {
   private gravity = 0.3;
   private wind = 0;
   private level = 0;
+  /** Times a ball has bounced off the top of the screen this game. */
+  private ceilings = 0;
 
   constructor() {
     this.balls.push(this.newBall(innerWidth / 2));
@@ -239,6 +253,7 @@ export class KeepyUppy implements Game {
     b.spin = b.vx * 0.02;
     this.score++;
     sound("pop");
+    if (this.score === 15) foundSecret("warmup");
     this.escalate();
   }
 
@@ -293,6 +308,7 @@ export class KeepyUppy implements Game {
       if (b.y < b.r) {
         b.y = b.r;
         b.vy = Math.abs(b.vy) * 0.5;
+        if (++this.ceilings === 3) foundSecret("skyhigh");
       }
       if (b.y > innerHeight + b.r) this.over = true;
     }
@@ -370,6 +386,8 @@ export class Stacker implements Game {
     this.streak = perfect ? this.streak + 1 : 0;
     if (perfect) this.banner = { text: this.streak >= 3 ? `${this.streak} perfect in a row!` : "Perfect!", until: performance.now() + 900 };
     if (this.streak === 3) foundSecret("perfect");
+    if (this.score === 10) foundSecret("tower");
+    if (this.score === 20) foundSecret("skyscraper");
     this.moving = this.nextBlock();
   }
 

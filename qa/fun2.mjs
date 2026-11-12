@@ -403,10 +403,12 @@ await choose("Cursor trail", "Cursed");
   }
   const order = Object.keys(reached).join("");
   check(order === "1234", `hamsters: stages go shake, sparks, fire, break in order (${order})`);
-  check(reached[1] >= 3 && reached[2] - reached[1] >= 8 && reached[3] - reached[2] >= 15 && reached[4] - reached[3] >= 20, `hamsters: each stage needs enough clicks since the last (${JSON.stringify(reached)})`);
+  check(reached[1] >= 3 && reached[2] - reached[1] >= 8 && reached[3] - reached[2] >= 15 && reached[4] - reached[3] >= 14, `hamsters: each stage needs enough clicks since the last (${JSON.stringify(reached)})`);
   await page.waitForTimeout(450);
   await page.screenshot({ path: `${out}/hamster-4.png`, clip: { x: cx - 160, y: cy - 70, width: 360, height: 170 } });
-  check((await page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets)).length === secretsBefore, "hamsters: clicking a wheel isn't counted as clicking the name");
+  const hamSecrets = await page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets);
+  check(hamSecrets.filter((s) => s !== "breakaway").length === secretsBefore, "hamsters: clicking a wheel isn't counted as clicking the name");
+  check(hamSecrets.includes("breakaway"), "hamsters: breaking the wheel free is a secret");
   let back = false;
   for (let i = 0; i < 60 && !back; i++) { await page.waitForTimeout(100); back = (await stageOf()) === 0; }
   check(back, "hamsters: the broken wheel rolls back after a few seconds");

@@ -85,7 +85,9 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
 export const SECRET_CATEGORIES = ["Hidden", "Typing", "Combos", "Effects", "Farm", "Games", "Misc"] as const;
 export type SecretCategory = (typeof SECRET_CATEGORIES)[number];
 
-type SecretDef = { id: string; title: string; icon: string; how: string; hint: string; category: SecretCategory; difficulty: 1 | 2 | 3 };
+/** Where a secret lives (CORE adds this to every secret; MP5). */
+export type SecretArea = "site" | "effects" | "themes" | "games" | "wild" | "toys" | "extras";
+type SecretDef = { id: string; title: string; icon: string; how: string; hint: string; category: SecretCategory; difficulty: 1 | 2 | 3; area?: SecretArea };
 
 export const SECRET_LIST = [
   { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row", hint: "Name", category: "Hidden", difficulty: 2 },
@@ -123,6 +125,27 @@ export const SECRET_LIST = [
   { id: "hacker", title: "Hacker", icon: "💻", how: "Terminal theme with Electric buttons and the Sparkle trail", hint: "Phosphor", category: "Combos", difficulty: 2 },
   { id: "arcade", title: "Insert coin", icon: "🕹️", how: "Pico-8 theme with Rainbow buttons and the Slingshot", hint: "Retro", category: "Combos", difficulty: 2 },
   { id: "bigtop", title: "Big top", icon: "🎪", how: "Clown sounds, Rainbow buttons and Bubbles together", hint: "Circus", category: "Combos", difficulty: 2 },
+  // MP5 (EFFECTS): effects, visits, hidden extras and the mini games.
+  { id: "breakaway", title: "Breakaway", icon: "🐹", how: "Clicked a hamster wheel so fast it broke off and rolled away", hint: "Faster", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "sweep", title: "Clean sweep", icon: "💨", how: "Kept the screen clear of bubbles for a whole second", hint: "Spotless", category: "Effects", difficulty: 3, area: "effects" },
+  { id: "clicky", title: "Click happy", icon: "🖱️", how: "Clicked or tapped 100 times in one visit", hint: "Hundred", category: "Misc", difficulty: 1, area: "site" },
+  { id: "shuffling", title: "Every day I'm…", icon: "🔀", how: "Shuffled Bells & whistles five times in one visit", hint: "Shuffle", category: "Effects", difficulty: 1, area: "effects" },
+  { id: "back", title: "Welcome back", icon: "👋", how: "Left and came back (another day, or after a break of 20 seconds or more)", hint: "Return", category: "Misc", difficulty: 1, area: "site" },
+  { id: "earlybird", title: "Early bird", icon: "🐦", how: "Had Fun mode on between 5 and 8 a.m.", hint: "Sunrise", category: "Misc", difficulty: 2, area: "site" },
+  { id: "sleepy", title: "Forty winks", icon: "😴", how: "Sat still for 45 seconds and let the page doze off", hint: "Idle", category: "Misc", difficulty: 1, area: "site" },
+  { id: "fowl", title: "Fowl play", icon: "🐔", how: "Bothered the wandering chicken until its friends showed up", hint: "Cluck", category: "Hidden", difficulty: 2, area: "extras" },
+  { id: "gems", title: "Pot luck", icon: "🏺", how: "Broke clay pots and collected 10 glimmers", hint: "Smash", category: "Hidden", difficulty: 2, area: "extras" },
+  { id: "leaflings", title: "Hide and leaf", icon: "🍃", how: "Found all three leaflings hiding around the page", hint: "Peek", category: "Hidden", difficulty: 3, area: "extras" },
+  { id: "overload", title: "Short circuit", icon: "⚡", how: "Pressed Electric buttons so fast they overloaded", hint: "Overload", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "scorched", title: "Scorched earth", icon: "🔥", how: "Ran the Fire trail over every section heading", hint: "Headings", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "shakeoff", title: "Shake it off", icon: "👻", how: "Shook the Cursed ghost off by wiggling the cursor hard", hint: "Wiggle", category: "Effects", difficulty: 2, area: "effects" },
+  { id: "donuts", title: "Donut shop", icon: "🍩", how: "Let the Car trail do donuts for eight seconds straight", hint: "Spin", category: "Effects", difficulty: 1, area: "effects" },
+  { id: "deepspace", title: "Deep space", icon: "🌌", how: "Reached wave 4 in Asteroids", hint: "Waves", category: "Games", difficulty: 3, area: "games" },
+  { id: "pacifist", title: "Pacifist", icon: "🕊️", how: "Survived 30 seconds of Asteroids without firing a shot", hint: "Peace", category: "Games", difficulty: 2, area: "games" },
+  { id: "warmup", title: "Warmed up", icon: "👟", how: "Reached 15 in Keepy Uppy", hint: "Fifteen", category: "Games", difficulty: 1, area: "games" },
+  { id: "skyhigh", title: "Sky high", icon: "☁️", how: "Bounced the Keepy Uppy ball off the ceiling three times in one game", hint: "Ceiling", category: "Games", difficulty: 2, area: "games" },
+  { id: "tower", title: "Tower", icon: "🗼", how: "Stacked 10 blocks in Stacker", hint: "Ten", category: "Games", difficulty: 1, area: "games" },
+  { id: "skyscraper", title: "Skyscraper", icon: "🏙️", how: "Stacked 20 blocks in Stacker", hint: "Twenty", category: "Games", difficulty: 3, area: "games" },
 ] as const satisfies readonly SecretDef[];
 export type Secret = (typeof SECRET_LIST)[number]["id"];
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
@@ -139,8 +162,8 @@ export const TYPED_SECRETS: { word: string; id: Secret }[] = [
 export const SECRET_GOAL = 100;
 export const MILESTONES = [
   { at: 5, name: "Animal parade", icon: "🐘" },
-  { at: 10, name: "Confetti cannons", icon: "🎉" },
-  { at: 15, name: "Fireworks", icon: "🎆" },
+  { at: 10, name: "Fireworks", icon: "🎆" },
+  { at: 15, name: "Lantern festival", icon: "🏮" },
   { at: 25, name: "Disco", icon: "🕺" },
   { at: 40, name: "Marching band", icon: "🥁" },
   { at: 65, name: "Fireworks disco", icon: "🎇" },
@@ -307,6 +330,9 @@ export const setHaptics = (haptics: boolean) => updateFun((s) => ({ ...s, haptic
 /** Picking a look (shown as "Theme" in the panel). Touches nothing else. */
 export const setLook = (look: Look) => updateFun((s) => ({ ...s, look }));
 
+/** Fired after each shuffle (a secret counts them). */
+export const SHUFFLE_EVENT = "portfolio:shuffle";
+
 /** Everything on with random options; the look stays Classic. Returns the picks. */
 export function shuffle() {
   const effects = {} as Record<Category, Effect>;
@@ -315,6 +341,7 @@ export function shuffle() {
     effects[c.id] = { on: true, variant: pick.id, ...(c.id === "sound" ? { hover: true } : {}) };
   }
   updateFun((s) => ({ ...s, effects, look: "classic" }));
+  window.dispatchEvent(new Event(SHUFFLE_EVENT));
   return CATEGORIES.map((c) => c.options.find((o) => o.id === effects[c.id].variant)!.label);
 }
 

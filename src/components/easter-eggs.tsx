@@ -58,6 +58,19 @@ const EVENT_MESSAGES: Partial<Record<Secret, string>> = {
   skeleton: "Possessed! The ghost took the skeleton for a dance.",
   whatsthis: "This? It's a secret. You found it by asking.",
   podbay: "I'm sorry, Dave. I'm afraid I can't do that.",
+  // MP5 (EFFECTS)
+  breakaway: "Breakaway! That wheel is free (the hamster is fine, just dizzy).",
+  sweep: "Clean sweep! Not a bubble in sight.",
+  overload: "Short circuit! Easy on the buttons, they're only human.",
+  scorched: "Scorched earth: every heading, toasted.",
+  shakeoff: "Shake it off! The ghost lost its grip. It'll be back.",
+  donuts: "Donut shop! Eight seconds of smoking tires.",
+  deepspace: "Deep space: wave 4 and still flying.",
+  pacifist: "Pacifist: thirty seconds, not one shot fired.",
+  warmup: "Warmed up: 15 in Keepy Uppy.",
+  skyhigh: "Sky high! Three bounces off the ceiling.",
+  tower: "Tower: 10 blocks high.",
+  skyscraper: "Skyscraper: 20 blocks! Don't look down.",
 };
 
 /** Combination secrets: certain effects and themes switched on together. */

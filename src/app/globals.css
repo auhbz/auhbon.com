@@ -526,9 +526,11 @@ html[data-fx-buttons="cookie"] .pill[aria-pressed="true"] {
 html[data-possessed] * {
   cursor: none !important;
 }
-/* Bubble maker: bubbles rise from here. */
+/* Bubble maker: bubbles rise from here. It floats a little clear of the stem, nudged right
+ * to sit over the i's optical center (the monospace looks keep their original spot). */
 .hero-bubble {
-  top: 0.14em;
+  top: 0.075em;
+  left: calc(50% + 0.012em);
   width: 0.12em;
   height: 0.12em;
   border-radius: 50%;
@@ -536,6 +538,10 @@ html[data-possessed] * {
   background:
     radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.9) 0 14%, transparent 30%),
     color-mix(in srgb, #8fd3ff 18%, transparent);
+}
+html:is([data-look="terminal"], [data-look="pico8"]) .hero-bubble {
+  top: 0.14em;
+  left: 50%;
 }
 @media (prefers-reduced-motion: no-preference) {
   .hero-rock[data-state="ready"] {
@@ -1657,4 +1663,657 @@ html[data-fx-buttons="cookie"] .pill[data-bites="4"]:not(:focus-visible) {
 .gamepad-round button:active {
   transform: translateY(2px);
   box-shadow: 0 1px 0 #7d1015;
+}
+
+/* ===== MP5 EFFECTS: celebrations, overload, and Fun-mode extras ===== */
+
+/* Lantern festival (milestone): paper lanterns drift up, glowing and swaying. */
+.lanterns {
+  position: fixed;
+  inset: 0;
+  z-index: 56;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lantern {
+  position: absolute;
+  left: var(--x);
+  bottom: -4rem;
+  width: var(--size);
+  height: calc(var(--size) * 1.25);
+  animation: lantern-rise var(--duration) cubic-bezier(0.35, 0, 0.6, 1) var(--delay) both;
+}
+.lantern-body {
+  position: absolute;
+  inset: 0;
+  border-radius: 38% 38% 30% 30% / 30% 30% 22% 22%;
+  background:
+    linear-gradient(90deg, transparent 31%, rgba(120, 40, 10, 0.18) 32% 34%, transparent 35% 65%, rgba(120, 40, 10, 0.18) 66% 68%, transparent 69%),
+    radial-gradient(ellipse at 50% 70%, hsl(48 100% 88%), hsl(var(--hue) 95% 58%) 55%, hsl(calc(var(--hue) - 12) 85% 40%));
+  box-shadow:
+    0 0 calc(var(--size) * 0.6) hsl(var(--hue) 100% 60% / 0.65),
+    0 0 calc(var(--size) * 1.6) hsl(var(--hue) 100% 55% / 0.3);
+  animation: lantern-sway calc(2.4s / var(--sway)) ease-in-out infinite alternate, lantern-flicker 1.3s steps(3) infinite;
+}
+.lantern-body::before,
+.lantern-body::after {
+  content: "";
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  height: 7%;
+  border-radius: 2px;
+  background: hsl(15 45% 22%);
+}
+.lantern-body::before {
+  top: -3%;
+}
+.lantern-body::after {
+  bottom: -3%;
+}
+@keyframes lantern-rise {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(calc(-100dvh - 6rem)) scale(0.6);
+    opacity: 0;
+  }
+}
+@keyframes lantern-sway {
+  from {
+    transform: translateX(-0.35rem) rotate(-5deg);
+  }
+  to {
+    transform: translateX(0.35rem) rotate(5deg);
+  }
+}
+@keyframes lantern-flicker {
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+/* Electric buttons, overloaded: they stutter and flicker for a moment. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-overload] .pill {
+    animation: overload 120ms steps(2) 10;
+  }
+}
+html[data-overload] .pill {
+  box-shadow: 0 0 0.6rem #7fd4ff;
+}
+@keyframes overload {
+  50% {
+    opacity: 0.35;
+    filter: brightness(1.8);
+  }
+}
+
+/* Forty winks: the page dozes off after a long idle stretch (any input wakes it). */
+.doze::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgb(8 14 24 / 0.22);
+  animation: doze-dim 2s ease both;
+}
+@keyframes doze-dim {
+  from {
+    opacity: 0;
+  }
+}
+.doze {
+  position: fixed;
+  right: max(1.25rem, env(safe-area-inset-right));
+  top: 5rem;
+  z-index: 57;
+  pointer-events: none;
+  font: 700 1.6rem/1 var(--font-display, system-ui), system-ui, sans-serif;
+  color: var(--ink);
+}
+.doze-moon {
+  font-size: 1.4rem;
+}
+.doze-z {
+  position: absolute;
+  left: calc(1.4rem + var(--i) * 0.9rem);
+  top: calc(var(--i) * -1rem);
+  font-size: calc(1.5rem - var(--i) * 0.3rem);
+  opacity: 0.85;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .doze-z {
+    animation: doze-float 3s ease-in-out calc(var(--i) * 0.8s) infinite;
+  }
+}
+@keyframes doze-float {
+  0% {
+    transform: translate(0, 0.6rem);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(0.8rem, -1.2rem);
+    opacity: 0;
+  }
+}
+
+/* The chicken: wanders along the top edge of a section (see chicken.tsx). */
+[data-chicken-host] {
+  position: relative;
+}
+.chicken-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1.55rem;
+  height: 1.6rem;
+  margin-inline: auto;
+  max-width: 60rem;
+  container-type: inline-size;
+  pointer-events: none;
+}
+.chicken {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-bottom: -0.6rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translateX(min(30cqw, 16rem));
+  -webkit-tap-highlight-color: transparent;
+}
+.chicken-face {
+  display: block;
+  transform: scaleX(-1);
+}
+.chicken-art {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chicken {
+    animation: chicken-walk 46s linear infinite;
+  }
+  .chicken-track:hover .chicken,
+  .chicken:focus-visible {
+    animation-play-state: paused;
+  }
+  .chicken-face {
+    animation: chicken-face 46s step-end infinite;
+  }
+  .chicken-art {
+    animation: chicken-peck 1.6s ease-in-out infinite;
+  }
+  .chicken-track:hover :is(.chicken-face, .chicken-art),
+  .chicken:focus-visible :is(.chicken-face, .chicken-art) {
+    animation-play-state: paused;
+  }
+  .chicken[data-hit="a"] .chicken-art {
+    animation: chicken-flap-a 420ms ease-out;
+  }
+  .chicken[data-hit="b"] .chicken-art {
+    animation: chicken-flap-b 420ms ease-out;
+  }
+}
+@keyframes chicken-walk {
+  0%,
+  4% {
+    transform: translateX(0);
+  }
+  44%,
+  52% {
+    transform: translateX(calc(100cqw - 3.75rem));
+  }
+  92%,
+  100% {
+    transform: translateX(0);
+  }
+}
+/* Emoji chickens face left: flip it to face the way it walks. */
+@keyframes chicken-face {
+  0% {
+    transform: scaleX(-1);
+  }
+  48% {
+    transform: scaleX(1);
+  }
+  96% {
+    transform: scaleX(-1);
+  }
+}
+@keyframes chicken-peck {
+  0%,
+  70%,
+  100% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  80% {
+    translate: 0 0.12rem;
+    rotate: -14deg;
+  }
+}
+@keyframes chicken-flap-a {
+  30% {
+    translate: 0 -0.7rem;
+    rotate: 12deg;
+  }
+}
+@keyframes chicken-flap-b {
+  30% {
+    translate: 0 -0.7rem;
+    rotate: -12deg;
+  }
+}
+.chicken-swarm {
+  position: fixed;
+  inset: 0;
+  z-index: 61;
+  overflow: hidden;
+  pointer-events: none;
+}
+.swarm-chicken {
+  position: absolute;
+  top: var(--y);
+  font-size: var(--size);
+  line-height: 1;
+}
+.swarm-chicken[data-from="left"] {
+  left: -3rem;
+}
+.swarm-chicken[data-from="right"] {
+  right: -3rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .swarm-chicken[data-from="left"] {
+    animation: swarm-right var(--duration) ease-in var(--delay) infinite;
+  }
+  .swarm-chicken[data-from="right"] {
+    animation: swarm-left var(--duration) ease-in var(--delay) infinite;
+  }
+}
+@keyframes swarm-right {
+  from {
+    transform: translate(0, 0) scaleX(-1) rotate(-8deg);
+  }
+  50% {
+    transform: translate(50vw, var(--arc)) scaleX(-1) rotate(8deg);
+  }
+  to {
+    transform: translate(calc(100vw + 6rem), 0) scaleX(-1) rotate(-8deg);
+  }
+}
+@keyframes swarm-left {
+  from {
+    transform: translate(0, 0) rotate(8deg);
+  }
+  50% {
+    transform: translate(-50vw, var(--arc)) rotate(-8deg);
+  }
+  to {
+    transform: translate(calc(-100vw - 6rem), 0) rotate(8deg);
+  }
+}
+/* Reduced motion: the friends just line up along the bottom, glaring. */
+.chicken-swarm[data-reduced] .swarm-chicken {
+  top: auto;
+  bottom: 5.5rem;
+  left: calc(4% + var(--slot) * 5%);
+  right: auto;
+}
+.swarm-peace {
+  position: absolute;
+  left: 50%;
+  bottom: 8rem;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  min-height: 2.75rem;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Clay pots: tucked into the bottom corner of a few sections (see clay-pots.tsx). */
+[data-pot-host] {
+  position: relative;
+}
+.pot-spot {
+  position: absolute;
+  right: max(1rem, calc((100% - 64rem) / 2 + 1rem));
+  bottom: 0.75rem;
+  width: 1.6rem;
+  height: 1.75rem;
+}
+.pot-spot[data-pot="1"] {
+  right: auto;
+  left: max(1rem, calc((100% - 64rem) / 2 + 1rem));
+}
+.pot {
+  position: absolute;
+  inset: -0.5rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0.5rem;
+  background: none;
+  cursor: pointer;
+  opacity: 0.85;
+  -webkit-tap-highlight-color: transparent;
+}
+.pot:hover {
+  opacity: 1;
+}
+.pot-art,
+.pot-shard {
+  display: block;
+  width: 1.6rem;
+  height: 1.75rem;
+}
+.pot-broken {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pot-shard {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.pot-shard-l {
+  clip-path: polygon(0 0, 55% 0, 40% 45%, 55% 100%, 0 100%);
+}
+.pot-shard-r {
+  clip-path: polygon(55% 0, 100% 0, 100% 100%, 55% 100%, 40% 45%);
+}
+.glimmer {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  width: 0.6rem;
+  height: 0.85rem;
+  opacity: 0;
+  filter: drop-shadow(0 0 0.25rem currentColor);
+}
+.glimmer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pot:hover .pot-art {
+    animation: pot-wobble 500ms ease-in-out;
+  }
+  .pot-shard-l {
+    animation: shard-l 700ms ease-in both;
+  }
+  .pot-shard-r {
+    animation: shard-r 700ms ease-in both;
+  }
+  .glimmer {
+    animation: glimmer-pop 1.6s cubic-bezier(0.2, 0.7, 0.4, 1) var(--delay) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glimmer {
+    left: calc(0.5rem + var(--dx));
+    bottom: 1.6rem;
+    animation: glimmer-fade 1.6s ease var(--delay) both;
+  }
+}
+@keyframes pot-wobble {
+  25% {
+    rotate: -6deg;
+  }
+  75% {
+    rotate: 6deg;
+  }
+}
+@keyframes shard-l {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-0.8rem, 0.5rem) rotate(-40deg);
+  }
+}
+@keyframes shard-r {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0.8rem, 0.5rem) rotate(40deg);
+  }
+}
+@keyframes glimmer-pop {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(var(--dx), -2.4rem) scale(1.1) rotate(15deg);
+  }
+  55% {
+    opacity: 1;
+    transform: translate(var(--dx), -1.6rem) scale(1) rotate(-10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), -4.5rem) scale(0.6);
+  }
+}
+@keyframes glimmer-fade {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  30%,
+  70% {
+    opacity: 1;
+  }
+}
+
+/* Leaflings: one hides at a time (see leaflings.tsx). */
+[data-leafling-host] {
+  position: relative;
+}
+.leafling-spot {
+  --edge: max(1.25rem, calc((100% - 64rem) / 2 + 2rem));
+  position: absolute;
+  width: 1.6rem;
+  height: 1.6rem;
+}
+.leafling-spot[data-leafling="rock"] {
+  left: var(--edge);
+  bottom: 0.9rem;
+}
+.leafling-spot[data-leafling="sprig"] {
+  right: var(--edge);
+  top: 1rem;
+}
+.leafling-spot[data-leafling="heading"] {
+  left: calc(var(--edge) + 5.3rem);
+  top: 3.6rem;
+}
+@media (min-width: 640px) {
+  .leafling-spot[data-leafling="heading"] {
+    top: 4.6rem;
+  }
+}
+.leafling-cover {
+  position: absolute;
+  inset: -0.6rem;
+  display: grid;
+  place-items: center;
+  border: 0;
+  padding: 0;
+  background: none;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.9;
+  -webkit-tap-highlight-color: transparent;
+}
+.leafling-cover:disabled {
+  cursor: default;
+}
+.leafling-tip {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+.leafling-pop {
+  position: absolute;
+  left: 50%;
+  bottom: 0.9rem;
+  width: 2.4rem;
+  translate: -50% 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.leafling-art {
+  display: block;
+  width: 100%;
+}
+.leafling-says {
+  position: absolute;
+  left: 70%;
+  bottom: 100%;
+  white-space: nowrap;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font: 700 0.8rem/1.3 system-ui, sans-serif;
+}
+.leafling-spot[data-out] .leafling-cover[data-cover="rock"] > span {
+  rotate: 70deg;
+  translate: 0.6rem 0.2rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .leafling-cover[data-cover="heading"] {
+    animation: leaf-peek 5s ease-in-out infinite;
+  }
+  .leafling-cover > span {
+    transition: rotate 300ms ease, translate 300ms ease;
+  }
+  .leafling-pop {
+    animation: leafling-hop 4.2s ease both;
+  }
+}
+@keyframes leaf-peek {
+  0%,
+  80%,
+  100% {
+    translate: 0 0;
+  }
+  88% {
+    translate: 0.15rem -0.2rem;
+  }
+}
+@keyframes leafling-hop {
+  0% {
+    transform: translateY(1.2rem) scale(0.3);
+    opacity: 0;
+  }
+  12% {
+    transform: translateY(-0.6rem) scale(1.05);
+    opacity: 1;
+  }
+  20%,
+  85% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-1.5rem) scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* "Quick question" bubble (see ask-me.tsx): small, bottom-left, out of the toasts' way. */
+.ask-me {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: 6rem;
+  z-index: 58;
+  width: min(19rem, calc(100vw - 2rem));
+  padding: 0.75rem 0.9rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem 1rem 1rem 0.25rem;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 0.5rem 1.5rem rgb(0 0 0 / 0.25);
+  font-size: 0.9rem;
+}
+@media (min-width: 640px) {
+  .ask-me {
+    bottom: 1.5rem;
+  }
+}
+.ask-me-q {
+  font-weight: 600;
+}
+.ask-me-nudge {
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
+.ask-me-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  margin-top: 0.35rem;
+}
+.ask-me-btn {
+  min-height: 2.75rem;
+  padding: 0 0.7rem;
+  border-radius: 999px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.ask-me-btn:hover {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ask-me {
+    animation: ask-in 400ms cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+}
+@keyframes ask-in {
+  from {
+    transform: translateY(1rem) scale(0.9);
+    opacity: 0;
+  }
+}
+.leafling-rock,
+.leafling-rock svg {
+  display: block;
+  width: 1.5rem;
+  height: 1rem;
 }

@@ -35,7 +35,12 @@ export type UnlockDef = {
 };
 
 /** Every unlockable fun feature. Workstreams append their own entries here. */
-export const UNLOCKS: UnlockDef[] = [];
+export const UNLOCKS: UnlockDef[] = [
+  // EFFECTS (MP5): small hidden extras that wander or hide around the page.
+  { id: "extra:chicken", kind: "extra", label: "Wandering chicken", at: 12 },
+  { id: "extra:pots", kind: "extra", label: "Clay pots", at: 15 },
+  { id: "extra:leaflings", kind: "extra", label: "Leaflings", at: 18 },
+];
 
 /** Placeholder until CORE lands: everything is unlocked. */
 export function isUnlocked(id: string, s: FunState = getFun()): boolean {
