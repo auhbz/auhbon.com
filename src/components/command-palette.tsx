@@ -4,7 +4,8 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExtern
 import { filterProjects, goToSection, OPEN_PALETTE_EVENT, openPalette } from "@/lib/events";
 import { setTheme, type Theme } from "@/lib/theme";
 import { TOAST_EVENT, toast } from "@/lib/fx";
-import { DEFAULT_FUN, getFun, LOOKS, setFunOn, setLook, subscribeFun, TYPED_SECRETS } from "@/lib/fun";
+import { DEFAULT_FUN, getFun, isFunMode, LOOKS, lookUnlocked, setFunOn, setLook, subscribeFun, TYPED_SECRETS } from "@/lib/fun";
+import { enterBoringMode, enterFunMode } from "@/components/fun-toggle";
 import { endsWithSecretWord, reveal, typedSecret } from "@/components/easter-eggs";
 import type { Link } from "@/content/profile";
 
@@ -41,6 +42,12 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
   const notify = toast;
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const touch = useSyncExternalStore(noSubscribe, isTouch, () => false);
+  /** Boring mode: Quick actions is all business (one action switches to Fun). */
+  const funMode = isFunMode(fun);
+  /** Which themes are unlocked (Quick actions only offers those). */
+  const openLooks = LOOKS.filter((l) => lookUnlocked(l.id, fun))
+    .map((l) => l.id)
+    .join(" ");
   /** "Type a secret word…" mode (touch): the input is waiting for a word. */
   const [wordMode, setWordMode] = useState(false);
   /** Messages shown inside Quick actions while it's open (the page's toasts sit behind it). */
@@ -116,6 +123,23 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
         },
       });
     }
+    if (!funMode) {
+      list.push({
+        id: "fun-mode",
+        group: "Site mode",
+        label: "Switch to Fun mode",
+        keywords: "fun boring playground bells whistles effects secrets games extras party",
+        run: () => enterFunMode(),
+      });
+      return list;
+    }
+    list.push({
+      id: "boring-mode",
+      group: "Site mode",
+      label: "Switch to Boring mode",
+      keywords: "fun boring plain clean professional portfolio",
+      run: () => enterBoringMode(),
+    });
     list.push({
       id: "fun-toggle",
       group: "Bells and whistles",
@@ -128,6 +152,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
       },
     });
     for (const look of LOOKS) {
+      if (!openLooks.split(" ").includes(look.id)) continue;
       list.push({
         id: `look-${look.id}`,
         group: "Bells and whistles",
@@ -162,13 +187,15 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
       });
     }
     return list;
-  }, [sections, filters, email, links, notify, touch]);
+  }, [sections, filters, email, links, notify, touch, funMode, openLooks]);
 
   const results = useMemo(() => {
     const raw = query.toLowerCase().trim();
     const terms = raw.split(/\s+/).filter(Boolean);
     if (!terms.length) return commands;
-    if (terms[0] === "sudo") {
+    if (!funMode) {
+      // Plain search only: no secret words or jokes in Boring mode.
+    } else if (terms[0] === "sudo") {
       return [
         {
           id: "sudo",
@@ -179,7 +206,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
       ];
     }
     // A nudge toward the sudo secret (it's an old joke: "make me a sandwich" / "make it yourself").
-    if (raw.includes("sandwich")) {
+    if (funMode && raw.includes("sandwich")) {
       return [
         {
           id: "sandwich",
@@ -191,7 +218,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
     }
     // Touch: a few letters of a secret word offer to "type" the rest.
     const letters = raw.replace(/[^a-z]/g, "");
-    if (touch && letters.length >= 2) {
+    if (funMode && touch && letters.length >= 2) {
       const words = TYPED_SECRETS.filter((t) => t.word.startsWith(letters) && t.word !== letters);
       if (words.length) {
         return words.map((t) => ({
@@ -225,7 +252,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
     return scored
       .sort((a, b) => best.get(b.c.group)! - best.get(a.c.group)! || a.c.group.localeCompare(b.c.group) || b.score - a.score)
       .map((x) => x.c);
-  }, [commands, query, touch, email, notify]);
+  }, [commands, query, touch, email, notify, funMode]);
 
   const open = useCallback(() => {
     const el = dialog.current;
@@ -338,7 +365,7 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
             aria-activedescendant={activeId}
             aria-autocomplete="list"
             aria-label="Search actions"
-            placeholder={wordMode ? WORD_PLACEHOLDER : fun.secrets.includes("keys") ? PLACEHOLDER_HINT : PLACEHOLDER}
+            placeholder={wordMode ? WORD_PLACEHOLDER : funMode && fun.secrets.includes("keys") ? PLACEHOLDER_HINT : PLACEHOLDER}
             value={query}
             onChange={(e) => {
               const next = e.target.value;

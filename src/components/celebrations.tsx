@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
-import { dueMilestones, getFun, markCelebrated, MILESTONES } from "@/lib/fun";
+import { dueMilestones, getFun, markCelebrated, scaledMilestones } from "@/lib/fun";
 
 export const CELEBRATE_EVENT = "portfolio:celebrate";
 
-/** Throw the party for a secrets milestone (see MILESTONES). */
+/** Throw the party for a secrets milestone (see MILESTONES), by its 100-scale `at`. */
 export function celebrate(at: number) {
   window.dispatchEvent(new CustomEvent<number>(CELEBRATE_EVENT, { detail: at }));
 }
@@ -92,9 +92,10 @@ export function Celebrations() {
 
     const onCelebrate = (e: Event) => {
       const at = (e as CustomEvent<number>).detail;
-      const m = MILESTONES.find((x) => x.at === at);
+      // Keyed by the 100-scale value; the toast shows today's scaled count.
+      const m = scaledMilestones().find((x) => x.at === at);
       if (!m) return;
-      toast(`Milestone: ${at} secrets! ${m.name} ${m.icon}`);
+      toast(`Milestone: ${m.count} secrets! ${m.name} ${m.icon}`);
       sound("secret");
       if (prefersReducedMotion()) return;
       for (const p of PARTIES[at] ?? ["parade"]) run[p]();

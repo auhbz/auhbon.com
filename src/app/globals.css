@@ -1115,8 +1115,8 @@ html[data-fx-press] * {
     border-top: 1px solid color-mix(in srgb, var(--kelp) 55%, var(--line));
   }
 }
-/* While he's pointing, the badge itself pulses, so there's no doubt which button he means. */
-.relative:has(> .goblin-guide:not(.is-leaving)) > .bells-button {
+/* While he's pointing, the toggle itself pulses, so there's no doubt which button he means. */
+.relative:has(> .goblin-guide:not(.is-leaving)) > :is(.bells-button, .fun-toggle) {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--kelp) 70%, transparent);
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -1126,7 +1126,7 @@ html[data-fx-press] * {
   .goblin-bubble {
     animation: goblin-shout 1.8s ease-in-out infinite;
   }
-  .relative:has(> .goblin-guide:not(.is-leaving)) > .bells-button {
+  .relative:has(> .goblin-guide:not(.is-leaving)) > :is(.bells-button, .fun-toggle) {
     animation: guide-pulse 1.4s ease-in-out infinite;
   }
 }
@@ -1657,4 +1657,97 @@ html[data-fx-buttons="cookie"] .pill[data-bites="4"]:not(:focus-visible) {
 .gamepad-round button:active {
   transform: translateY(2px);
   box-shadow: 0 1px 0 #7d1015;
+}
+
+/* --- Fun / Boring toggle (see fun-toggle.tsx) --------------------------------
+ * Its look comes from <html data-mode="fun">, which the pre-hydration script
+ * sets, so a saved Fun choice paints correctly on the first frame. */
+.fun-toggle {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0.125rem;
+  height: 2.75rem;
+  padding: 0.25rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+}
+.fun-toggle > button {
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 200ms, background-color 200ms;
+}
+.fun-toggle > button:hover {
+  color: var(--ink);
+}
+html:not([data-mode="fun"]) .fun-toggle > [data-mode-option="boring"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+html[data-mode="fun"] .fun-toggle > [data-mode-option="fun"] {
+  background: var(--kelp);
+  color: var(--kelp-ink);
+}
+@media (max-width: 640px) {
+  .fun-toggle {
+    height: 2.5rem;
+    padding: 0.1875rem;
+  }
+  .fun-toggle > button {
+    padding: 0 0.6rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Boring mode: no playground, ever. These are hidden before hydration too. */
+html:not([data-mode="fun"]) .fun-mode-only {
+  display: none !important;
+}
+/* The timeline's current-job dot is plain decoration in Boring mode. */
+html:not([data-mode="fun"]) [data-egg="dot"] {
+  cursor: default;
+  transform: none !important;
+}
+
+/* Switching to Fun: Bells & whistles and the secrets chip bounce in with a glow. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-fun-arrive] .fun-arrive {
+    animation: fun-arrive 900ms cubic-bezier(0.25, 1.6, 0.4, 1) both;
+  }
+  html[data-fun-arrive] .fun-arrive.pill {
+    animation-delay: 120ms;
+  }
+  html[data-fun-arrive] .fun-toggle > [data-mode-option="fun"] {
+    animation: fun-thumb 700ms cubic-bezier(0.25, 1.6, 0.4, 1);
+  }
+}
+html[data-fun-arrive] .fun-arrive {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kelp) 65%, transparent);
+  transition: box-shadow 1.5s ease-out;
+}
+@keyframes fun-arrive {
+  0% {
+    transform: translateY(-14px) scale(0.3) rotate(-12deg);
+    opacity: 0;
+  }
+  55% {
+    transform: translateY(2px) scale(1.15) rotate(6deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(0.95) rotate(-3deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes fun-thumb {
+  40% {
+    transform: scale(1.18) rotate(-4deg);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--kelp) 35%, transparent);
+  }
 }

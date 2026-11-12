@@ -5,15 +5,17 @@ import {
   blockedByMotion,
   CATEGORIES,
   DEFAULT_FUN,
+  effectId,
+  funActive,
   getFun,
+  isFunMode,
+  liveSecretCount,
   LOOKS,
   markWelcomed,
-  MILESTONES,
-  modesUnlocked,
-  unlockAllSecrets,
   resetSecrets,
   hintSecret,
   peekSecret,
+  scaledMilestones,
   SECRET_GOAL,
   SECRET_LIST,
   type Secret,
@@ -26,17 +28,21 @@ import {
   setVariant,
   shuffle,
   subscribeFun,
+  themeId,
   type Category,
   type Look,
 } from "@/lib/fun";
+import { isUnlocked, lockInfo, lockText } from "@/lib/unlocks";
 import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
-import { GoblinGuide } from "@/components/goblin";
-import { celebrate, celebrateDue } from "@/components/celebrations";
+import { celebrate } from "@/components/celebrations";
 import { startGame } from "@/components/game-layer";
 import { GAMES } from "@/lib/games";
-import { canTilt, canVibrate, haptic, onShake, requestMotionPermission } from "@/lib/device";
+import { canTilt, canVibrate, onShake, requestMotionPermission } from "@/lib/device";
+import { SecretsBar } from "@/components/secrets-bar";
 import { DraftPanelSection } from "@/components/draft/panel-section"; // draft-only
+import { CheatsSection } from "@/components/cheats";
+import { LockIcon, Switch } from "@/components/panel-bits";
 
 const PANEL_ID = "bells-panel";
 const SECRETS_ID = "secrets-panel";
@@ -104,6 +110,7 @@ function SheetHandle({ panelId }: { panelId: string }) {
 export function BellsPanel() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const reduced = useSyncExternalStore(noSubscribe, prefersReducedMotion, () => false);
+  const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
   const headingId = useId();
 
   const toggleAll = () => {
@@ -116,12 +123,15 @@ export function BellsPanel() {
   };
 
   // Motion controls: shaking the phone shuffles, like the button (at most every 2s).
-  const shake = fun.on && fun.motion;
+  const shake = funActive(fun) && fun.motion;
   useEffect(() => (shake ? onShake(shuffleWithFanfare, 2000) : undefined), [shake]);
+
+  // Boring mode: no playground at all. (Before hydration, CSS hides the button
+  // via <html data-mode>, so the server HTML matches and nothing flashes.)
+  if (mounted && !isFunMode(fun)) return null;
 
   return (
     <>
-      {/* The trophy sits left of the badge, so the guide goblin has room on the badge's right. */}
       <SecretsChip />
       <span className="relative inline-flex">
         <button
@@ -131,11 +141,10 @@ export function BellsPanel() {
           title="Bells and whistles"
           data-on={fun.on || undefined}
           onClick={markWelcomed}
-          className="bells-button relative inline-flex h-11 items-center justify-center rounded-full border border-line px-2 text-ink hover:border-ink/40"
+          className="bells-button fun-mode-only fun-arrive relative inline-flex h-11 items-center justify-center rounded-full border border-line px-2 text-ink hover:border-ink/40"
         >
           <BellsAndWhistlesIcon />
         </button>
-        <GoblinGuide />
       </span>
 
       <div
@@ -151,7 +160,7 @@ export function BellsPanel() {
             <h2 id={headingId} className="font-display text-xl font-semibold tracking-tight">
               Bells and whistles
             </h2>
-            <p className="mt-1 text-sm text-muted">Optional extras. The regular site is always one click away.</p>
+            <p className="mt-1 text-sm text-muted">Find secrets to unlock more. Boring mode, at the top, is the plain site.</p>
           </div>
           <button
             type="button"
@@ -184,33 +193,11 @@ export function BellsPanel() {
           <PhoneSwitches />
         </div>
 
-        <fieldset className="mt-4">
-          <legend className="text-sm text-muted">Theme</legend>
-          <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-5">
-            {LOOKS.map((l) => (
-              <label
-                key={l.id}
-                title={l.description}
-                className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-line px-1.5 text-center text-sm leading-tight has-checked:border-kelp has-checked:bg-kelp has-checked:text-kelp-ink has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus)]"
-              >
-                <input
-                  type="radio"
-                  name="look"
-                  value={l.id}
-                  checked={fun.look === l.id}
-                  onChange={() => {
-                    setLook(l.id as Look);
-                    sound("toggle");
-                  }}
-                  className="sr-only"
-                />
-                {l.label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <ThemeSection />
 
-        <ModeSection />
+        <MiniGamesSection />
+
+        <CheatsSection />
 
         {/* Draft-only: renders nothing outside /dev/draft (see src/components/draft/). */}
         <DraftPanelSection />
@@ -269,61 +256,152 @@ function PhoneSwitches() {
   );
 }
 
-/** Game modes: locked until every secret is found (or unlocked with my favorite number). */
-function ModeSection() {
+/**
+ * The caption under a picker: what a tapped locked option needs, or else the
+ * next thing that unlocks ("Next: Bubbles, after 1 more secret.").
+ */
+function LockCaption({ note, options }: { note: string; options: { id: string; label: string }[] }) {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  const unlocked = modesUnlocked(fun);
+  let text = note;
+  if (!text) {
+    const next = options
+      .map((o) => ({ ...o, info: lockInfo(o.id, fun) }))
+      .filter((o) => o.info?.more != null)
+      .sort((x, y) => x.info!.more! - y.info!.more!)[0];
+    if (next) text = `Next: ${next.label}, after ${next.info!.more} more ${next.info!.more === 1 ? "secret" : "secrets"}.`;
+  }
   return (
-    <fieldset className="mt-4" data-modes={unlocked ? "unlocked" : "locked"}>
-      <legend className="text-sm text-muted">Mode</legend>
-      {unlocked ? (
-        <div className="mt-1 grid grid-cols-2 gap-2">
-          <button type="button" aria-pressed="true" className="min-h-11 rounded-lg border border-kelp bg-kelp px-2 text-sm text-kelp-ink">
-            Standard
-          </button>
-          {GAMES.map((g) => (
+    <p aria-live="polite" data-lock-caption className="mt-1 flex items-center gap-1.5 text-sm text-muted empty:hidden">
+      {text ? (
+        <>
+          <LockIcon />
+          {text}
+        </>
+      ) : null}
+    </p>
+  );
+}
+
+/** Themes (shown as "Theme"; the code calls them looks). Locked ones show what they need. */
+function ThemeSection() {
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const [note, setNote] = useState("");
+  return (
+    <fieldset className="mt-4">
+      <legend className="text-sm text-muted">Theme</legend>
+      <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-5">
+        {LOOKS.map((l) => {
+          const id = themeId(l.id);
+          const locked = l.id !== "classic" && !isUnlocked(id, fun);
+          if (locked) {
+            return (
+              <button
+                key={l.id}
+                type="button"
+                aria-disabled="true"
+                data-locked
+                data-look-option={l.id}
+                aria-label={`${l.label} theme, locked. ${lockText(id, fun)}.`}
+                title={`${l.label}: ${lockText(id, fun)}`}
+                onClick={() => setNote(lockNote(`${l.label} theme`, id))}
+                className="locked-option flex min-h-11 items-center justify-center gap-1 rounded-lg border border-dashed border-line px-1.5 text-center text-sm leading-tight text-muted"
+              >
+                <LockIcon />
+                {l.label}
+              </button>
+            );
+          }
+          return (
+            <label
+              key={l.id}
+              title={l.description}
+              className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg border border-line px-1.5 text-center text-sm leading-tight has-checked:border-kelp has-checked:bg-kelp has-checked:text-kelp-ink has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-[var(--focus)]"
+            >
+              <input
+                type="radio"
+                name="look"
+                value={l.id}
+                checked={fun.look === l.id}
+                onChange={() => {
+                  setLook(l.id as Look);
+                  sound("toggle");
+                }}
+                className="sr-only"
+              />
+              {l.label}
+            </label>
+          );
+        })}
+      </div>
+      <LockCaption note={note} options={LOOKS.map((l) => ({ id: themeId(l.id), label: `${l.label} theme` }))} />
+    </fieldset>
+  );
+}
+
+/** "Nature theme: find 2 more secrets to unlock it." */
+function lockNote(name: string, id: string) {
+  const t = lockText(id, getFun());
+  return t.startsWith("Find") ? `${name}: f${t.slice(1)} to unlock it.` : `${name}: ${t.toLowerCase()}.`;
+}
+
+/** Mini games: each unlocks on its own as secrets are found (or with cheats). */
+function MiniGamesSection() {
+  const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const [note, setNote] = useState("");
+  const open = GAMES.filter((g) => isUnlocked(`game:${g.id}`, fun)).length;
+  return (
+    <fieldset className="mt-4" data-games={open} data-modes={open === GAMES.length ? "unlocked" : open ? "some" : "locked"}>
+      <legend className="text-sm text-muted">Mini games</legend>
+      <div className="mt-1 grid grid-cols-3 gap-2">
+        {GAMES.map((g) => {
+          const id = `game:${g.id}`;
+          const locked = !isUnlocked(id, fun);
+          return (
             <button
               key={g.id}
               type="button"
-              title={g.how}
+              title={locked ? `${g.label}: ${lockText(id, fun)}` : g.how}
+              aria-disabled={locked || undefined}
+              aria-label={locked ? `${g.label} mini game, locked. ${lockText(id, fun)}.` : `Play ${g.label}`}
+              data-locked={locked || undefined}
+              data-game-option={g.id}
               onClick={() => {
+                if (locked) return setNote(lockNote(g.label, id));
                 document.getElementById(PANEL_ID)?.hidePopover();
                 startGame(g.id);
               }}
-              className="min-h-11 rounded-lg border border-line px-2 text-sm hover:border-ink/40"
+              className={`flex min-h-11 items-center justify-center gap-1 rounded-lg border px-1.5 text-sm leading-tight ${locked ? "locked-option border-dashed border-line text-muted" : "border-line hover:border-ink/40"}`}
             >
+              {locked ? <LockIcon /> : null}
               {g.label}
             </button>
-          ))}
-        </div>
-      ) : (
-        <p className="mt-1 rounded-lg border border-dashed border-line p-3 text-sm text-muted">
-          <span aria-hidden="true">🔒 </span>Find every secret to unlock three game modes. Know my favorite number? Try the trophy button.
-        </p>
-      )}
+          );
+        })}
+      </div>
+      <LockCaption note={note} options={GAMES.map((g) => ({ id: `game:${g.id}`, label: g.label }))} />
     </fieldset>
   );
 }
 
 /**
  * The secrets tracker lives beside the Bells & whistles badge (not inside its
- * panel), and it's always there, so visitors know secrets exist from the start.
+ * panel), and it's there whenever Fun mode is on, so visitors know secrets exist.
  */
 function SecretsChip() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const mounted = useSyncExternalStore(noSubscribe, () => true, () => false);
   const headingId = useId();
-  if (!mounted) return null;
+  if (!mounted || !isFunMode(fun)) return null;
   const n = fun.secrets.length;
   return (
     <>
       <button
         type="button"
         popoverTarget={SECRETS_ID}
-        aria-label={`Secrets: ${n} of ${SECRET_GOAL} found`}
+        aria-label={`Secrets: ${n} of ${liveSecretCount()} found`}
         title="Secrets"
         data-secrets-chip
-        className="pill inline-flex h-11 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-medium tabular-nums hover:border-ink/40 max-sm:min-w-11 max-sm:justify-center max-sm:gap-1 max-sm:px-2"
+        className="pill fun-arrive inline-flex h-11 items-center gap-1.5 rounded-full border border-line px-3 text-sm font-medium tabular-nums hover:border-ink/40 max-sm:min-w-11 max-sm:justify-center max-sm:gap-1 max-sm:px-2"
       >
         <TrophyIcon />
         {n}
@@ -353,71 +431,24 @@ function SecretsChip() {
           </button>
         </div>
         <SecretsProgress found={fun.secrets} peeked={fun.peeked} hinted={fun.hinted} />
-        <UnlockAll />
+        <ResetSecrets />
       </div>
     </>
   );
 }
 
-/** "Unlock all secrets", behind a numpad: only for people who know my favorite number. */
-function UnlockAll() {
+/** "Reset all secrets", with a confirm step. Cheats (and settings) are left alone. */
+function ResetSecrets() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  const all = modesUnlocked(fun);
-  const dialog = useRef<HTMLDialogElement>(null);
-  const [code, setCode] = useState("");
-  const [wrong, setWrong] = useState(false);
-  // "code" → enter the number; "confirm" → the right number, now spell out what happens.
-  const [stage, setStage] = useState<"code" | "confirm">("code");
   const [resetting, setResetting] = useState(false);
-  const titleId = useId();
-  const missing = SECRET_LIST.length - fun.secrets.filter((id) => SECRET_LIST.some((x) => x.id === id)).length;
-
-  const press = (d: string) => {
-    if (stage !== "code") return;
-    setWrong(false);
-    setCode((c) => (c + d).slice(0, 6));
-  };
-  const submit = () => {
-    if (stage === "confirm") return unlock();
-    if (code === "137") {
-      setStage("confirm");
-      sound("toggle");
-    } else {
-      setWrong(true);
-      setCode("");
-      sound("hit");
-    }
-  };
-  const unlock = () => {
-    dialog.current?.close();
-    unlockAllSecrets();
-    burst("confetti");
-    sound("secret");
-    haptic("secret");
-    toast("You know my favorite number. Every secret unlocked, and the game modes too.");
-    celebrateDue(1400);
-  };
-
   return (
     <div className="mt-4 space-y-3 border-t border-line pt-3">
-      <Switch
-        label="Unlock all secrets"
-        description={all ? "Everything's unlocked" : "If you know my favorite number"}
-        checked={all}
-        disabled={all}
-        onChange={() => {
-          setCode("");
-          setWrong(false);
-          setStage("code");
-          dialog.current?.showModal();
-        }}
-        className="text-sm"
-      />
       {resetting ? (
         <div role="group" aria-label="Reset all secrets?" className="rounded-lg border border-line p-3 text-sm">
           <p>
             This clears the {fun.secrets.length} {fun.secrets.length === 1 ? "secret" : "secrets"} you&apos;ve found, the badges and hints you revealed, the
-            milestone parties and the goblin&apos;s hiding place. Game modes lock again. Your effect settings stay as they are.
+            milestone parties, and the goblin&apos;s hiding place. Fun features they unlocked lock again (cheats stay as they are). Your effect settings stay
+            too, unless a style locks.
           </p>
           <div className="mt-2 flex gap-2">
             <button
@@ -446,69 +477,6 @@ function UnlockAll() {
           Reset all secrets
         </button>
       )}
-      <dialog
-        ref={dialog}
-        aria-labelledby={titleId}
-        onClick={(e) => e.target === e.currentTarget && dialog.current?.close()}
-        onKeyDown={(e) => {
-          if (/^[0-9]$/.test(e.key)) press(e.key);
-          else if (e.key === "Backspace") setCode((c) => c.slice(0, -1));
-          else if (e.key === "Enter") {
-            e.preventDefault();
-            submit();
-          }
-        }}
-        className="numpad m-auto w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-line bg-surface p-5 text-ink shadow-2xl backdrop:bg-ink/40 backdrop:backdrop-blur-sm"
-      >
-        <h2 id={titleId} className="font-display text-lg font-semibold tracking-tight">
-          {stage === "code" ? "What's my favorite number?" : "137. You know me. Unlock everything?"}
-        </h2>
-        {stage === "code" ? (
-          <>
-            <output
-              aria-live="polite"
-              className={`mt-3 flex h-12 items-center justify-center rounded-lg bg-paper font-mono text-2xl tracking-[0.4em] tabular-nums ${wrong ? "numpad-wrong" : ""}`}
-            >
-              {wrong ? "Nope" : code || "\u00a0"}
-            </output>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((d) => (
-                <button key={d} type="button" onClick={() => press(d)} className="numpad-key">
-                  {d}
-                </button>
-              ))}
-              <button type="button" onClick={() => setCode("")} className="numpad-key text-sm" aria-label="Clear">
-                Clear
-              </button>
-              <button type="button" onClick={() => press("0")} className="numpad-key">
-                0
-              </button>
-              <button type="button" onClick={submit} className="numpad-key numpad-enter text-sm">
-                Enter
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-muted">
-              <li>
-                The {missing} {missing === 1 ? "secret" : "secrets"} you haven&apos;t found yet will be marked found, without you finding them.
-              </li>
-              <li>The three game modes unlock.</li>
-              <li>Any milestone parties you pass will play.</li>
-              <li>You can undo it any time with &ldquo;Reset all secrets&rdquo;, which clears every secret, including the ones you found yourself.</li>
-            </ul>
-            <div className="mt-4 flex gap-2">
-              <button type="button" onClick={unlock} className="numpad-key numpad-enter flex-1 px-3 text-sm" autoFocus>
-                Unlock everything
-              </button>
-              <button type="button" onClick={() => dialog.current?.close()} className="numpad-key flex-1 px-3 text-sm">
-                Cancel
-              </button>
-            </div>
-          </>
-        )}
-      </dialog>
     </div>
   );
 }
@@ -530,10 +498,11 @@ function SecretsProgress({ found, peeked, hinted }: { found: string[]; peeked: s
   const [detail, setDetail] = useState<string | null>(null);
   const listId = useId();
   const selected = SECRET_LIST.find((x) => x.id === detail);
-  const total = SECRET_GOAL;
-  const pct = Math.min(100, (found.length / total) * 100);
-  const next = MILESTONES.find((m) => found.length < m.at);
-  const reached = MILESTONES.filter((m) => found.length >= m.at);
+  // Only `live` secrets exist today; milestones are scaled to that (see scaledMilestones).
+  const live = liveSecretCount();
+  const milestones = scaledMilestones(live);
+  const next = milestones.find((m) => found.length < m.count);
+  const reached = milestones.filter((m) => found.length >= m.count);
 
   return (
     <div className="mt-4">
@@ -547,26 +516,17 @@ function SecretsProgress({ found, peeked, hinted }: { found: string[]; peeked: s
         <span className="flex items-center justify-between text-sm">
           <span className="font-medium">Secrets found</span>
           <span className="text-muted">
-            {found.length} of {total}
+            {found.length} of {live}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" className={`ml-1 inline transition-transform ${open ? "rotate-180" : ""}`}>
               <path d="m6 9 6 6 6-6" />
             </svg>
           </span>
         </span>
-        {/* Notches mark each milestone, so it's clear there's something to reach. */}
-        <span aria-hidden="true" className="relative mt-2 block h-2 rounded-full bg-paper">
-          <span className="block h-full rounded-full bg-kelp transition-[width] duration-500" style={{ width: `${pct}%` }} />
-          {MILESTONES.slice(0, -1).map((m) => (
-            <span
-              key={m.at}
-              data-notch={m.at}
-              className={`absolute -top-0.5 h-3 w-0.5 -translate-x-1/2 rounded-full ${found.length >= m.at ? "bg-kelp-ink/70" : "bg-muted"}`}
-              style={{ left: `${m.at}%` }}
-            />
-          ))}
-        </span>
+        {/* Solid up to today's secrets, hatched "coming soon" to the goal; notches mark each milestone. */}
+        <SecretsBar className="mt-2" found={found.length} live={live} goal={SECRET_GOAL} notches={milestones.slice(0, -1).map((m) => m.count)} />
         <span className="mt-1.5 block text-xs text-muted">
-          {next ? `Next celebration at ${next.at}` : "Every celebration unlocked"}
+          {next ? `Next celebration at ${next.count}. ` : "Every celebration unlocked. "}
+          {live} secrets so far; the goal is {SECRET_GOAL}.
         </span>
       </button>
       {open ? (
@@ -632,8 +592,8 @@ function SecretsProgress({ found, peeked, hinted }: { found: string[]; peeked: s
               : hinted.includes(selected.id)
                 ? `Hint: “${selected.hint}”. The icon is a clue too.`
                 : "Badge revealed. Select it again for a one-word hint."
-            : found.length === total
-              ? "You found them all. Nice."
+            : found.length >= live
+              ? `You found every secret so far. Nice. More are on the way (the goal is ${SECRET_GOAL}).`
               : `Select a locked badge to reveal it, then again for a one-word hint; select a found one to see how you got it. ${SECRET_LIST.length} secrets are hidden so far, with more on the way.`}
         </p>
       ) : null}
@@ -645,6 +605,7 @@ function SecretsProgress({ found, peeked, hinted }: { found: string[]; peeked: s
               key={m.at}
               type="button"
               onClick={() => celebrate(m.at)}
+              aria-label={`Replay ${m.name} (${m.count} secrets)`}
               className="min-h-9 rounded-full border border-line px-3 hover:border-ink/40"
             >
               <span aria-hidden="true">{m.icon}</span> {m.name}
@@ -665,6 +626,7 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
   const option = def.options.find((o) => o.id === effect.variant)!;
   const blocked = reduced && blockedByMotion(category, effect.variant);
   const groupId = useId();
+  const [note, setNote] = useState("");
 
   return (
     <div className="rounded-lg py-2">
@@ -689,6 +651,27 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
           </span>
           {def.options.map((o) => {
             const selected = effect.variant === o.id;
+            const id = effectId(category, o.id);
+            // Locked styles still show (with what they need), so people know they exist.
+            if (!isUnlocked(id, fun)) {
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  role="radio"
+                  aria-checked="false"
+                  aria-disabled="true"
+                  aria-label={`${o.label}, locked. ${lockText(id, fun)}.`}
+                  data-locked
+                  title={`${o.label}: ${lockText(id, fun)}`}
+                  onClick={() => setNote(lockNote(o.label, id))}
+                  className="locked-option inline-flex min-h-10 min-w-0 items-center justify-center gap-1 rounded-md border border-dashed border-line px-1.5 text-sm leading-tight text-muted"
+                >
+                  <LockIcon />
+                  {o.label}
+                </button>
+              );
+            }
             return (
               <button
                 key={o.id}
@@ -697,6 +680,7 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
                 aria-checked={selected}
                 title={o.description}
                 onClick={() => {
+                  setNote("");
                   setVariant(category, o.id);
                   sound("toggle");
                 }}
@@ -708,6 +692,7 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
           })}
         </div>
       ) : null}
+      {on ? <LockCaption note={note} options={def.options.map((o) => ({ id: effectId(category, o.id), label: o.label }))} /> : null}
       {on && category === "sound" ? (
         <Switch
           label="Hover sounds"
@@ -717,53 +702,6 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
           className="mt-2 pl-3 text-sm"
         />
       ) : null}
-    </div>
-  );
-}
-
-function Switch({
-  label,
-  description,
-  checked,
-  disabled,
-  onChange,
-  className = "",
-}: {
-  label: string;
-  description?: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: () => void;
-  className?: string;
-}) {
-  const id = useId();
-  return (
-    <div className={`flex items-center justify-between gap-4 ${className}`}>
-      <div>
-        <span id={`${id}-label`} className="block">
-          {label}
-        </span>
-        {description ? (
-          <span id={`${id}-desc`} className="block text-sm text-muted">
-            {description}
-          </span>
-        ) : null}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-labelledby={`${id}-label`}
-        aria-describedby={description ? `${id}-desc` : undefined}
-        disabled={disabled}
-        onClick={onChange}
-        className="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full bg-muted transition-colors aria-checked:bg-kelp disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        <span
-          aria-hidden="true"
-          className={`inline-block size-5 rounded-full bg-paper shadow transition-transform ${checked ? "translate-x-6" : "translate-x-1"}`}
-        />
-      </button>
     </div>
   );
 }

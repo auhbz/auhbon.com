@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { reveal } from "@/components/easter-eggs";
 import { burst } from "@/lib/fx";
-import { activeVariant, DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
+import { activeVariant, DEFAULT_FUN, getFun, isFunMode, subscribeFun } from "@/lib/fun";
 
 /**
  * A secret that only exists while selected. The egg is invisible and can't be
@@ -24,7 +24,8 @@ export function HiddenEgg() {
     const onSelection = () => {
       const sel = document.getSelection();
       const el = ref.current;
-      setShown(Boolean(sel && el && !sel.isCollapsed && sel.containsNode(el, true)));
+      // Boring mode: nothing hides in the selection.
+      setShown(Boolean(isFunMode(getFun()) && sel && el && !sel.isCollapsed && sel.containsNode(el, true)));
     };
     document.addEventListener("selectionchange", onSelection);
     return () => document.removeEventListener("selectionchange", onSelection);
