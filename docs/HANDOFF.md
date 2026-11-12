@@ -201,6 +201,13 @@ When I change or approve copy for my career materials:
 
 - **GitHub:** auhbz. The assistant can push to the repo; settings like repo visibility need Auhbon to confirm access with his password or passkey.
 - **Vercel:** project "auhbon-com" (team auhbon-3857). Pushes to `main` deploy the public site; pushes to `next` deploy the preview site. Upstash Redis is connected through Vercel Storage.
-- **Spaceship:** DNS for auhbon.com (www redirects to the apex). To get preview.auhbon.com: in Vercel → Project → Settings → Domains, add `preview.auhbon.com` and set its Git branch to `next`; then in Spaceship add the CNAME record Vercel shows (usually `preview` → `cname.vercel-dns.com`). Then make it public: Settings → Deployment Protection → turn off Vercel Authentication for previews (check the current Vercel wording; setting names change).
+- **Spaceship:** DNS for auhbon.com (www redirects to the apex).
+- **Setting up preview.auhbon.com (one-time, Auhbon does this in about 15 minutes):**
+  1. **Vercel, add the domain.** vercel.com → team "auhbon-3857" → project "auhbon-com" → Settings → Domains → Add Domain. Enter `preview.auhbon.com`. If it asks which environment or branch, choose Preview and Git branch `next`. If it doesn't ask, find the new domain in the list, click Edit, set Git Branch to `next`, and save. Vercel then shows "Invalid Configuration" plus the DNS record it wants (usually Type CNAME, Name `preview`, Value `cname.vercel-dns.com` or a longer `…vercel-dns…` value). Copy the value exactly as shown.
+  2. **Spaceship, add the DNS record.** spaceship.com → Domain Manager → auhbon.com → Advanced DNS (DNS records) → Add record: Type `CNAME`, Host `preview`, Value = what Vercel showed, TTL = default. Save. Don't change the existing records for `@` and `www`.
+  3. **Wait** 5–30 minutes. Vercel's Domains list should turn to "Valid Configuration" and issue the HTTPS certificate on its own.
+  4. **Vercel, remove the login wall.** Project → Settings → Deployment Protection → Vercel Authentication → set it to Disabled (or the option that leaves preview deployments public), then Save. Password Protection is a paid add-on and isn't needed. Note: this makes every preview deployment public, which is fine because the repo is public anyway.
+  5. **Test** in a private/incognito window, not logged in to Vercel: preview.auhbon.com should show the MP5 version (Boring/Fun toggle at the top).
+  6. **The assistant then** adds a `noindex` header for the preview host (so search engines skip it) and updates links from the long Vercel URL to preview.auhbon.com.
 - **Google Drive:** CV, resumes, About Me, Cover Letter Bank (one folder).
 - **LinkedIn:** linkedin.com/in/auhbon. Auhbon edits it himself from paste-ready text.
