@@ -117,7 +117,7 @@ export function MonkeyMode() {
             const { x, y } = middle(e.currentTarget);
             engine.current?.toss(x, y - 20);
           }}
-          className="wild-crate relative grid size-14 touch-none place-items-center rounded-md"
+          className="wild-crate relative grid size-12 sm:size-14 touch-none place-items-center rounded-md"
         >
           <CrateArt tipped={status.tipped} />
         </button>
@@ -187,7 +187,7 @@ function GlassCase({ which, hits, onHit }: { which: Case; hits: number; onHit: (
       aria-label={label}
       title={empty ? "Restock" : "Break in case of emergency"}
       onClick={(e) => onHit(which, e.currentTarget)}
-      className="wild-glass relative size-14 rounded-md"
+      className="wild-glass relative size-12 rounded-md sm:size-14"
     >
       <svg viewBox="0 0 56 56" aria-hidden="true" className="size-full">
         <rect x="1" y="1" width="54" height="54" rx="6" fill="#b3202a" />
