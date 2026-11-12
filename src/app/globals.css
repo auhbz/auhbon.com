@@ -1901,9 +1901,6 @@ html[data-overload] .pill {
 }
 
 /* The chicken: wanders along the top edge of a section (see chicken.tsx). */
-[data-chicken-host] {
-  position: relative;
-}
 .chicken-track {
   position: absolute;
   left: 0;
@@ -2088,9 +2085,6 @@ html[data-overload] .pill {
 }
 
 /* Clay pots: tucked into the bottom corner of a few sections (see clay-pots.tsx). */
-[data-pot-host] {
-  position: relative;
-}
 .pot-spot {
   position: absolute;
   right: max(1rem, calc((100% - 64rem) / 2 + 1rem));
@@ -2230,9 +2224,6 @@ html[data-overload] .pill {
 }
 
 /* Leaflings: one hides at a time (see leaflings.tsx). */
-[data-leafling-host] {
-  position: relative;
-}
 .leafling-spot {
   --edge: max(1.25rem, calc((100% - 64rem) / 2 + 2rem));
   position: absolute;
@@ -2408,4 +2399,10 @@ html[data-overload] .pill {
   display: block;
   width: 1.5rem;
   height: 1rem;
+}
+
+/* Extras that live "in" a section sit on a layer laid over it (see section-anchor.tsx). */
+.pot,
+.leafling-cover {
+  pointer-events: auto;
 }

@@ -12,6 +12,21 @@ const found = (id: string) => getFun().secrets.includes(id);
 const VISITS_KEY = "fun-visits-v1";
 const day = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
+/** Whether this page load is a later-day visit (worked out once per page load). */
+let returningVisit: boolean | null = null;
+function isReturningVisit() {
+  if (returningVisit !== null) return returningVisit;
+  returningVisit = false;
+  try {
+    const v = JSON.parse(localStorage.getItem(VISITS_KEY) ?? "null") as { last?: string } | null;
+    returningVisit = typeof v?.last === "string" && v.last < day();
+    localStorage.setItem(VISITS_KEY, JSON.stringify({ last: day() }));
+  } catch {
+    // No storage: the tab-away route still works.
+  }
+  return returningVisit;
+}
+
 const CLICKS_GOAL = 100;
 const SHUFFLES_GOAL = 5;
 /** A break this long (tab hidden) counts as leaving and coming back. */
@@ -36,14 +51,7 @@ export function FunSecrets() {
     let lastInput = performance.now();
 
     // --- Welcome back: another day, or a break of 20 seconds or more.
-    let returning = false;
-    try {
-      const v = JSON.parse(localStorage.getItem(VISITS_KEY) ?? "null") as { last?: string } | null;
-      returning = typeof v?.last === "string" && v.last < day();
-      localStorage.setItem(VISITS_KEY, JSON.stringify({ last: day() }));
-    } catch {
-      // No storage: the tab-away route still works.
-    }
+    let returning = isReturningVisit();
     const welcome = () => {
       if (returning && isFun() && !found("back")) reveal("back", "Welcome back! Good to see you again. 👋");
     };

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { createPortal } from "react-dom";
+import { SectionAnchor } from "@/components/section-anchor";
 import { reveal } from "@/components/easter-eggs";
 import { toast } from "@/lib/fx";
 import { activeVariant, getFun } from "@/lib/fun";
@@ -34,21 +34,16 @@ type Drop = { id: number; color: string; dx: number; delay: number };
  */
 export function ClayPots() {
   const visible = useExtraVisible("extra:pots");
-  const [hosts, setHosts] = useState<HTMLElement[]>([]);
-
-  useEffect(() => {
-    if (!visible) return;
-    const els = SPOTS.map((id) => document.getElementById(id)).filter((e): e is HTMLElement => !!e);
-    for (const el of els) el.dataset.potHost = "";
-    const t = window.setTimeout(() => setHosts(els), 0);
-    return () => {
-      window.clearTimeout(t);
-      for (const el of els) delete el.dataset.potHost;
-    };
-  }, [visible]);
-
   if (!visible) return null;
-  return <>{hosts.map((h, i) => createPortal(<Pot index={i} />, h, `pot-${i}`))}</>;
+  return (
+    <>
+      {SPOTS.map((id, i) => (
+        <SectionAnchor key={id} id={id}>
+          <Pot index={i} />
+        </SectionAnchor>
+      ))}
+    </>
+  );
 }
 
 function Pot({ index }: { index: number }) {

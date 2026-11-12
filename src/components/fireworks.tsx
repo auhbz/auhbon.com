@@ -126,8 +126,8 @@ export function Fireworks({ duration = 9500, onDone }: { duration?: number; onDo
     const explode = (r: Rocket) => {
       const { x, y, hue, shell } = r;
       flashes.push({ x, y, r: shell === "willow" ? 70 : 55, life: 1, hue });
-      const n = shell === "ring" ? 48 : shell === "palm" ? 9 : shell === "crossette" ? 14 : shell === "willow" ? 70 : 90;
-      const power = shell === "willow" ? 4.2 : shell === "palm" ? 5.2 : 5.6;
+      const n = shell === "ring" ? 56 : shell === "palm" ? 10 : shell === "crossette" ? 16 : shell === "willow" ? 90 : 120;
+      const power = shell === "willow" ? 5 : shell === "palm" ? 6 : 6.6;
       const tilt = Math.random() * Math.PI;
       for (let i = 0; i < n; i++) {
         let vx: number;
@@ -154,7 +154,7 @@ export function Fireworks({ duration = 9500, onDone }: { duration?: number; onDo
           vy,
           hue: gold ? 40 + Math.random() * 8 : shell === "crackle" ? 50 : hue + (Math.random() - 0.5) * 30,
           light: gold ? 60 : shell === "crackle" ? 88 : 62,
-          size: shell === "palm" ? 3.2 : shell === "willow" ? 1.6 : 2.1,
+          size: shell === "palm" ? 3.6 : shell === "willow" ? 2 : 2.6,
           decay: shell === "willow" ? 0.0065 : shell === "palm" ? 0.009 : shell === "crackle" ? 0.016 : 0.0125 + Math.random() * 0.004,
           drag: shell === "willow" ? 0.965 : 0.975,
           gravity: shell === "willow" ? 0.035 : 0.05,
