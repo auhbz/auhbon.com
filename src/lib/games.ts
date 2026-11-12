@@ -9,8 +9,8 @@ export type GameMode = "asteroids" | "keepy" | "stacker" | "flabby";
 
 export const GAMES: { id: GameMode; label: string; how: string; touch: string }[] = [
   { id: "asteroids", label: "Asteroids", how: "The page breaks apart. Turn with ← → (or A D), thrust with ↑ (W), fire with Space. Two hits and it's over.", touch: "Use the buttons at the bottom." },
-  { id: "keepy", label: "Keepy Uppy", how: "Keep the ball in the air: click or tap it, or press Space. Things get harder at 10, 20, 30 and 40.", touch: "Tap the ball." },
-  { id: "stacker", label: "Stacker", how: "Drop each block onto the stack with a click, a tap or Space. Only the overlap stays.", touch: "Tap anywhere to drop." },
+  { id: "keepy", label: "Keepy Uppy", how: "Keep the ball in the air: click or tap it, or press Space. Things get harder at 10, 20, 30, and 40.", touch: "Tap the ball." },
+  { id: "stacker", label: "Stacker", how: "Drop each block onto the stack with a click, a tap, or Space. Only the overlap stays.", touch: "Tap anywhere to drop." },
   // Unlocked by one secret (finding Flabby in Selected work): UNLOCKS "game:flabby".
   { id: "flabby", label: "Flabby", how: "Flap between the pipes: click, tap, Space or ↑. P pauses. It speeds up, and after 20 the pipes start to move.", touch: "Tap anywhere to flap." },
 ];

@@ -146,6 +146,7 @@ export const REVIEW: ReviewTier[] = [
           "Glimmers from the clay pots: spendable on something later, or just a counter?",
           "Your mini game secrets note was cut off after 'another should be for an impressive score ()'. I made the third one a quirky skill secret per game (e.g. Pacifist in Asteroids). OK?",
           "Board games (still draft): now has dice physics and a game switcher (Push your luck, Pig, Free roll). Promote, or another pass?",
+          "Known issue for MP6 (not yet fixed): the effects test suite logged one React hydration warning (#418) after the final merge. Pages work, but it should be tracked down before shipping.",
         ],
       },
       {

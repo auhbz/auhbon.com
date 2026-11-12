@@ -101,11 +101,11 @@ const EVENT_MESSAGES: Partial<Record<Secret, string>> = {
 
 /** Combination secrets: certain effects and themes switched on together. */
 const COMBO_MESSAGES: Partial<Record<Secret, string>> = {
-  elements: "Elementalist: lightning, fire and water.",
+  elements: "Elementalist: lightning, fire, and water.",
   wild: "Back to nature.",
   haunted: "Creepy clown. 🎈",
   oldmac: "Old MacDonald had a farm. E-I-E-I-O!",
-  breakfast: "Breakfast of champions: cookies, cereal and fruit.",
+  breakfast: "Breakfast of champions: cookies, cereal, and fruit.",
   hacker: "Hacker mode: I'm in.",
   arcade: "Insert coin. Player one, ready.",
   bigtop: "Welcome to the big top! 🎪",

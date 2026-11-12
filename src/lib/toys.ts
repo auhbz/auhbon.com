@@ -9,7 +9,7 @@ export type ToyId = "brush" | "notes" | "plane" | "smoke";
 export const TOYS: { id: ToyId; unlock: string; label: string; description: string }[] = [
   { id: "brush", unlock: "toy:brush", label: "Paint brush", description: "Paint all over the site, then wash it off" },
   { id: "notes", unlock: "toy:notes", label: "Sticky notes", description: "Write or doodle on notes and stick them anywhere" },
-  { id: "plane", unlock: "toy:plane", label: "Paper airplane", description: "Fold it, throw it, watch it loop and glide" },
+  { id: "plane", unlock: "toy:plane", label: "Paper airplane", description: "Fold it, throw it, watch it loop, and glide" },
   { id: "smoke", unlock: "toy:smoke", label: "Smoke bombs", description: "Throw one for a puff of smoke. Poof!" },
 ];
 

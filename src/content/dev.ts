@@ -6,7 +6,7 @@
  */
 
 /** The date this file was last brought up to date (YYYY-MM-DD). */
-export const DEV_AS_OF = "2026-11-10";
+export const DEV_AS_OF = "2026-11-12";
 
 export type RoadmapStatus = "Shipped" | "Waiting on Auhbon" | "WIP" | "Planned" | "Skipped";
 
@@ -19,6 +19,12 @@ export type RoadmapItem = {
 };
 
 export const roadmap: RoadmapItem[] = [
+  {
+    item: "2.0.0: Fun & Boring (MP5)",
+    version: "2.0.0",
+    status: "Waiting on Auhbon",
+    notes: "On the preview site. Approve by merging the MP5 pull request; see /dev/review.",
+  },
   {
     item: "1.15.0: Feedback fixes, round 3",
     version: "1.15.0",

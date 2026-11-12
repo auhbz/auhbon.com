@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 2.0.0 | Fun & Boring (MP5) | `release/2.0.0` (created when MP5 is merged to main) |
 | 1.22.0 | Effects, polish & phone fixes | [`release/1.22.0`](https://github.com/auhbz/auhbon.com/tree/release/1.22.0) |
 | 1.21.0 | Draft sandbox & visuals | [`release/1.21.0`](https://github.com/auhbz/auhbon.com/tree/release/1.21.0) |
 | 1.20.0 | Secrets batch | [`release/1.20.0`](https://github.com/auhbz/auhbon.com/tree/release/1.20.0) |
@@ -74,6 +75,19 @@ Major Push 4, part 3. New effects, a smoother look and phone fixes.
 - Style pickers in the panel lay out in balanced rows.
 
 ---
+
+## 2.0.0: Fun & Boring (MP5)
+
+On the `next` branch and its Vercel preview until Auhbon approves it.
+
+- **Fun / Boring toggle.** Boring (the default) is a plain professional portfolio; Fun brings back the playground. Switching never touches secrets, unlocks, or scores. Secrets only exist in Fun.
+- **Unlocks and cheats.** Effects, themes, mini games, Wild & Wondrous modes, toys, and extras unlock as secrets are found. Thresholds and milestones scale to the number of live secrets (goal: 100). Typing 137 enables cheats with a switch per unlockable.
+- **Effects.** Easier hamster breakaway, smooth car donuts, higher bubbles with a breeze and giant bubbles, spectacular fireworks, a Lantern festival, and full-body parade animals.
+- **About 30 new secrets**, three per mini game, typing prompts ("Quick question"), and hidden critters (a chicken, clay pots, and leaflings).
+- **Themes.** Pho goes live with toppings; the Pico-8 climber is Flabby and climbs the page; Flabby becomes a special-unlock mini game; Board games (draft) gets dice physics and three dice games.
+- **Wild & Wondrous.** Monkey Mode goes live (stealing words, vines, a bowling ball, and a rampaging gorilla) and Gravity Mode arrives.
+- **Toy box** with a paint brush, sticky notes, a paper airplane, and smoke bombs; the portal device becomes a hideable extra.
+- **Dev.** /dev/review (replaces Hands-on tasks), /dev/goals, /dev/milestones, and a richer /dev/secrets. "Mode" is now "Mini games" everywhere.
 
 ## 1.19.0: Mobile experience
 

@@ -90,7 +90,7 @@ export function FunToggle() {
           aria-checked={isFun}
           tabIndex={isFun ? 0 : -1}
           data-mode-option="fun"
-          title="Effects, themes, secrets and mini games"
+          title="Effects, themes, secrets, and mini games"
           onClick={() => choose("fun")}
         >
           Fun

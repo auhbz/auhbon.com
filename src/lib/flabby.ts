@@ -203,7 +203,7 @@ export class FlabbyGame {
     ctx.textBaseline = "top";
     if (this.state === "ready") {
       ctx.textAlign = "center";
-      ctx.fillText("tap, click or space to flap", 64, 90);
+      ctx.fillText("tap, click, or space to flap", 64, 90);
     } else if (this.state === "play") {
       ctx.textAlign = "left";
       ctx.fillText("score:", 2, 2);

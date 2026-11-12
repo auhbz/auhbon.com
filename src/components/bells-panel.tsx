@@ -700,7 +700,7 @@ function EffectRow({ category, reduced }: { category: Category; reduced: boolean
       {on && category === "sound" ? (
         <Switch
           label="Hover sounds"
-          description="Off keeps sounds for presses, pops and launches only"
+          description="Off keeps sounds for presses, pops, and launches only"
           checked={effect.hover !== false}
           onChange={() => setSoundHover(effect.hover === false)}
           className="mt-2 pl-3 text-sm"
