@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
 const out = process.argv[2];
@@ -7,6 +8,7 @@ const url = process.env.BASE ?? "http://localhost:3000/";
 const SECRET_DEFS = [...(await import("node:fs")).readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "(\w+)", title: .*?category: "(\w+)"/g)].map((m) => ({ id: m[1], category: m[2] }));
 const SECRET_COUNT = SECRET_DEFS.length;
 const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
+funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };
 const axe = async (page, label) => {
@@ -38,13 +40,8 @@ let a = await attrs(page);
 check(a.theme === "dark" && !a.fun && !a.look, `default: dark, no fun (${JSON.stringify(a)})`);
 const bell = page.getByRole("button", { name: "Bells and whistles" });
 check(await bell.isVisible(), "bells & whistles button present");
-const guide = page.locator("[data-goblin-guide]");
-check(await page.getByRole("button", { name: /^Secrets: 0 of 100 found/ }).isVisible(), "secrets chip shows from the very first visit (1.15.0)");
-const gb = await guide.boundingBox();
-const bb = await bell.boundingBox();
-check(gb.x > bb.x + bb.width - 4, `goblin guide stands to the right of the badge (${Math.round(gb.x)} vs ${Math.round(bb.x + bb.width)})`);
-check(await guide.isVisible() && /Click it!!!!/.test(await guide.innerText()), "goblin guide points at the button on a first visit");
-await page.screenshot({ path: `${out}/guide.png`, clip: { x: 760, y: 0, width: 520, height: 150 } });
+check(await page.getByRole("button", { name: /^Secrets: 0 of \d+ found/ }).isVisible(), "secrets chip shows in Fun mode from the first visit");
+// MP5: the guide goblin now points at the Boring / Fun toggle (see qa/core.mjs).
 const orbit = await bell.evaluate((el) => getComputedStyle(el, "::after").animationName);
 check(orbit === "orbit", `orbiting light animates (${orbit})`);
 await page.screenshot({ path: `${out}/header.png`, clip: { x: 700, y: 0, width: 580, height: 64 } });
@@ -420,13 +417,14 @@ await choose("Cursor trail", "Cursed");
 
 // --- Guide goblin restyle (p4) ---------------------------------------------------------------
 {
-  const gctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  // MP5: a first-time visitor is in Boring mode, and the guide points at the Boring / Fun toggle.
+  const gctx = await browser.plainContext({ viewport: { width: 1280, height: 900 } });
   const gp = await gctx.newPage();
   await gp.goto(url, { waitUntil: "networkidle" });
   const g = gp.locator("[data-goblin-guide]");
   const art = await gp.locator(".goblin-guide-art").boundingBox();
-  const badge = await gp.getByRole("button", { name: "Bells and whistles" }).boundingBox();
-  check(art.width <= 44 && art.x - (badge.x + badge.width) < 4, `goblin guide: smaller and tucked against the badge (${Math.round(art.width)}px, gap ${Math.round(art.x - badge.x - badge.width)}px)`);
+  const badge = await gp.locator("[data-fun-toggle]").boundingBox();
+  check(art.width <= 44 && art.x - (badge.x + badge.width) < 4, `goblin guide: smaller and tucked against the toggle (${Math.round(art.width)}px, gap ${Math.round(art.x - badge.x - badge.width)}px)`);
   const look = await gp.evaluate(() => {
     const bubble = getComputedStyle(document.querySelector(".goblin-bubble"));
     const probe = document.createElement("div");
@@ -437,7 +435,7 @@ await choose("Cursor trail", "Cursed");
     return { bg: bubble.backgroundColor, surface, skin: getComputedStyle(document.querySelector(".goblin-guide-art circle")).fill };
   });
   check(look.bg === look.surface && look.skin !== "rgb(108, 180, 71)", `goblin guide: drawn in the site's tokens, not neon (${JSON.stringify(look)})`);
-  check(/Click it!!!!/.test(await g.innerText()) && !/Tap it/.test(await g.innerText()), "goblin guide: says Click on desktop");
+  check(/Click Fun!!!!/.test(await g.innerText()) && !/Tap Fun/.test(await g.innerText()), "goblin guide: says Click on desktop");
   await gp.screenshot({ path: `${out}/guide-1280.png`, clip: { x: 780, y: 0, width: 500, height: 130 } });
   await gctx.close();
 }
@@ -552,7 +550,7 @@ const found = () => page.evaluate(() => JSON.parse(localStorage.getItem("bells-a
 if (!(await panel.isVisible())) await bell.click();
 const m3 = page.getByRole("switch", { name: "Enable bells and whistles" });
 if ((await m3.getAttribute("aria-checked")) === "false") await m3.click();
-const chip = page.getByRole("button", { name: /^Secrets: \d+ of 100 found/ });
+const chip = page.getByRole("button", { name: /^Secrets: \d+ of \d+ found/ });
 check(await chip.isVisible(), "secrets chip appears beside the badge once enabled (1.11.0)");
 check((await page.getByRole("dialog", { name: "Bells and whistles" }).getByRole("button", { name: /Secrets found/ }).count()) === 0, "secrets moved out of the bells panel");
 await page.keyboard.press("Escape");
@@ -562,7 +560,7 @@ check(await prog.isVisible(), "achievements: progress opens from the chip, alrea
 const badges = page.getByRole("list", { name: "Secrets" }).getByRole("button");
 check((await badges.count()) === SECRET_COUNT, `achievements: ${SECRET_COUNT} badges (${await badges.count()})`);
 check((await page.locator("[data-notch]").count()) === 7, `achievements: 7 milestone notches on the bar (${await page.locator("[data-notch]").count()})`);
-check(!(await guide.count()), "goblin guide ran off after the first open");
+check(!(await page.locator("[data-goblin-guide]").count()), "no goblin guide once Fun mode has been tried");
 // Badge hints: hover asks "Reveal badge?", a click reveals the icon; hover again asks
 // "One-word hint?", and a second click shows the word under the icon.
 const firstLocked = page.locator('[data-badge="locked"]').first();
@@ -624,9 +622,9 @@ check((await egg.evaluate((e) => getComputedStyle(e).opacity)) === "0", "egg: hi
 // The counter keeps up.
 await page.evaluate(() => scrollTo(0, 0));
 await chip.click();
-check(new RegExp(`^Secrets: ${(await found()).length} of 100`).test(await chip.getAttribute("aria-label")), "chip count keeps up");
+check(new RegExp(`^Secrets: ${(await found()).length} of ${SECRET_COUNT}`).test(await chip.getAttribute("aria-label")), "chip count keeps up");
 const label = await page.getByRole("button", { name: /Secrets found/ }).innerText();
-check(new RegExp(`${(await found()).length} of 100`).test(label), `progress shows ${(await found()).length} of 100 (${label.replace(/\s+/g, " ")})`);
+check(new RegExp(`${(await found()).length} of ${SECRET_COUNT}`).test(label), `progress shows ${(await found()).length} of ${SECRET_COUNT} live secrets (${label.replace(/\s+/g, " ")})`);
 await page.keyboard.press("Escape");
 
 // --- Hide and seek (1.10.0) --------------------------------------------------------------
@@ -670,7 +668,7 @@ await page.screenshot({ path: `${out}/parade.png`, clip: { x: 0, y: 780, width: 
 await page.waitForTimeout(900);
 check((await animal.getAttribute("data-trick")) === null, "parade: the trick ends and the animal walks on");
 await chip.click();
-check(/Next celebration at 10/.test(await page.getByRole("button", { name: /Secrets found/ }).innerText()), "milestones: “Next celebration at 10” after the first party");
+check(/Next celebration at \d+/.test(await page.getByRole("button", { name: /Secrets found/ }).innerText()), "milestones: names the next (scaled) celebration after the first party");
 await page.keyboard.press("Escape");
 
 // --- Farm adventure (1.16.0) -------------------------------------------------------------
@@ -727,10 +725,10 @@ await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
 // --- Game modes, 137 and leaderboards (1.14.0) ------------------------------------------
 await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
 if (!(await panel.isVisible())) await bell.click();
-check((await page.locator('[data-modes="locked"]').count()) === 1, "modes: locked until every secret is found");
-await page.keyboard.press("Escape");
-await chip.click();
-await page.getByRole("switch", { name: "Unlock all secrets" }).click();
+// MP5: 137 now enables cheats (in the panel); "Unlock all secrets" is one of them.
+await panel.locator("[data-cheat='off']").click();
+check(await panel.getByRole("switch", { name: "Enable cheats" }).isVisible(), "cheats off: the Enable cheats switch is back");
+await panel.getByRole("switch", { name: "Enable cheats" }).click();
 const pad = page.getByRole("dialog", { name: "What's my favorite number?" });
 check(await pad.isVisible(), "137: the switch asks for my favorite number on a numpad");
 for (const d of ["4", "2"]) await pad.getByRole("button", { name: d, exact: true }).click();
@@ -738,11 +736,14 @@ await pad.getByRole("button", { name: "Enter" }).click();
 check(/Nope/.test(await pad.locator("output").innerText()), "137: a wrong number is refused");
 await page.keyboard.type("137");
 await page.keyboard.press("Enter");
-const sure = page.getByRole("dialog", { name: /Unlock everything\?/ });
-check(await sure.isVisible() && /marked found, without you finding them/.test(await sure.innerText()), "137: asks if you're sure and says exactly what will happen");
-await sure.getByRole("button", { name: "Unlock everything" }).click();
+const sure = page.getByRole("dialog", { name: /Enable cheats\?/ });
+check(await sure.isVisible() && /don.t find secrets for you/.test(await sure.innerText()), "137: says exactly what cheats do");
+await sure.getByRole("button", { name: "Enable cheats" }).click();
+await panel.locator("[data-cheat='everything']").click(); // later checks use every feature, even after a reset
+await panel.locator("[data-cheat='secrets']").click();
+await panel.getByRole("group", { name: "Unlock all secrets?" }).getByRole("button", { name: "Unlock all secrets" }).click();
 await page.waitForTimeout(300);
-check(!(await sure.isVisible()) && (await found()).length === SECRET_COUNT, `137: unlocks every secret (${(await found()).length})`);
+check((await found()).length === SECRET_COUNT, `cheat: unlocks every secret (${(await found()).length})`);
 await page.waitForTimeout(1600);
 const celebrated137 = await page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).celebrated);
 check(celebrated137.length >= 4 && /Milestone: \d+ secrets/.test(await page.locator(".toast").innerText()), `137: every milestone passed is marked, and only the biggest party plays (${JSON.stringify(celebrated137)})`);
@@ -795,7 +796,7 @@ check(!(await attrs(page)).game, "game over: back to the site");
 await chip.click();
 await page.getByRole("button", { name: "Reset all secrets" }).click();
 const resetBox = page.getByRole("group", { name: "Reset all secrets?" });
-check(/Game modes lock again/.test(await resetBox.innerText()), "reset: explains what it clears");
+check(/lock again \(cheats stay as they are\)/.test(await resetBox.innerText()), "reset: explains what it clears");
 await resetBox.getByRole("button", { name: "Reset everything" }).click();
 await page.waitForTimeout(200);
 check((await found()).length === 0 && (await chip.getAttribute("aria-label")).startsWith("Secrets: 0"), "reset: every secret cleared");
@@ -937,7 +938,7 @@ const desk = async (timezoneId) => {
   const cats = await p.locator("#implemented-heading ~ div h3").allInnerTexts();
   check(cats.length >= 5 && cats.some((t) => t.startsWith("Combos")) && cats.some((t) => t.startsWith("Typing")) && cats.some((t) => t.startsWith("Games")), `dev/secrets: grouped by category (${cats.map((t) => t.split(" ")[0]).join(", ")})`);
   check((await p.getByText(/^(Easy|Medium|Hard)$/).count()) >= SECRET_COUNT, "dev/secrets: every secret shows a difficulty");
-  check((await p.getByText("Show how", { exact: true }).count()) >= SECRET_COUNT, "dev/secrets: spoilers stay hidden behind “Show how”");
+  check((await p.getByText("Typed “hire”", { exact: true }).count()) >= 1, "dev/secrets: each secret shows its unlocked note (MP5: shown, not hidden)");
   await axe(p, "dev/secrets");
   check(errs.length === 0, `P4: no console/page errors ${errs.slice(0, 3).join(" | ")}`);
   await c.close();

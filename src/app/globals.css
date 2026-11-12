@@ -1679,7 +1679,6 @@ html[data-fx-buttons="cookie"] .pill[data-bites="4"]:not(:focus-visible) {
   font-weight: 500;
   color: var(--muted);
   cursor: pointer;
-  transition: color 200ms, background-color 200ms;
 }
 .fun-toggle > button:hover {
   color: var(--ink);

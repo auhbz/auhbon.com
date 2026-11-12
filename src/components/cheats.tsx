@@ -52,7 +52,7 @@ export function CheatsSection() {
   };
 
   return (
-    <section className="mt-4 border-t border-line pt-3" data-cheats={enabled ? "on" : "off"} aria-label="Cheats">
+    <div role="group" className="mt-4 border-t border-line pt-3" data-cheats={enabled ? "on" : "off"} aria-label="Cheats">
       {enabled ? (
         <CheatsPanel />
       ) : (
@@ -130,7 +130,7 @@ export function CheatsSection() {
           </>
         )}
       </dialog>
-    </section>
+    </div>
   );
 }
 
@@ -139,8 +139,8 @@ function CheatsPanel() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const [confirmSecrets, setConfirmSecrets] = useState(false);
   const allIds = UNLOCKS.map((u) => u.id);
-  const everything = UNLOCKS.every((u) => isUnlocked(u.id, fun));
-  const byCheat = fun.cheats.unlocked.filter((id) => allIds.includes(id)).length;
+  // "Everything" means every feature is unlocked by cheat, so it stays open even if secrets are reset.
+  const everything = allIds.every((id) => fun.cheats.unlocked.includes(id));
   const missing = SECRET_LIST.length - fun.secrets.filter((id) => SECRET_LIST.some((x) => x.id === id)).length;
 
   const unlockSecrets = () => {
@@ -166,10 +166,9 @@ function CheatsPanel() {
             sound("toggle");
             toast(!everything ? "Cheat: every fun feature unlocked." : "Cheat unlocks cleared. What your secrets unlocked stays open.");
           }}
-          disabled={everything && byCheat === 0}
-          className="min-h-11 rounded-lg border border-line px-2 text-sm font-medium hover:border-ink/40 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-11 rounded-lg border border-line px-2 text-sm font-medium hover:border-ink/40"
         >
-          {everything ? (byCheat ? "Undo unlock everything" : "Everything's unlocked") : "Unlock everything"}
+          {everything ? "Undo unlock everything" : "Unlock everything"}
         </button>
         <button
           type="button"
