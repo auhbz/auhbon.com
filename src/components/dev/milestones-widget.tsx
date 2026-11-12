@@ -144,9 +144,9 @@ export function MilestonesWidget() {
       <h3 className="mt-10 font-display text-lg font-semibold tracking-tight">Milestone celebrations</h3>
       <p className="mt-1 max-w-prose text-sm text-muted">Top: the 100-scale value. Bottom: where it lands with {n} secrets (the last always lands on {n}).</p>
       <div aria-hidden="true" className="mt-4 px-3 sm:pl-24">
-        <div className="relative h-8">
+        <div className="relative h-14">
           {MILESTONES.map((m) => (
-            <span key={m.at} className="absolute bottom-1 -translate-x-1/2 text-lg leading-none" style={{ left: pct(m.at, SECRET_GOAL) }} title={`${m.name}: ${m.at}`}>
+            <span key={m.at} className="absolute top-0 -translate-x-1/2 text-lg leading-none" style={{ left: pct(m.at, SECRET_GOAL) }} title={`${m.name}: ${m.at}`}>
               {m.icon}
             </span>
           ))}
@@ -154,8 +154,8 @@ export function MilestonesWidget() {
         <div className="relative">
           <Axis max={SECRET_GOAL} label="100 scale" side="top" />
           {/* Today's count on the goal ruler */}
-          <span className="absolute -top-9 h-12 border-l-2 border-dashed border-kelp" style={{ left: pct(today, SECRET_GOAL) }}>
-            <span className="absolute -top-4 left-1 text-[11px] font-semibold whitespace-nowrap text-kelp">today: {today}</span>
+          <span className="absolute top-0 h-7 border-l-2 border-dashed border-kelp" style={{ left: pct(today, SECRET_GOAL) }}>
+            <span className="absolute top-2.5 left-1.5 rounded bg-paper px-1 text-[11px] font-semibold whitespace-nowrap text-kelp">today: {today} live</span>
           </span>
         </div>
         <Connectors pairs={ms.map((m) => [m.at, m.count])} height={90} max={n} />
@@ -210,13 +210,13 @@ export function MilestonesWidget() {
         ))}
       </ul>
       <div aria-hidden="true" className="mt-4 px-3 sm:pl-24">
-        <div className="relative" style={{ height: depth * 9 + 6 }}>
+        <div className="relative" style={{ height: depth * 9 + 30 }}>
           {counted.map((u, i) => (
             <span
               key={u.id}
               title={`${u.label}: ${u.at}`}
               className={`absolute size-[7px] -translate-x-1/2 ${KIND_STYLE[u.kind].shape} ${KIND_STYLE[u.kind].className}`}
-              style={{ left: pct(u.at, SECRET_GOAL), bottom: 4 + topStack[i] * 9 }}
+              style={{ left: pct(u.at, SECRET_GOAL), bottom: 28 + topStack[i] * 9 }}
             />
           ))}
         </div>
