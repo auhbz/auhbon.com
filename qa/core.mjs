@@ -74,7 +74,7 @@ const farm = dots.getByRole("radio", { name: /^Farm, locked\. Find \d+ more secr
 check((await farm.count()) === 1 && (await farm.getAttribute("aria-disabled")) === "true", "Farm is shown locked, with what it needs");
 await farm.click({ force: true });
 check(/Farm: find \d+ more secrets? to unlock it\./.test(await panel.locator("[data-lock-caption]").first().innerText()), "tapping a locked style explains it");
-check((await panel.locator("[data-game-option][data-locked]").count()) === 3, "all three mini games locked at 1 secret");
+check((await panel.locator("[data-game-option][data-locked]").count()) === 4, "all four mini games locked at 1 secret (Flabby needs his own secret)");
 check(await panel.getByText("Mini games", { exact: true }).isVisible(), "panel legend says Mini games");
 await page.keyboard.press("Escape");
 
@@ -140,7 +140,7 @@ await panel.locator("[data-cheat='off']").click();
 await page.waitForTimeout(200);
 st = await state(page);
 check(!st.cheats.enabled && st.effects.trail.on && st.effects.trail.variant === "sparkle", `cheats off: the locked Car trail falls back to Sparkle (${st.effects.trail.variant})`);
-check((await panel.locator("[data-game-option][data-locked]").count()) === 3, "cheats off: mini games lock again");
+check((await panel.locator("[data-game-option][data-locked]").count()) === 4, "cheats off: mini games lock again");
 await page.keyboard.press("Escape");
 
 // --- Scaled milestones: the first celebration at today's scale --------------

@@ -1,22 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { drawSprite, FLABBY, type Sprite } from "@/lib/flabby";
+import { FLABBY, PICO_PALETTE, type Sprite } from "@/lib/flabby";
 import { getFun } from "@/lib/fun";
 import { useFunMode } from "@/lib/unlocks";
 import { reveal } from "@/components/easter-eggs";
 import { startGame } from "@/components/game-layer";
 
-/** A static 8×8 sprite on a tiny canvas, scaled up with crisp pixels. */
-export function SpriteCanvas({ sprite, className }: { sprite: Sprite; className?: string }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const ctx = ref.current?.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, 8, 8);
-    drawSprite(ctx, sprite, 0, 0);
-  }, [sprite]);
-  return <canvas ref={ref} width={8} height={8} aria-hidden="true" className={className} />;
+/** A static 8×8 sprite as crisp SVG pixels (no canvas, so it never gets mistaken for an effects layer). */
+export function SpriteSvg({ sprite, className }: { sprite: Sprite; className?: string }) {
+  return (
+    <svg viewBox="0 0 8 8" aria-hidden="true" shapeRendering="crispEdges" className={className}>
+      {sprite.flatMap((row, y) =>
+        [...row].map((ch, x) => (ch === "." ? null : <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill={PICO_PALETTE[parseInt(ch, 16)]} />)),
+      )}
+    </svg>
+  );
 }
 
 /**
@@ -43,7 +41,7 @@ export function FlabbyIcon() {
         }}
         className="flabby-hop inline-grid size-8 place-items-center rounded-md hover:bg-surface"
       >
-        <SpriteCanvas sprite={FLABBY.fall} className="size-6" />
+        <SpriteSvg sprite={FLABBY.fall} className="size-6" />
       </button>
     </span>
   );

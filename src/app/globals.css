@@ -2550,11 +2550,8 @@ html[data-look="pho"] :is(.rounded-lg, .rounded-xl).border {
 .pico-climber {
   image-rendering: pixelated;
 }
-.flabby-icon canvas {
-  image-rendering: pixelated;
-}
 @media (prefers-reduced-motion: no-preference) {
-  .flabby-hop canvas {
+  .flabby-hop svg {
     animation: flabby-hop 3.2s ease-in-out infinite;
   }
 }

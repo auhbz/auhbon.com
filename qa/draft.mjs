@@ -133,35 +133,26 @@ await openPanel(page);
 await page.locator("[data-draft-panel] label", { hasText: "Board games" }).click();
 await closePanel(page);
 check((await page.locator("html").getAttribute("data-draft-look")) === "boardgames", "board games theme applied");
+check(await page.locator("[data-boardgames]").isVisible(), "the dice tray and its games show");
+await page.locator('[data-dice-game="free"]').click();
 const roll = page.locator("[data-dice-roll]");
-const before = await roll.getAttribute("data-faces");
+const result = page.locator("#draft-dice-result");
 await page.evaluate(() => {
   window.__rand = Math.random;
   Math.random = () => 0;
 });
-await roll.click();
-check((await roll.getAttribute("data-faces")) === "1-1" && before !== "1-1", "the dice roll (snake eyes when the dice say so)");
-await roll.click();
-await roll.click();
+for (let i = 0; i < 3; i++) {
+  const prev = await result.innerText();
+  await roll.click();
+  await page.waitForFunction((p) => document.querySelector("#draft-dice-result")?.textContent !== p, prev, { timeout: 8000 });
+}
 await page.evaluate(() => (Math.random = window.__rand));
+check(/Rolled 1 and 1/.test(await result.innerText()), "the dice settle on the rolled faces (snake eyes when the dice say so)");
 ds = await draftState(page);
 check(ds.secrets.includes("d-snake") && ds.secrets.includes("d-hot"), "snake eyes and three doubles in a row are draft secrets");
-await roll.click();
+await page.locator('[data-dice-game="push"]').click();
 await page.screenshot({ path: `${out}/draft-boardgames.png` });
 await axe(page, "board games theme");
-
-// --- Pho -----------------------------------------------------------------------------
-await openPanel(page);
-await page.locator("[data-draft-panel] label", { hasText: "Pho" }).click();
-await closePanel(page);
-check((await page.locator("html").getAttribute("data-draft-look")) === "pho", "pho theme applied");
-const bowl = page.locator("[data-pho-bowl]");
-for (let i = 0; i < 5; i++) await bowl.click();
-check((await bowl.getAttribute("data-left")) === "0" && (await draftState(page)).secrets.includes("d-slurp"), "slurping the whole bowl is a draft secret");
-await bowl.click();
-await page.screenshot({ path: `${out}/draft-pho.png` });
-await page.locator("#work").screenshot({ path: `${out}/draft-pho-section.png` });
-await axe(page, "pho theme");
 
 // --- Portals -------------------------------------------------------------------------
 const gun = page.locator("[data-portal-gun]");
@@ -195,44 +186,12 @@ check(/It was a lie\./.test(toast), `the cake: toast says "It was a lie." (${toa
 check((await draftState(page)).secrets.includes("d-cake"), "Cake is a draft secret");
 await page.locator("[data-portal-hud]").screenshot({ path: `${out}/draft-portal-hud.png` });
 
-// --- Pico-8: climber and Flabby -----------------------------------------------------
+// --- Pico-8 (live since MP5): a live look clears the draft theme ----------------------
 await openPanel(page);
 await page.getByRole("dialog", { name: "Bells and whistles" }).locator("label", { hasText: "Pico-8" }).click();
 await closePanel(page);
 check(!(await page.locator("html").getAttribute("data-draft-look")), "a live look clears the draft theme");
-check((await page.locator("[data-climber]").count()) === 1, "the climber runs in Pico-8");
-const flabby = page.locator("[data-flabby]");
-await flabby.scrollIntoViewIfNeeded();
-await wait(600);
-await page.screenshot({ path: `${out}/draft-pico.png` });
-await flabby.click();
-const game = page.locator("dialog[data-flabby-game]");
-check(await game.isVisible(), "clicking Flabby opens his game");
-check((await game.getAttribute("data-flabby-game")) === "ready", "game starts ready");
-await game.locator("canvas").click();
-await wait(150);
-check((await game.getAttribute("data-flabby-game")) === "play", "a tap starts the game");
-for (let i = 0; i < 2; i++) {
-  await page.keyboard.press("ArrowUp");
-  await wait(700);
-}
-await game.screenshot({ path: `${out}/draft-flabby-game.png` });
-await game.getByRole("button", { name: "Pause" }).click();
-check(/paused/.test(await game.innerText()), "pause works");
-await game.getByRole("button", { name: "Resume" }).click();
-await game.getByRole("button", { name: "Exit" }).click();
-await wait(150);
-check(!(await game.isVisible().catch(() => false)), "Exit closes the game");
-check(await flabby.evaluate((el) => el === document.activeElement), "focus returns to Flabby");
-check((await draftState(page)).secrets.includes("d-coward"), "quitting mid-flight is the Coward secret");
-// Let a run end on its own: never flap.
-await flabby.click();
-await game.locator("canvas").click();
-await page.waitForFunction(() => document.querySelector("dialog[data-flabby-game]")?.dataset.flabbyGame === "over", null, { timeout: 8000 });
-check(true, "the game ends (game over)");
-await wait(800);
-await game.screenshot({ path: `${out}/draft-flabby-over.png` });
-await page.keyboard.press("Escape");
+check((await page.locator("[data-flabby]").count()) === 0, "Flabby's draft perch is gone (he's live now)");
 
 // Keyboard warrior (live) fires on any key while Bells & whistles is on, so it is allowed here.
 const stray = (await liveSecrets(page)).filter((id) => id !== "keys");
