@@ -35,7 +35,17 @@ export type UnlockDef = {
 };
 
 /** Every unlockable fun feature. Workstreams append their own entries here. */
-export const UNLOCKS: UnlockDef[] = [];
+export const UNLOCKS: UnlockDef[] = [
+  // WILD workstream: Wild & Wondrous modes, the toy box and its toys, the portal device.
+  { id: "toy:box", kind: "toy", label: "Toy box", at: 2 },
+  { id: "toy:brush", kind: "toy", label: "Paint brush", at: 4 },
+  { id: "wild:monkeys", kind: "wild", label: "Monkey Mode", at: 5 },
+  { id: "toy:notes", kind: "toy", label: "Sticky notes", at: 8 },
+  { id: "toy:plane", kind: "toy", label: "Paper airplane", at: 12 },
+  { id: "wild:gravity", kind: "wild", label: "Gravity Mode", at: 15 },
+  { id: "toy:smoke", kind: "toy", label: "Smoke bombs", at: 18 },
+  { id: "extra:portal", kind: "extra", label: "Portal device", at: 20 },
+];
 
 /** Placeholder until CORE lands: everything is unlocked. */
 export function isUnlocked(id: string, s: FunState = getFun()): boolean {
