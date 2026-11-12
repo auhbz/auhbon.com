@@ -11,6 +11,7 @@
  * Reduced motion: no physics. Pieces glide down to a tidy shelf along the
  * bottom (no tumbling), can be dragged, and go back with a fade.
  */
+import { isHydrated } from "@/lib/hydrated";
 import { center, liftElement, liftWords, placeGhost, wordsCandidate, type Loot } from "@/lib/wild/loot";
 
 export type GravitySecret = "gravity-toss" | "gravity-name";
@@ -75,7 +76,7 @@ export class GravityEngine {
   loosen(budget = innerWidth < 640 ? 16 : 26): number {
     const maxW = innerWidth - 24;
     const ok = (el: HTMLElement) => {
-      if (el.closest("[data-wild-ui], [data-wild-ghosts], [data-wild-gone], [data-portal-surface], [data-draft-slot], .sr-only, [aria-hidden='true'], [popover], dialog")) return false;
+      if (!isHydrated(el) || el.closest("[data-wild-ui], [data-wild-ghosts], [data-wild-gone], [data-portal-surface], [data-draft-slot], .sr-only, [aria-hidden='true'], [popover], dialog")) return false;
       const r = el.getBoundingClientRect();
       if (!(r.width > 0 && r.height > 0 && r.top > 56 && r.bottom < innerHeight - 4 && r.width < maxW && r.height < 220)) return false;
       return !picked.some((t) => t.contains(el) || el.contains(t));

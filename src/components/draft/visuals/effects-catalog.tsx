@@ -1,6 +1,6 @@
 import { CATEGORIES, LOOKS, SECRET_LIST } from "@/lib/fun";
 import { DRAFT_LOOKS, DRAFT_SECRETS } from "@/lib/draft/store";
-import { WILD_MODES } from "@/lib/wild/store";
+import { WILD_MODES } from "@/lib/wild/modes";
 
 /**
  * Everything Bells & whistles can do, generated from fun.ts (live) and the

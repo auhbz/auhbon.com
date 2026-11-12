@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { CELEBRATE_EVENT, PARADE_END_EVENT } from "@/components/celebrations";
 import { markSeen, useWild } from "@/lib/wild/store";
-import { useExtraVisible, useFunMode, useUnlocked } from "@/lib/unlocks";
+import { unlockDef, unlockedBySecrets, useExtraVisible, useFunMode } from "@/lib/unlocks";
+import { DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
 import { prefersReducedMotion } from "@/lib/events";
 import { sound } from "@/lib/fx";
 
@@ -41,9 +42,12 @@ const openPanel = () => {
 export function Announcements() {
   const fun = useFunMode() === "fun";
   const wild = useWild();
-  const wildOpen = useUnlocked("wild:monkeys");
-  const box = useExtraVisible("toy:box");
-  const portal = useExtraVisible("extra:portal");
+  // Only unlocks earned with secrets get a moment: a cheat is a deliberate choice, no surprise needed.
+  const state = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const earned = (id: string) => unlockedBySecrets(unlockDef(id)!, state);
+  const wildOpen = earned("wild:monkeys");
+  const box = useExtraVisible("toy:box") && earned("toy:box");
+  const portal = useExtraVisible("extra:portal") && earned("extra:portal");
   const [active, setActive] = useState<Note | null>(null);
   const [busy, setBusy] = useState(false);
 

@@ -29,14 +29,6 @@ export function ToyBox() {
   useEffect(() => {
     if (!visible) holdToy(null);
   }, [visible]);
-  useEffect(() => {
-    const d = document.documentElement.dataset;
-    if (visible) d.toyBox = "on";
-    else delete d.toyBox;
-    return () => {
-      delete d.toyBox;
-    };
-  }, [visible]);
 
   // Esc puts the toy back (unless you're typing on a sticky note).
   useEffect(() => {

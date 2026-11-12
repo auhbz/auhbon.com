@@ -10,6 +10,7 @@
  * text node, which is the one we keep (and put back to its full text), so the
  * component tree never notices.
  */
+import { isHydrated } from "@/lib/hydrated";
 
 export type Loot = {
   kind: "element" | "words";
@@ -153,7 +154,7 @@ export function liftWords(node: Text, start: number, end: number): Loot | null {
 function inView(r: DOMRect, top = 64) {
   return r.width > 0 && r.height > 0 && r.bottom > top && r.top < innerHeight - 8 && r.left > -4 && r.right < innerWidth + 4;
 }
-const usable = (el: Element) => !el.closest(SKIP);
+const usable = (el: Element) => !el.closest(SKIP) && isHydrated(el);
 const pick = <T,>(xs: T[]) => xs[Math.floor(Math.random() * xs.length)];
 
 /** Whole elements in view that can be lifted. */

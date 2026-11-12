@@ -2,6 +2,7 @@
 
 import { useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { whenHydrated } from "@/lib/hydrated";
 
 /**
  * Renders client-only extras inside a section of the (unchanged) home page:
@@ -40,11 +41,16 @@ export function Slot({
   const el = useSyncExternalStore(noSubscribe, () => slotFor(id, className), () => null);
   useEffect(() => {
     if (!el) return;
-    const host = document.querySelector(target);
-    if (!host) return;
-    if (prepend) host.prepend(el);
-    else host.append(el);
-    return () => el.remove();
+    // Only once the section has hydrated (see lib/hydrated.ts).
+    const cancel = whenHydrated(target, (host) => {
+      if (!host) return;
+      if (prepend) host.prepend(el);
+      else host.append(el);
+    });
+    return () => {
+      cancel();
+      el.remove();
+    };
   }, [el, target, prepend]);
   return el ? createPortal(children, el) : null;
 }

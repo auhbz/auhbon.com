@@ -7,6 +7,7 @@ import { prefersReducedMotion } from "@/lib/events";
 import { sound, toast } from "@/lib/fx";
 import { reveal } from "@/components/easter-eggs";
 import { shakePage } from "@/components/wild/shake";
+import { whenHydrated } from "@/lib/hydrated";
 
 const noSubscribe = () => () => {};
 
@@ -31,8 +32,10 @@ export function GravityMode() {
     (window as unknown as { __wildGravity?: GravityEngine }).__wildGravity = fx;
     // A rumble, then the page lets go.
     shakePage(2);
-    const t = window.setTimeout(() => fx.loosen(), 250);
+    let t = 0;
+    const cancel = whenHydrated("main section", () => (t = window.setTimeout(() => fx.loosen(), 250)), 3000);
     return () => {
+      cancel();
       window.clearTimeout(t);
       fx.destroy();
       release();

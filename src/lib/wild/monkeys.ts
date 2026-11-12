@@ -298,7 +298,11 @@ export class MonkeyEngine {
     this.makeVines();
   };
 
+  /** Vines hang from just under the (sticky) header, so they never cover the navigation. */
+  private top = 0;
+
   private makeVines() {
+    this.top = Math.max(0, document.querySelector("header")?.getBoundingClientRect().bottom ?? 0);
     const n = Math.max(3, Math.min(6, Math.floor(this.w / 230)));
     const old = this.vines;
     for (const v of old) if (v.rider) this.letGo(v.rider);
@@ -486,7 +490,7 @@ export class MonkeyEngine {
   }
 
   private tip(v: Vine) {
-    return { x: v.x + Math.sin(v.theta) * v.len, y: Math.cos(v.theta) * v.len };
+    return { x: v.x + Math.sin(v.theta) * v.len, y: this.top + Math.cos(v.theta) * v.len };
   }
 
   private tick = (now: number) => {
@@ -689,7 +693,7 @@ export class MonkeyEngine {
     if (m.state === "wander") {
       if (wild && Math.random() < dt * 0.8) this.say(m.x, m.y - 34, SHOUTS[Math.floor(Math.random() * SHOUTS.length)], 14);
       const steal = (wild ? 1.1 : 0.35) * dt;
-      const swing = (wild ? 0.6 : 0.12) * dt;
+      const swing = (wild ? 0.7 : 0.3) * dt;
       if (!m.loot && m.t > 1.5 && Math.random() < steal) {
         const t = this.findTarget();
         if (t) {
@@ -1051,11 +1055,11 @@ export class MonkeyEngine {
       const tip = this.tip(v);
       // A gentle curve from the anchor to the tip: it sags opposite the swing.
       const mx = (v.x + tip.x) / 2 - Math.sin(v.theta) * v.len * 0.12;
-      const my = tip.y / 2;
+      const my = (this.top + tip.y) / 2;
       c.strokeStyle = "#3f7d2c";
       c.lineWidth = 4;
       c.beginPath();
-      c.moveTo(v.x, -4);
+      c.moveTo(v.x, this.top - 2);
       c.quadraticCurveTo(mx, my, tip.x, tip.y);
       c.stroke();
       c.strokeStyle = "#5fa83f";
@@ -1066,7 +1070,7 @@ export class MonkeyEngine {
       for (let i = 1; i < 6; i++) {
         const k = i / 6;
         const x = (1 - k) * (1 - k) * v.x + 2 * (1 - k) * k * mx + k * k * tip.x;
-        const y = (1 - k) * (1 - k) * -4 + 2 * (1 - k) * k * my + k * k * tip.y;
+        const y = (1 - k) * (1 - k) * this.top + 2 * (1 - k) * k * my + k * k * tip.y;
         const side = i % 2 ? 1 : -1;
         c.save();
         c.translate(x, y);

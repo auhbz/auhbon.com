@@ -7,22 +7,9 @@
 import { useSyncExternalStore } from "react";
 import { lockText } from "@/lib/unlocks";
 
-export type WildMode = "monkeys" | "gravity";
+import { WILD_MODES, type WildMode } from "@/lib/wild/modes";
 
-export const WILD_MODES: { id: WildMode; unlock: string; label: string; description: string }[] = [
-  {
-    id: "monkeys",
-    unlock: "wild:monkeys",
-    label: "Monkey Mode",
-    description: "Monkeys swing in on vines and steal words and buttons. Bonk them to get things back",
-  },
-  {
-    id: "gravity",
-    unlock: "wild:gravity",
-    label: "Gravity Mode",
-    description: "The page comes loose and falls. Grab the pieces and toss them, then put everything back",
-  },
-];
+export { WILD_MODES, type WildMode };
 
 type WildState = {
   on: boolean;
