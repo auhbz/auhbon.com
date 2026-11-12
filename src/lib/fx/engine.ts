@@ -215,6 +215,8 @@ export class FxEngine {
     this.ctx = canvas.getContext("2d")!;
     this.resize();
     this.listen();
+    // Development only: let QA scripts see where the bubbles are.
+    if (process.env.NODE_ENV !== "production") (window as unknown as { __fxBubbles?: () => [number, number][] }).__fxBubbles = () => this.bubbles.map((b) => [b.x, b.y]);
   }
 
   configure(next: EngineSettings) {
