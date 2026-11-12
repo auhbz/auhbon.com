@@ -59,3 +59,49 @@ export function useFunMode(): FunMode {
   return funMode(s);
 }
 export { FUN_EVENT };
+
+/*
+ * Extras visibility: unlocked toys and extras (toy box, portal gun, climber,
+ * skeleton…) can be hidden to declutter the page, from the panel section
+ * "Unlocked toys, features & elements". Hidden ≠ locked: hiding never
+ * changes secrets or unlocks. Stored separately so it can't disturb fun.ts.
+ */
+const HIDDEN_KEY = "fun-extras-hidden-v1";
+const HIDDEN_EVENT = "portfolio:extras";
+let hiddenCache: string[] | null = null;
+const EMPTY: string[] = [];
+
+function readHidden(): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(HIDDEN_KEY) ?? "[]");
+    return Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+export function hiddenExtras(): string[] {
+  if (typeof window === "undefined") return EMPTY;
+  if (!hiddenCache) hiddenCache = readHidden();
+  return hiddenCache;
+}
+export function setExtraVisible(id: string, visible: boolean) {
+  const cur = hiddenExtras();
+  hiddenCache = visible ? cur.filter((x) => x !== id) : cur.includes(id) ? cur : [...cur, id];
+  try {
+    localStorage.setItem(HIDDEN_KEY, JSON.stringify(hiddenCache));
+  } catch {
+    // Applied for this visit even if it can't be saved.
+  }
+  window.dispatchEvent(new Event(HIDDEN_EVENT));
+}
+function subscribeHidden(onChange: () => void) {
+  window.addEventListener(HIDDEN_EVENT, onChange);
+  return () => window.removeEventListener(HIDDEN_EVENT, onChange);
+}
+/** True when an extra/toy is unlocked, not hidden by the visitor, and the site is in Fun mode. */
+export function useExtraVisible(id: string): boolean {
+  const unlocked = useUnlocked(id);
+  const mode = useFunMode();
+  const hidden = useSyncExternalStore(subscribeHidden, hiddenExtras, () => EMPTY);
+  return unlocked && mode === "fun" && !hidden.includes(id);
+}
