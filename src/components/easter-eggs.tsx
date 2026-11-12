@@ -58,6 +58,10 @@ const EVENT_MESSAGES: Partial<Record<Secret, string>> = {
   skeleton: "Possessed! The ghost took the skeleton for a dance.",
   whatsthis: "This? It's a secret. You found it by asking.",
   podbay: "I'm sorry, Dave. I'm afraid I can't do that.",
+  flap10: "Flap happy! 10 in Flabby.",
+  flap25: "Frequent flapper! 25 in Flabby.",
+  coward: "Coward! (Flabby's words, not mine.)",
+  dazed: "Bonk! He's seeing stars.",
 };
 
 /** Combination secrets: certain effects and themes switched on together. */

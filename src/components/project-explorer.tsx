@@ -5,6 +5,7 @@ import { flushSync } from "react-dom";
 import type { Project } from "@/content/profile";
 import { FILTER_EVENT, prefersReducedMotion } from "@/lib/events";
 import { ExternalLink } from "@/components/external-link";
+import { FlabbyIcon } from "@/components/flabby-icon";
 
 /** The active filter lives in the URL (?stack=Java), so filtered views can be shared. */
 const PARAM = "stack";
@@ -221,10 +222,14 @@ function ProjectLinks({ project, className }: { project: Project; className: str
   return (
     <p className={`${className} flex flex-wrap gap-4`}>
       {project.links.map((link) => (
-        <ExternalLink key={link.href} className="text-link" href={link.href}>
-          {link.label}
-          <span className="sr-only"> for {project.name}</span>
-        </ExternalLink>
+        <span key={link.href} className="inline-flex items-center gap-1">
+          <ExternalLink className="text-link" href={link.href}>
+            {link.label}
+            <span className="sr-only"> for {project.name}</span>
+          </ExternalLink>
+          {/* Fun mode: Flabby himself sits beside his source code link. */}
+          {project.name === "Flabby" && link.label === "Source code" ? <FlabbyIcon /> : null}
+        </span>
       ))}
     </p>
   );

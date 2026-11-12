@@ -80,7 +80,7 @@ function DraftPanelBody() {
         <legend className="flex items-center gap-2 text-sm text-muted">
           Draft themes <DraftTag />
         </legend>
-        <div className="mt-1 grid grid-cols-3 gap-2">
+        <div className="mt-1 grid grid-cols-2 gap-2">
           {[{ id: null, label: "None", description: "No draft theme" }, ...DRAFT_LOOKS].map((l) => (
             <label
               key={l.id ?? "none"}
@@ -101,7 +101,6 @@ function DraftPanelBody() {
             </label>
           ))}
         </div>
-        <p className="mt-1 text-sm text-muted">Pico-8 extras (a little climber and Flabby&apos;s game) show up with the Pico-8 theme above.</p>
       </fieldset>
 
       <DraftSecretsList found={draft.secrets} peeked={draft.peeked} />

@@ -35,7 +35,12 @@ export type UnlockDef = {
 };
 
 /** Every unlockable fun feature. Workstreams append their own entries here. */
-export const UNLOCKS: UnlockDef[] = [];
+export const UNLOCKS: UnlockDef[] = [
+  // THEMES (MP5)
+  { id: "theme:pho", kind: "theme", label: "Pho theme", at: 20 },
+  { id: "extra:climber", kind: "extra", label: "Pico-8 climber", at: 12 },
+  { id: "game:flabby", kind: "game", label: "Flabby", at: 0, secret: "flabby" },
+];
 
 /** Placeholder until CORE lands: everything is unlocked. */
 export function isUnlocked(id: string, s: FunState = getFun()): boolean {

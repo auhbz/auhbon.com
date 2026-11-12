@@ -8,7 +8,7 @@
  */
 import { prefersReducedMotion } from "@/lib/events";
 
-export type Look = "classic" | "terminal" | "pico8" | "nature" | "spooky";
+export type Look = "classic" | "terminal" | "pico8" | "nature" | "spooky" | "pho";
 export type Category = "dots" | "buttons" | "trail" | "sound";
 
 type Option = { id: string; label: string; description: string };
@@ -72,6 +72,7 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
   { id: "pico8", label: "Pico-8", description: "The 16-color fantasy-console palette I made Flabby in" },
   { id: "nature", label: "Nature", description: "Moss, dappled canopy light, flowing water, falling leaves" },
   { id: "spooky", label: "Spooky", description: "Fog, flicker, and curious things that fly at night" },
+  { id: "pho", label: "Pho", description: "A steaming bowl with limes, basil, bean sprouts, and jalapeños on the side" },
 ];
 
 /**
@@ -85,7 +86,10 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
 export const SECRET_CATEGORIES = ["Hidden", "Typing", "Combos", "Effects", "Farm", "Games", "Misc"] as const;
 export type SecretCategory = (typeof SECRET_CATEGORIES)[number];
 
-type SecretDef = { id: string; title: string; icon: string; how: string; hint: string; category: SecretCategory; difficulty: 1 | 2 | 3 };
+/** Which part of the site a secret belongs to (CORE uses it to group and gate). */
+export type SecretArea = "site" | "effects" | "themes" | "games" | "wild" | "toys" | "extras";
+
+type SecretDef = { id: string; title: string; icon: string; how: string; hint: string; category: SecretCategory; difficulty: 1 | 2 | 3; area?: SecretArea };
 
 export const SECRET_LIST = [
   { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row", hint: "Name", category: "Hidden", difficulty: 2 },
@@ -123,6 +127,15 @@ export const SECRET_LIST = [
   { id: "hacker", title: "Hacker", icon: "💻", how: "Terminal theme with Electric buttons and the Sparkle trail", hint: "Phosphor", category: "Combos", difficulty: 2 },
   { id: "arcade", title: "Insert coin", icon: "🕹️", how: "Pico-8 theme with Rainbow buttons and the Slingshot", hint: "Retro", category: "Combos", difficulty: 2 },
   { id: "bigtop", title: "Big top", icon: "🎪", how: "Clown sounds, Rainbow buttons and Bubbles together", hint: "Circus", category: "Combos", difficulty: 2 },
+  // THEMES (MP5): the Pho theme's bowl, the Pico-8 climber, and Flabby's mini game.
+  { id: "auhbonsway", title: "Auhbon's way", icon: "🌶️", how: "Pho theme: topped the bowl with exactly 3 limes, all the jalapeños, and all the basil", hint: "Spicy", category: "Effects", difficulty: 3, area: "themes" },
+  { id: "naturalist", title: "Naturalist", icon: "🌿", how: "Pho theme: slurped a whole bowl without adding a single topping", hint: "Plain", category: "Effects", difficulty: 2, area: "themes" },
+  { id: "cleanbowl", title: "Clean bowl", icon: "🥢", how: "Pho theme: slurped a whole bowl you'd topped", hint: "Slurp", category: "Effects", difficulty: 1, area: "themes" },
+  { id: "dazed", title: "Dazed and confused", icon: "💫", how: "Pico-8 theme: scrolled the little climber into the edge of the screen while he was climbing", hint: "Bonk", category: "Effects", difficulty: 2, area: "extras" },
+  { id: "flabby", title: "Found Flabby", icon: "🐤", how: "Clicked the tiny Flabby beside his project's source code link in Selected work", hint: "Source", category: "Hidden", difficulty: 2, area: "games" },
+  { id: "flap10", title: "Flap happy", icon: "🐦", how: "Scored 10 in Flabby", hint: "Ten", category: "Games", difficulty: 2, area: "games" },
+  { id: "flap25", title: "Frequent flapper", icon: "🏅", how: "Scored 25 in Flabby", hint: "Drift", category: "Games", difficulty: 3, area: "games" },
+  { id: "coward", title: "Coward", icon: "🐔", how: "Quit Flabby mid-flight (he says so himself)", hint: "Quit", category: "Games", difficulty: 1, area: "games" },
 ] as const satisfies readonly SecretDef[];
 export type Secret = (typeof SECRET_LIST)[number]["id"];
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
@@ -412,4 +425,4 @@ export function applyFunAttributes(s: FunState) {
  * Inline, pre-hydration version of applyFunAttributes (keep the two in sync),
  * so a saved look paints correctly on the first frame.
  */
-export const funInitScript = `try{var f=JSON.parse(localStorage.getItem("${KEY}")||"null");if(f&&f.on===true){var d=document.documentElement.dataset,e=f.effects||{};d.fun="on";var b=e.buttons;if(!b||b.on!==false)d.fxButtons=(b&&b.variant)||"rainbow";if(["terminal","pico8","nature","spooky"].indexOf(f.look)>-1)d.look=f.look}}catch(e){}`;
+export const funInitScript = `try{var f=JSON.parse(localStorage.getItem("${KEY}")||"null");if(f&&f.on===true){var d=document.documentElement.dataset,e=f.effects||{};d.fun="on";var b=e.buttons;if(!b||b.on!==false)d.fxButtons=(b&&b.variant)||"rainbow";if(["terminal","pico8","nature","spooky","pho"].indexOf(f.look)>-1)d.look=f.look}}catch(e){}`;

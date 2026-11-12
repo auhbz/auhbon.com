@@ -9,6 +9,7 @@ import { GooglyOs } from "@/components/googly-eyes";
 import { DocumentLink, ExternalLink } from "@/components/external-link";
 import { PodBayDoors } from "@/components/pod-bay-doors";
 import { Skeleton } from "@/components/skeleton";
+import { PhoBowl } from "@/components/pho-bowl";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 
@@ -124,6 +125,8 @@ export default function Home() {
             ))}
           </ul>
         </div>
+        {/* Pho theme only (renders nothing otherwise). */}
+        <PhoBowl />
       </section>
 
       <Section id="work" title="Selected work">

@@ -37,6 +37,7 @@ import { startGame } from "@/components/game-layer";
 import { GAMES } from "@/lib/games";
 import { canTilt, canVibrate, haptic, onShake, requestMotionPermission } from "@/lib/device";
 import { DraftPanelSection } from "@/components/draft/panel-section"; // draft-only
+import { useUnlocked } from "@/lib/unlocks";
 
 const PANEL_ID = "bells-panel";
 const SECRETS_ID = "secrets-panel";
@@ -186,7 +187,7 @@ export function BellsPanel() {
 
         <fieldset className="mt-4">
           <legend className="text-sm text-muted">Theme</legend>
-          <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-5">
+          <div className="mt-1 grid grid-cols-3 gap-2">
             {LOOKS.map((l) => (
               <label
                 key={l.id}
@@ -273,6 +274,9 @@ function PhoneSwitches() {
 function ModeSection() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const unlocked = modesUnlocked(fun);
+  // Flabby is unlocked by one secret (finding him in Selected work), not by the others.
+  const flabby = useUnlocked("game:flabby");
+  const games = GAMES.filter((g) => g.id !== "flabby" || flabby);
   return (
     <fieldset className="mt-4" data-modes={unlocked ? "unlocked" : "locked"}>
       <legend className="text-sm text-muted">Mode</legend>
@@ -281,7 +285,7 @@ function ModeSection() {
           <button type="button" aria-pressed="true" className="min-h-11 rounded-lg border border-kelp bg-kelp px-2 text-sm text-kelp-ink">
             Standard
           </button>
-          {GAMES.map((g) => (
+          {games.map((g) => (
             <button
               key={g.id}
               type="button"
@@ -297,9 +301,24 @@ function ModeSection() {
           ))}
         </div>
       ) : (
-        <p className="mt-1 rounded-lg border border-dashed border-line p-3 text-sm text-muted">
-          <span aria-hidden="true">🔒 </span>Find every secret to unlock three game modes. Know my favorite number? Try the trophy button.
-        </p>
+        <>
+          {flabby ? (
+            <button
+              type="button"
+              title={GAMES.find((g) => g.id === "flabby")!.how}
+              onClick={() => {
+                document.getElementById(PANEL_ID)?.hidePopover();
+                startGame("flabby");
+              }}
+              className="mt-1 mb-2 min-h-11 w-full rounded-lg border border-line px-2 text-sm hover:border-ink/40"
+            >
+              Flabby
+            </button>
+          ) : null}
+          <p className="mt-1 rounded-lg border border-dashed border-line p-3 text-sm text-muted">
+            <span aria-hidden="true">🔒 </span>Find every secret to unlock three game modes. Know my favorite number? Try the trophy button.
+          </p>
+        </>
       )}
     </fieldset>
   );

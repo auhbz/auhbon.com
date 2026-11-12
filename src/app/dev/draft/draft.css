@@ -3,7 +3,7 @@
  * rule is keyed off a class or data-* attribute that only the draft page
  * sets (data-draft, data-draft-look, data-draft-stolen, ...), so the live
  * site is untouched even after a client-side navigation away.
- * Palettes are checked in scripts/contrast.mjs ("pho", "boardgames").
+ * Palette checked in scripts/contrast.mjs ("boardgames").
  * ====================================================================== */
 
 .draft-tag {
@@ -22,17 +22,6 @@
 }
 
 /* --- Draft themes: palettes. :root:root outranks the live looks and light/dark. --- */
-:root:root[data-draft-look="pho"] {
-  --paper: #22150e;
-  --surface: #2c1d13;
-  --ink: #fbeedd;
-  --muted: #d2b597;
-  --kelp: #f2a65a;
-  --kelp-ink: #22150e;
-  --line: #4a3527;
-  --focus: #9fd36b;
-  color-scheme: dark;
-}
 :root:root[data-draft-look="boardgames"] {
   --paper: #133d2d;
   --surface: #2a1c11;
@@ -43,80 +32,6 @@
   --line: #3f6a55;
   --focus: #ff9d6e;
   color-scheme: dark;
-}
-
-/* --- Pho: rising steam, herb garnish between sections, chopsticks cursor. --- */
-html[data-draft-look="pho"] body {
-  isolation: isolate;
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M3 29L27 3M7 30L30 7' stroke='%23a0683a' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M22 8l5-5M25 11l5-4' stroke='%23e9c79c' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") 3 29, auto;
-}
-html[data-draft-look="pho"] body::before {
-  content: "";
-  position: fixed;
-  inset: auto 0 0;
-  height: 70vh;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(6% 40% at 18% 100%, rgba(255, 240, 220, 0.07), transparent 70%),
-    radial-gradient(5% 45% at 47% 100%, rgba(255, 240, 220, 0.06), transparent 70%),
-    radial-gradient(7% 38% at 80% 100%, rgba(255, 240, 220, 0.07), transparent 70%),
-    radial-gradient(60% 40% at 50% 110%, rgba(242, 166, 90, 0.12), transparent 70%);
-}
-html[data-draft-look="pho"] section[id] {
-  position: relative;
-  border-top-color: transparent;
-}
-html[data-draft-look="pho"] section[id]::before {
-  content: "";
-  position: absolute;
-  inset: -9px 0 auto;
-  height: 18px;
-  pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='18' viewBox='0 0 120 18'%3E%3Cpath d='M0 9h120' stroke='%234a3527' stroke-width='1.5'/%3E%3Cellipse cx='14' cy='9' rx='8' ry='4' fill='%233f8f3a' transform='rotate(-18 14 9)'/%3E%3Cellipse cx='27' cy='9' rx='6' ry='3.5' fill='%2356a64a' transform='rotate(22 27 9)'/%3E%3Ccircle cx='58' cy='8' r='2.4' fill='%237dbb5a'/%3E%3Ccircle cx='62' cy='11' r='2' fill='%237dbb5a'/%3E%3Ccircle cx='55' cy='12' r='1.8' fill='%237dbb5a'/%3E%3Ccircle cx='94' cy='9' r='7' fill='%23a6d64b' stroke='%236c9a24' stroke-width='1.5'/%3E%3Cpath d='M94 2v14M87 9h14M89 4l10 10M99 4L89 14' stroke='%23e9f5c6' stroke-width='.8'/%3E%3C/svg%3E") repeat-x 0 0 / 120px 18px;
-}
-html[data-draft-look="pho"] .hero-name {
-  text-shadow: 0 0.04em 0 #7a3e12, 0 0 0.4em rgba(242, 166, 90, 0.25);
-}
-html[data-draft-look="pho"] :is(.rounded-lg, .rounded-xl).border {
-  box-shadow: inset 0 3px 0 0 rgba(159, 211, 107, 0.35);
-}
-.draft-steam {
-  position: absolute;
-  inset: -1.5rem 1.5rem 3rem;
-  pointer-events: none;
-  background:
-    radial-gradient(30% 50% at 30% 80%, rgba(255, 246, 232, 0.35), transparent 70%),
-    radial-gradient(25% 45% at 55% 70%, rgba(255, 246, 232, 0.3), transparent 70%),
-    radial-gradient(28% 50% at 75% 85%, rgba(255, 246, 232, 0.28), transparent 70%);
-  filter: blur(3px);
-}
-@media (prefers-reduced-motion: no-preference) {
-  html[data-draft-look="pho"] body::before {
-    animation: draft-steam-page 9s ease-in-out infinite alternate;
-  }
-  .draft-steam {
-    animation: draft-steam 3.2s ease-in-out infinite;
-  }
-}
-@keyframes draft-steam-page {
-  to {
-    transform: translateY(-4%) scaleY(1.06);
-    opacity: 0.8;
-  }
-}
-@keyframes draft-steam {
-  0% {
-    transform: translateY(6px) scaleX(0.9);
-    opacity: 0.2;
-  }
-  50% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateY(-14px) scaleX(1.15);
-    opacity: 0;
-  }
 }
 
 /* --- Board games: felt, a game-board track between sections, pawn bullets, dice. --- */
@@ -155,18 +70,13 @@ html[data-draft-look="boardgames"] main ul.list-disc {
 html[data-draft-look="boardgames"] .hero-name {
   text-shadow: 0.04em 0.05em 0 #5b3a1d;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .draft-dice-pair .draft-die {
-    animation: draft-tumble 420ms cubic-bezier(0.2, 0.7, 0.1, 1);
-  }
-  .draft-dice-pair .draft-die-tilt {
-    animation-duration: 520ms;
-  }
-}
-@keyframes draft-tumble {
-  from {
-    transform: rotate(-200deg) translateY(-10px) scale(0.8);
-  }
+/* The dice tray: green felt with a walnut rim. */
+.draft-tray {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.08), transparent 55%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 3px),
+    #1f6b4a;
+  box-shadow: inset 0 0 0 4px #5b3a1d, inset 0 6px 14px rgba(0, 0, 0, 0.45);
 }
 
 /* --- Chaos: stolen elements, the dock. --- */
@@ -308,9 +218,4 @@ html[data-draft] [data-draft-stolen] {
     transform: scale(0.2);
     opacity: 0;
   }
-}
-
-/* --- Pico-8 extras. --- */
-.draft-climber {
-  image-rendering: pixelated;
 }

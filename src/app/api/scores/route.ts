@@ -10,7 +10,7 @@
  */
 import type { NextRequest } from "next/server";
 
-const MODES = ["asteroids", "keepy", "stacker"] as const;
+const MODES = ["asteroids", "keepy", "stacker", "flabby"] as const;
 type Mode = (typeof MODES)[number];
 
 /** Highest believable score, and the least time (ms) a point can take. */
@@ -18,6 +18,8 @@ const LIMITS: Record<Mode, { max: number; msPerPoint: number }> = {
   asteroids: { max: 50000, msPerPoint: 20 },
   keepy: { max: 1000, msPerPoint: 250 },
   stacker: { max: 300, msPerPoint: 300 },
+  // A pipe every 56 px at up to 1.9 px a frame (30 fps) is about 1 s a point at top speed.
+  flabby: { max: 500, msPerPoint: 600 },
 };
 
 const BLOCKED = new Set(["ASS", "FUK", "FUC", "FCK", "SEX", "CUM", "DIK", "KKK", "NIG", "FAG", "TIT", "XXX"]);
