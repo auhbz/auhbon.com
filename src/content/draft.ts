@@ -16,7 +16,7 @@ export type DraftFeature = {
   notes?: string;
 };
 
-export const DRAFT_AS_OF = "2026-11-10";
+export const DRAFT_AS_OF = "2026-11-11";
 
 export const DRAFT_FEATURES: DraftFeature[] = [
   {
@@ -31,7 +31,7 @@ export const DRAFT_FEATURES: DraftFeature[] = [
     feature: "Draft section in Bells & whistles",
     where: "Bells & whistles panel, only on /dev/draft",
     status: "testing",
-    notes: "Each draft option carries a small “draft” tag. Draft secrets are tracked separately and never count toward the live total, milestones or game modes.",
+    notes: "Each draft option carries a small “draft” tag. Draft secrets are tracked separately and never count toward the live total, milestones, or mini games.",
   },
   {
     id: "chaos",
@@ -41,32 +41,12 @@ export const DRAFT_FEATURES: DraftFeature[] = [
     notes: "Monkeys multiply and steal pills, tags and headings; tap one to bonk it and get the item back. Banana crate (drag and throw), a gorilla behind emergency glass (4 hits), and a peanut-and-banana hammer that knocks the crate over. Calm version with reduced motion; at most 12 monkeys.",
   },
   {
-    id: "pho",
-    feature: "Pho theme",
-    where: "Theme picker, draft section",
-    status: "testing",
-    notes: "Broth-warm palette, rising steam, basil, cilantro and lime accents, a chopsticks cursor, and a bowl you can slurp.",
-  },
-  {
     id: "boardgames",
     feature: "Board games theme",
     where: "Theme picker, draft section",
     status: "testing",
-    notes: "Felt and walnut palette, a game-board track between sections, pawn bullets, and a pair of dice in the hero.",
-  },
-  {
-    id: "climber",
-    feature: "Pico-8: little climber",
-    where: "Pico-8 theme, bottom of the screen",
-    status: "testing",
-    notes: "An original 8×8 pixel climber (teal beanie, backpack) who runs, jumps and climbs the screen edges.",
-  },
-  {
-    id: "flabby",
-    feature: "Pico-8: Flabby and his minigame",
-    where: "Pico-8 theme, bottom of the page",
-    status: "testing",
-    notes: "Flabby's original sprites from Auhbon's PICO-8 cart (auhbz/flabbby). Click him to play a Flappy-style game: tap, click, Space or ↑ to flap; P pauses; Esc exits.",
+    notes:
+      "Felt and walnut palette, a game-board track between sections, and pawn bullets. In the hero, a felt dice tray with physics (drag a die and let go to throw it; dice bounce off the rim and each other, tumble, and settle) and a switcher between three dice games: Push your luck (get close to a limit without going over; spend a die to reroll others), Pig against the house (first to 50), and Free roll. Draft secrets: Bullseye, Waste not, Hog wild, Snake eyes, and Hot dice. Reduced motion: throws settle at once.",
   },
   {
     id: "portal",

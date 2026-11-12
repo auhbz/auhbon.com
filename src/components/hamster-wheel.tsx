@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { burst, sound } from "@/lib/fx";
+import { burst, foundSecret, sound } from "@/lib/fx";
 import { prefersReducedMotion } from "@/lib/events";
 
 /**
@@ -13,7 +13,10 @@ export const HAMSTER_GATES = [
   { cps: 3, clicks: 3 },
   { cps: 5, clicks: 8 },
   { cps: 7, clicks: 15 },
-  { cps: 9, clicks: 20 },
+  // The breakaway: as fast as the fire gate, but it has to be kept up a while longer.
+  // (Simulated with a jittery human clicker, the rate needed for an even chance fell
+  // from about 7.3 to 5.6 clicks a second when this went from 9/20 to 7/14.)
+  { cps: 7, clicks: 14 },
 ] as const;
 const BROKEN = HAMSTER_GATES.length;
 /** No clicks for this long and the wheel starts calming down, a stage at a time. */
@@ -93,6 +96,7 @@ export function HamsterDot({ index }: { index: number }) {
     else if (next === 3) sound("launch");
     else if (next === BROKEN) {
       sound("hit");
+      foundSecret("breakaway");
       const r = e.currentTarget.getBoundingClientRect();
       burst("sparks", r.left + r.width / 2, r.top + r.height / 2);
       window.clearTimeout(l.timer);

@@ -1,13 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { getFun, isFunMode, subscribeFun } from "@/lib/fun";
+import { isUnlocked } from "@/lib/unlocks";
 import { Asteroids, bestLocal, clearInput, GAMES, KeepyUppy, localScores, saveLocalScore, Stacker, type Game, type GameMode, type Input, type Score } from "@/lib/games";
 import { cssVar } from "@/lib/fx/text";
+import { FlabbyRun } from "@/lib/flabby";
+import { prefersReducedMotion } from "@/lib/events";
 
 export const GAME_EVENT = "portfolio:game";
 
-/** Start a game mode (from the Bells & whistles panel). */
+/** Start a mini game (from the Bells & whistles panel). Only in Fun mode, and only once it's unlocked. */
 export function startGame(mode: GameMode) {
+  if (!isFunMode(getFun()) || !isUnlocked(`game:${mode}`)) return;
   window.dispatchEvent(new CustomEvent<GameMode>(GAME_EVENT, { detail: mode }));
 }
 
@@ -22,6 +27,8 @@ const KEYMAP: Record<string, string> = {
   w: "up",
   W: "up",
   " ": "fire",
+  p: "pause",
+  P: "pause",
 };
 
 type Board = { initials: string; score: number }[];
@@ -37,6 +44,7 @@ export function GameLayer() {
   const [banner, setBanner] = useState<string | null>(null);
   const [run, setRun] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  const [paused, setPaused] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
   // One mutable input object for the game's lifetime (handlers write, the loop reads).
   const [input] = useState<Input>(() => ({ keys: new Set(), taps: [] }));
@@ -45,6 +53,8 @@ export function GameLayer() {
   const opener = useRef<Element | null>(null);
 
   const exit = useCallback(() => {
+    // Leaving mid-game (some games have a secret for that).
+    if (game.current && !game.current.over) game.current.onExit?.();
     setMode(null);
     delete document.documentElement.dataset.game;
     (opener.current as HTMLElement | null)?.focus?.();
@@ -61,6 +71,14 @@ export function GameLayer() {
     window.addEventListener(GAME_EVENT, onStart);
     return () => window.removeEventListener(GAME_EVENT, onStart);
   }, []);
+
+  // Switching to Boring mode closes the game layer.
+  useEffect(() => {
+    if (!mode) return;
+    return subscribeFun(() => {
+      if (!isFunMode(getFun())) exit();
+    });
+  }, [mode, exit]);
 
   // Esc leaves the game at any point, including the game-over card.
   useEffect(() => {
@@ -86,7 +104,8 @@ export function GameLayer() {
     };
     size();
     document.documentElement.dataset.game = mode;
-    game.current = mode === "asteroids" ? new Asteroids(colors) : mode === "keepy" ? new KeepyUppy() : new Stacker(colors);
+    game.current =
+      mode === "asteroids" ? new Asteroids(colors) : mode === "keepy" ? new KeepyUppy() : mode === "flabby" ? new FlabbyRun(prefersReducedMotion()) : new Stacker(colors);
     // The QA suite reaches the running game through its canvas (to test the in-game secrets).
     (el as HTMLCanvasElement & { game?: Game }).game = game.current;
     started.current = performance.now();
@@ -108,6 +127,7 @@ export function GameLayer() {
         lastHud = now;
         setScore(g.score);
         setBanner(g.banner && now < g.banner.until ? g.banner.text : null);
+        setPaused(!!g.paused);
       }
       if (g.over) {
         setScore(g.score);
@@ -128,7 +148,8 @@ export function GameLayer() {
     const up = (e: KeyboardEvent) => {
       const k = KEYMAP[e.key];
       // "fire" is consumed by the games that use it as a single press.
-      if (k && k !== "fire") input.keys.delete(k);
+      // "pause" is a single press too (the game consumes it), so a quick tap isn't lost.
+      if (k && k !== "fire" && k !== "pause") input.keys.delete(k);
       if (k === "fire" && mode === "asteroids") input.keys.delete(k);
     };
     window.addEventListener("keydown", down);
@@ -184,6 +205,20 @@ export function GameLayer() {
           Score <strong>{score}</strong>
           <span className="text-muted"> · Best {Math.max(bestLocal(mode), over ? score : 0)}</span>
         </p>
+        {mode === "flabby" && !over ? (
+          <button
+            type="button"
+            aria-pressed={paused}
+            onClick={() => {
+              game.current?.togglePause?.();
+              setPaused(!!game.current?.paused);
+              canvas.current?.focus();
+            }}
+            className="game-button"
+          >
+            {paused ? "Resume" : "Pause"} <kbd className="hidden sm:inline">P</kbd>
+          </button>
+        ) : null}
         <button type="button" onClick={exit} className="game-button">
           Exit <kbd className="hidden sm:inline">Esc</kbd>
         </button>

@@ -12,6 +12,8 @@ import { FxCanvas } from "@/components/fx-canvas";
 import { EasterEggs } from "@/components/easter-eggs";
 import { Celebrations } from "@/components/celebrations";
 import { GameLayer } from "@/components/game-layer";
+import { Climber } from "@/components/climber";
+import { FunExtras } from "@/components/fun-extras";
 import { SoundFx } from "@/components/fx-canvas";
 import "./globals.css";
 
@@ -104,6 +106,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <EasterEggs email={profile.email} />
         <Celebrations />
         <GameLayer />
+        <Climber />
+        <FunExtras />
       </body>
     </html>
   );

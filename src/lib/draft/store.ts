@@ -1,23 +1,22 @@
 /**
  * The draft playground's own settings store, kept apart from the live
  * Bells & whistles store (src/lib/fun.ts) on purpose: nothing here can change
- * the live site, its secrets count, its milestones or its game-mode unlock.
+ * the live site, its secrets count, its milestones, or its unlocks.
  *
  * Like fun.ts, state is mirrored onto <html> data-* attributes, but only while
  * the draft page is mounted (DraftRoot sets data-draft="on").
  */
 import { burst, sound, toast } from "@/lib/fx";
 
-export type DraftLook = "pho" | "boardgames";
+export type DraftLook = "boardgames";
 
 export const DRAFT_LOOKS: { id: DraftLook; label: string; description: string }[] = [
-  { id: "pho", label: "Pho", description: "A steaming bowl: warm broth, basil, cilantro and lime" },
-  { id: "boardgames", label: "Board games", description: "Felt, walnut, game pieces and a pair of dice" },
+  { id: "boardgames", label: "Board games", description: "Felt, walnut, game pieces, and a tray of dice games" },
 ];
 
 /**
  * Draft-only secrets. Never part of SECRET_LIST, so they can't count toward
- * the live total (fun.ts read() drops ids it doesn't know, and modesUnlocked
+ * the live total (fun.ts read() drops ids it doesn't know, and unlocks
  * only looks at SECRET_LIST).
  */
 export const DRAFT_SECRETS = [
@@ -25,11 +24,11 @@ export const DRAFT_SECRETS = [
   { id: "d-troop", title: "Barrel of monkeys", icon: "🙈", how: "Let the troop grow to its full size", feature: "chaos" },
   { id: "d-gorilla", title: "Release the gorilla", icon: "🦍", how: "Broke the gorilla's emergency glass", feature: "chaos" },
   { id: "d-frenzy", title: "Banana frenzy", icon: "🍌", how: "Knocked the banana crate over with the peanut hammer", feature: "chaos" },
-  { id: "d-slurp", title: "Clean bowl", icon: "🍜", how: "Slurped the whole bowl of pho", feature: "pho" },
-  { id: "d-snake", title: "Snake eyes", icon: "🐍", how: "Rolled two ones in the Board games theme", feature: "boardgames" },
-  { id: "d-hot", title: "Hot dice", icon: "🎲", how: "Rolled doubles three times in a row", feature: "boardgames" },
-  { id: "d-flap", title: "Flap happy", icon: "🕹️", how: "Scored 10 in Flabby's game", feature: "flabby" },
-  { id: "d-coward", title: "Coward", icon: "🐔", how: "Quit Flabby's game mid-flight (he says so himself)", feature: "flabby" },
+  { id: "d-snake", title: "Snake eyes", icon: "🐍", how: "Rolled two ones in Free roll (Board games theme)", feature: "boardgames" },
+  { id: "d-hot", title: "Hot dice", icon: "🎲", how: "Rolled doubles three times in a row in Free roll", feature: "boardgames" },
+  { id: "d-bullseye", title: "Bullseye", icon: "🎯", how: "Stood on exactly the limit in Push your luck", feature: "boardgames" },
+  { id: "d-thrifty", title: "Waste not", icon: "💰", how: "Stood on exactly the limit in Push your luck after spending at most one die", feature: "boardgames" },
+  { id: "d-pig", title: "Hog wild", icon: "🐷", how: "Beat the house at Pig", feature: "boardgames" },
   { id: "d-cake", title: "Cake", icon: "🎂", how: "Solved the last portal test chamber", feature: "portal" },
 ] as const;
 export type DraftSecret = (typeof DRAFT_SECRETS)[number]["id"];

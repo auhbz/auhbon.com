@@ -10,8 +10,8 @@ const themes = {
   pico8: { paper: "#1d2b53", surface: "#000000", ink: "#fff1e8", muted: "#c2c3c7", kelp: "#ffec27", kelpInk: "#1d2b53", line: "#5f574f" },
   nature: { paper: "#0e1f16", surface: "#13291d", ink: "#e4efd6", muted: "#a8c49a", kelp: "#9fdc6b", kelpInk: "#0e1f16", line: "#2c4a36" },
   spooky: { paper: "#0c0812", surface: "#150e1f", ink: "#ece4f5", muted: "#ad9fc0", kelp: "#ff6b7f", kelpInk: "#0c0812", line: "#2e2240" },
-  // Draft-only themes (/dev/draft, src/app/dev/draft/draft.css).
   pho: { paper: "#22150e", surface: "#2c1d13", ink: "#fbeedd", muted: "#d2b597", kelp: "#f2a65a", kelpInk: "#22150e", line: "#4a3527" },
+  // Draft-only theme (/dev/draft, src/app/dev/draft/draft.css).
   boardgames: { paper: "#133d2d", surface: "#2a1c11", ink: "#f7f0e1", muted: "#c8d3b8", kelp: "#f4c552", kelpInk: "#1d150c", line: "#3f6a55" },
 };
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { BURST_EVENT, foundSecret, SOUND_EVENT, type Burst } from "@/lib/fx";
-import { activeVariant, DEFAULT_FUN, getFun, lookActive, subscribeFun } from "@/lib/fun";
+import { activeVariant, DEFAULT_FUN, funActive, getFun, lookActive, subscribeFun } from "@/lib/fun";
 import { FxEngine } from "@/lib/fx/engine";
 import { play, type SoundEvent, type SoundPack } from "@/lib/sound";
 import { prefersReducedMotion } from "@/lib/events";
@@ -52,8 +52,9 @@ export function FxCanvas() {
   const dots = activeVariant(fun, "dots");
   const buttons = activeVariant(fun, "buttons");
   const look = lookActive(fun);
-  const on = fun.on;
-  const motion = fun.on && fun.motion;
+  // Boring mode: the engine idles (bursts still work for the Fun toggle's fanfare).
+  const on = funActive(fun);
+  const motion = on && fun.motion;
 
   useEffect(() => {
     engine.current?.configure({ trail, dots, buttons, look, reduced, on, motion });

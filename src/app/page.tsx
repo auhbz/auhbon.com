@@ -9,10 +9,12 @@ import { GooglyOs } from "@/components/googly-eyes";
 import { DocumentLink, ExternalLink } from "@/components/external-link";
 import { PodBayDoors } from "@/components/pod-bay-doors";
 import { Skeleton } from "@/components/skeleton";
+import { PhoBowl } from "@/components/pho-bowl";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
 
 function formatMonth(iso: string) {
+  if (/^\d{4}$/.test(iso)) return iso;
   return monthFormat.format(new Date(`${iso}-01T00:00:00Z`));
 }
 
@@ -20,8 +22,8 @@ function Dates({ role }: { role: Role }) {
   return (
     <>
       <time dateTime={role.start}>{formatMonth(role.start)}</time>
-      {" to "}
-      {role.end ? <time dateTime={role.end}>{formatMonth(role.end)}</time> : "present"}
+      {role.end === role.start ? null : " to "}
+      {role.end === role.start ? null : role.end ? <time dateTime={role.end}>{formatMonth(role.end)}</time> : "present"}
     </>
   );
 }
@@ -124,6 +126,8 @@ export default function Home() {
             ))}
           </ul>
         </div>
+        {/* Pho theme only (renders nothing otherwise). */}
+        <PhoBowl />
       </section>
 
       <Section id="work" title="Selected work">
@@ -212,7 +216,7 @@ export default function Home() {
       <Section id="contact" title="Contact">
         <div className="relative">
           <p className="max-w-prose font-display text-2xl leading-snug font-medium tracking-tight sm:text-3xl">
-            I&apos;m l<GooglyOs />king for my next software engineering role in Los Angeles, hybrid or on-site.
+            I&apos;m l<GooglyOs />king for my next software engineering role in Los Angeles: hybrid, on-site, or remote.
           </p>
           <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2" aria-label="Ways to reach me">
             {profile.email ? (

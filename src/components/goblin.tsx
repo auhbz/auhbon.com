@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { advanceHide, DEFAULT_FUN, getFun, HIDE_SPOTS, subscribeFun } from "@/lib/fun";
+import { advanceHide, DEFAULT_FUN, funActive, getFun, HIDE_SPOTS, isFunMode, subscribeFun } from "@/lib/fun";
 import { burst, sound, toast } from "@/lib/fx";
 import { reveal } from "@/components/easter-eggs";
 
@@ -44,23 +44,24 @@ function GoblinArt({ pointing = false, className = "" }: { pointing?: boolean; c
 }
 
 /**
- * Before anyone has opened Bells & whistles, a goblin stands right of the button
- * (or under it, on narrower screens) pointing at it. The first click sends him running off to hide.
- * Decorative: the button itself already has its name.
+ * Until a visitor first switches to Fun, a goblin stands right of the Boring /
+ * Fun toggle (or under it, on narrower screens) pointing at it. Switching to
+ * Fun sends him running off to hide (his hide-and-seek happens in Fun mode).
+ * Decorative: the toggle itself already has its name.
  */
 export function GoblinGuide() {
   const mounted = useMounted();
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  // Only visitors who arrived un-welcomed see him (and then see him leave).
-  const [wasWelcomed] = useState(() => typeof window !== "undefined" && getFun().welcomed);
+  // Only visitors who haven't tried Fun yet see him (and then see him leave).
+  const [wasSeen] = useState(() => typeof window !== "undefined" && getFun().funSeen);
   const [gone, setGone] = useState(false);
-  if (!mounted || wasWelcomed || gone) return null;
+  if (!mounted || wasSeen || gone) return null;
 
   return (
     <div
       aria-hidden="true"
       data-goblin-guide
-      className={`goblin-guide${fun.welcomed ? " is-leaving" : ""}`}
+      className={`goblin-guide${isFunMode(fun) || fun.funSeen ? " is-leaving" : ""}`}
       onAnimationEnd={(e) => {
         if (e.animationName === "goblin-run") setGone(true);
       }}
@@ -68,21 +69,21 @@ export function GoblinGuide() {
       <GoblinArt pointing className="goblin-guide-art" />
       {/* Phones and tablets get the touch word (CSS picks by pointer type, so nothing re-renders). */}
       <span className="goblin-bubble">
-        <span className="goblin-say-click">Click it!!!!</span>
-        <span className="goblin-say-tap">Tap it!!!!</span>
+        <span className="goblin-say-click">Click Fun!!!!</span>
+        <span className="goblin-say-tap">Tap Fun!!!!</span>
       </span>
     </div>
   );
 }
 
 /**
- * One of the goblin's hiding places. He only peeks out while Bells & whistles
- * is on (the clean site stays clean). Find him in all three for a secret.
+ * One of the goblin's hiding places. He only peeks out in Fun mode while Bells
+ * & whistles is on (the clean site stays clean). Find him in all three for a secret.
  */
 export function GoblinSpot({ spot }: { spot: number }) {
   const mounted = useMounted();
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  if (!mounted || !fun.on || !fun.welcomed || fun.hideSpot !== spot) return null;
+  if (!mounted || !funActive(fun) || !fun.funSeen || fun.hideSpot !== spot) return null;
 
   return (
     <button

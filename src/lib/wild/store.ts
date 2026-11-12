@@ -5,8 +5,7 @@
  * Unlocks and Fun/Boring come from src/lib/unlocks.ts.
  */
 import { useSyncExternalStore } from "react";
-import * as unlocks from "@/lib/unlocks";
-import { getFun, SECRET_LIST } from "@/lib/fun";
+import { lockText } from "@/lib/unlocks";
 
 export type WildMode = "monkeys" | "gravity";
 
@@ -89,22 +88,5 @@ export const setWildOn = (on: boolean) => update((s) => ({ ...s, on }));
 export const setWildMode = (mode: WildMode) => update((s) => ({ ...s, on: true, mode }));
 export const markSeen = (id: string) => update((s) => (s.seen.includes(id) ? s : { ...s, seen: [...s.seen, id] }));
 
-/**
- * How many more secrets until `id` unlocks (0 when it already is). Uses CORE's
- * scaledThreshold when it exists; until then, a proportional estimate.
- */
-export function secretsToGo(id: string): number {
-  if (unlocks.isUnlocked(id)) return 0;
-  const def = unlocks.UNLOCKS.find((u) => u.id === id);
-  if (!def) return 0;
-  const found = getFun().secrets.length;
-  const scaled = (unlocks as unknown as Record<string, unknown>).scaledThreshold;
-  const need = typeof scaled === "function" ? Number(scaled(def.at)) : Math.ceil((def.at * Math.min(100, SECRET_LIST.length)) / 100);
-  return Math.max(1, need - found);
-}
-
-/** "Find 3 more secrets" (or "Find 1 more secret"). */
-export function toGoLabel(id: string) {
-  const n = secretsToGo(id);
-  return `Find ${n} more ${n === 1 ? "secret" : "secrets"}`;
-}
+/** "Find 3 more secrets" (or the one-secret version) for a locked feature. */
+export const toGoLabel = (id: string) => lockText(id);
