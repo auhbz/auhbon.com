@@ -15,7 +15,7 @@ export type Project = {
   /** What Auhbon specifically did on it. */
   role?: string;
   stack: string[];
-  status: "Live" | "Shipped" | "In progress" | "In design" | "Archived";
+  status: "Live" | "Shipped" | "Completed" | "In progress" | "In design" | "Archived";
   /** Awards, events or context worth calling out. */
   recognition?: string;
   links?: Link[];
@@ -27,7 +27,7 @@ export type Role = {
   title: string;
   org: string;
   location?: string;
-  /** ISO month strings, e.g. "2021-12". `end` omitted means "present". */
+  /** ISO month strings, e.g. "2021-12" (or a bare year, "2017"). `end` omitted means "present". */
   start: string;
   end?: string;
   highlights?: string[];
@@ -49,7 +49,7 @@ export const profile = {
   siteUrl: "https://auhbon.com",
   githubUser: "auhbz",
   intro:
-    "I build web products end to end: Java and Spring backends, REST APIs, cloud deployments, and TypeScript front ends. I've shipped the scheduling system at the core of a startup's app, backend services at MGM Resorts, and an award-winning Flutter app. AI is part of how I work: I use Claude Code to scaffold, refactor and test faster, and I own the design and review every line.",
+    "I build web products end to end: Java and Spring Boot backends, REST APIs, cloud deployments, and TypeScript front ends. I built the scheduling system at the core of a startup's app and shipped 180+ features and fixes there, built backend services at MGM Resorts International, and helped build an award-winning Flutter app. AI is part of how I work: I use Claude Code to scaffold, refactor, and test faster, and I own the design and review every line.",
   /** Shown as the primary contact link. Already public on Auhbon's resume. */
   email: "auhbon@gmail.com" as string,
   links: [
@@ -71,9 +71,9 @@ export const projects: Project[] = [
   {
     name: "BeeSafe",
     summary: "A Flutter app built on Google Cloud Vision for the 2020 CSUN Cloud Jam.",
-    role: "Team of five. Sensors inside a beehive stream temperature, humidity, weight and sound to the cloud in real time, and the app turns that into hive-health reports for beekeepers. I built most of the Flutter front end and prepared the image dataset used to train Google Cloud Vision to spot the queen, mites and unhealthy larvae.",
+    role: "Team of five. Sensors inside a beehive stream temperature, humidity, weight, and sound to the cloud in real time, and the app turns that into hive-health reports for beekeepers. I built most of the Flutter front end and prepared the image dataset used to train Google Cloud Vision to spot the queen, mites, and unhealthy larvae.",
     stack: ["Flutter", "Google Cloud Vision", "Firebase", "Flask", "ESP32"],
-    status: "Shipped",
+    status: "Completed",
     recognition: "Grand prize winner",
     links: [
       { label: "Devpost", href: "https://devpost.com/software/beesafe-ignq6b" },
@@ -107,7 +107,7 @@ export const projects: Project[] = [
   {
     name: "Flabby",
     summary: "A helicopter-cave game in the spirit of Flappy Bird, made entirely inside the Pico-8 fantasy console.",
-    role: "Solo project. I wrote the code in Lua and made all of the pixel art, animation and sound myself, then published it to play in the browser.",
+    role: "Solo project. I wrote the code in Lua and made all of the pixel art, animation, and sound myself, then published it to play in the browser.",
     stack: ["Pico-8", "Lua"],
     status: "Live",
     links: [
@@ -119,8 +119,8 @@ export const projects: Project[] = [
   {
     name: "auhbon.com",
     summary:
-      "This site. A portfolio that pulls my latest GitHub work in automatically, built to WCAG 2.2 AA with strict security headers, plus an opt-in playground of effects.",
-    role: "Designed and built it with Claude Code as a pair programmer: I set the architecture, accessibility and security requirements, and verified the result with automated axe-core audits and a CI pipeline that lints, type-checks and builds every change.",
+      "This site. A portfolio that pulls my latest GitHub work in automatically, built to WCAG 2.2 AA with strict security headers, plus an opt-in playground of effects, themes, secrets, and mini games.",
+    role: "Designed and built it with Claude Code as a pair programmer: I set the architecture, accessibility, and security requirements, and verified the result with automated axe-core audits and a CI pipeline that lints, type-checks, and builds every change.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS", "Vercel"],
     status: "Live",
     links: [{ label: "Source code", href: "https://github.com/auhbz/auhbon.com" }],
@@ -145,7 +145,7 @@ export const projects: Project[] = [
   {
     name: "Board Games and Their Designers",
     summary:
-      "A graduate-level full-stack course project: browse board games and the people who designed them, with sign-in, an MVC back end and a separate front end.",
+      "A graduate-level full-stack course project: browse board games and the people who designed them, with sign-in, an MVC back end, and a separate front end.",
     stack: ["C#", ".NET", "Entity Framework", "Angular", "MySQL", "Azure", "Auth0"],
     status: "Archived",
     links: [
@@ -156,7 +156,7 @@ export const projects: Project[] = [
   },
   {
     name: "FiFi Robo",
-    summary: "A multi-purpose Discord companion bot that pulls from YouTube, ZenQuotes, Tenor and meme APIs.",
+    summary: "A multi-purpose Discord companion bot that pulls from YouTube, ZenQuotes, Tenor, and meme APIs.",
     stack: ["Python"],
     status: "Shipped",
     links: [{ label: "Source code", href: "https://github.com/auhbz/FiFiRobo" }],
@@ -165,7 +165,7 @@ export const projects: Project[] = [
   {
     name: "Discord Motivator Bot",
     summary:
-      "Watches chat for people having a rough time and answers with encouragement; $motivate serves a random quote, and users can add their own messages.",
+      "Watches chat for people having a rough time and answers with encouragement; $motivate serves a random quote, and users can add their own messages. Started from a freeCodeCamp tutorial, then extended.",
     stack: ["Python"],
     status: "Shipped",
     links: [{ label: "Source code", href: "https://github.com/auhbz/MotivatorDiscordBot" }],
@@ -213,10 +213,10 @@ export const experience: Role[] = [
     org: "EstateDiamondJewelry.com",
     start: "2022-08",
     highlights: [
-      "Built a diamond price calculator with JavaScript and Google Cloud pipelines",
+      "Built a diamond price calculator in JavaScript, backed by Google Cloud pipelines",
       "Maintain the WordPress site, extending it with plugins and custom code integrations",
-      "Publish in-depth, research-based articles and product guides",
-      "Work remotely and independently, coordinating across the business",
+      "Write and publish research-based articles and buying guides (diamond cuts, grading, and pricing), plus gift-guide content for the business and a partner site",
+      "Work independently and remotely, coordinating content and site changes directly with the owner",
     ],
   },
   {
@@ -229,6 +229,8 @@ export const experience: Role[] = [
       "Tested and validated services with JUnit and Postman",
       "Streamlined deployments using Azure Pipelines",
       "Ran performance testing with JMeter",
+      "Worked with cloud data storage (Azure Cosmos DB) and contributed to API integration, with GraphQL exposure",
+      "Maintained internal documentation in Confluence and took on-call support shifts",
     ],
   },
   {
@@ -242,6 +244,13 @@ export const experience: Role[] = [
       "Symbolic logic at Pierce College (2017)",
       "Calculus series, in person and remote (2015 to 2017)",
     ],
+  },
+  {
+    title: "Co-developer",
+    org: "My Finances Simplified",
+    start: "2019-11",
+    end: "2020-06",
+    highlights: ["Built a tax and personal-finance web app in Vue.js with a partner"],
   },
   {
     title: "Grader: discrete structures, automata",
@@ -258,10 +267,10 @@ export const experience: Role[] = [
     end: "2020-03",
     highlights: [
       "Owned core functionality, including the scheduling and availability system used throughout the app",
-      "Built and maintained backend features with Laravel and SQL",
+      "One of two engineers on the team: developed the iOS app in Objective-C (MVVM) and the backend in Laravel and MySQL",
       "Built the customer-facing web app with Vue.js and Vuex",
       "Wrote unit and integration tests using a test-driven approach",
-      "Shipped 180+ features and bug fixes in an Agile team",
+      "Shipped 180+ features and fixes in an Agile team",
     ],
   },
   {
@@ -271,7 +280,7 @@ export const experience: Role[] = [
     end: "2020-02",
     highlights: [
       "Wrote a Google Apps Script tool for research data entry, saving the team many hours",
-      "Designed, created and presented the team's research poster at the AESA conference",
+      "Designed, created, and presented the team's research poster at the AESA conference",
     ],
   },
   {
@@ -279,7 +288,14 @@ export const experience: Role[] = [
     org: "California State University, Northridge",
     start: "2019-02",
     end: "2019-05",
-    highlights: ["Tutored classmates while taking the course"],
+    highlights: ["Tutored classmates while taking the course (finished with an A)"],
+  },
+  {
+    title: "Freelance web developer",
+    org: "Big Swell",
+    start: "2017",
+    end: "2017",
+    highlights: ["Built business websites with a partner and delivered a paid site for Big Swell, a surf products company"],
   },
 ];
 
@@ -294,7 +310,9 @@ export const education: Education[] = [
       "Dean's List every semester",
       "Grand prize winner, CSUN Cloud Jam",
       "National Cyber League, Fall 2018: Silver bracket, 878th nationally of 4,730 registered players",
-      "Layer8 Cyber Security Club",
+      "A in every computer science course",
+      "GE Honors",
+      "Layer8 Cyber Security Club, Rock Climbing Club, and intramural sports",
     ],
   },
 ];
@@ -302,9 +320,9 @@ export const education: Education[] = [
 /** Grouped so the page reads as a skill map, not a keyword dump. */
 export const skills: { group: string; items: string[] }[] = [
   { group: "Languages", items: ["Java", "JavaScript", "TypeScript", "Python", "SQL", "PHP"] },
-  { group: "Backend", items: ["Spring Boot", "REST APIs", "Laravel", "Maven"] },
-  { group: "Front end and mobile", items: ["Next.js", "React", "Vue.js", "Flutter"] },
-  { group: "Cloud and data", items: ["Azure", "Docker", "Linux", "PostgreSQL", "MySQL", "Google Cloud"] },
-  { group: "AI-assisted development", items: ["Claude Code", "agentic coding workflows", "AI-assisted testing and refactoring"] },
+  { group: "Backend", items: ["Spring Boot", "REST APIs", "Laravel", "FastAPI", "Flask", "Maven"] },
+  { group: "Front end and mobile", items: ["Next.js", "React", "Vue.js", "Tailwind CSS", "Flutter"] },
+  { group: "Cloud and data", items: ["Azure", "Docker", "Linux", "PostgreSQL", "MySQL", "Google Cloud", "Firebase", "Vercel"] },
+  { group: "AI-assisted development", items: ["Claude Code", "Agentic coding workflows", "AI-assisted testing and refactoring"] },
   { group: "Testing and tools", items: ["JUnit", "Postman", "JMeter", "Git"] },
 ];

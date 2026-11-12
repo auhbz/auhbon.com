@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
+import { DEFAULT_FUN, funActive, getFun, subscribeFun } from "@/lib/fun";
 import { reveal } from "@/components/easter-eggs";
 
 /**
@@ -12,10 +12,11 @@ import { reveal } from "@/components/easter-eggs";
 export function GooglyOs() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   const ref = useRef<HTMLSpanElement>(null);
+  const active = funActive(fun);
 
   useEffect(() => {
     const root = ref.current;
-    if (!fun.on || !root) return;
+    if (!active || !root) return;
     const eyes = Array.from(root.querySelectorAll<HTMLElement>("[data-googly]"));
     let frame = 0;
     const onMove = (e: PointerEvent) => {
@@ -37,7 +38,7 @@ export function GooglyOs() {
       cancelAnimationFrame(frame);
       window.removeEventListener("pointermove", onMove);
     };
-  }, [fun.on]);
+  }, [active]);
 
   const eye = (k: number) => (
     <span
@@ -45,7 +46,7 @@ export function GooglyOs() {
       data-googly
       className="googly"
       onClick={() => {
-        if (getFun().on) reveal("eyes", "Eye spy! They were watching you the whole time.");
+        if (funActive(getFun())) reveal("eyes", "Eye spy! They were watching you the whole time.");
       }}
     >
       o

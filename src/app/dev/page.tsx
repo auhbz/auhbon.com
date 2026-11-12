@@ -5,7 +5,9 @@ export const metadata = devMetadata("Dev notes", "/dev", "Working notes for auhb
 
 const pages = [
   { href: "/dev/roadmap", title: "Roadmap", description: "What's shipped, in progress, waiting, planned or skipped, plus the mobile ideas." },
-  { href: "/dev/secrets", title: "Secrets", description: "Every secret, how each one is found (hidden until you ask), and rough ideas for more." },
+  { href: "/dev/secrets", title: "Secrets", description: "Every secret with its hint and how it’s found, by area, the draft secrets, everything secrets unlock, and rough ideas for more." },
+  { href: "/dev/milestones", title: "Milestones", description: "A slider that shows where every milestone and unlock lands for any number of secrets." },
+  { href: "/dev/goals", title: "Goals", description: "Long-term goals (100 secrets, 40 effect options, and more) with live progress." },
   { href: "/dev/hands-on-tasks", title: "Hands-on tasks", description: "Things only Auhbon can decide or do, open ones first." },
   { href: "/dev/versions", title: "Versions", description: "Every version's notes and its GitHub branch, from the changelog." },
   { href: "/dev/draft", title: "Draft playground", description: "The live home page plus ideas being tested before they go live. See what's different on /dev/draft/diff." },
