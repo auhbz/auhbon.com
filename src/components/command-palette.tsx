@@ -404,26 +404,29 @@ export function CommandPalette({ sections, filters, email, links }: Props) {
         </div>
 
         <div id={listId} role="listbox" aria-label="Actions" className="max-h-[min(24rem,60vh)] overflow-y-auto p-2">
-          {groups.map((group) => (
-            <div key={group.name} role="group" aria-labelledby={`${listId}-g-${group.name}`}>
-              <p id={`${listId}-g-${group.name}`} className="px-3 pt-3 pb-1 text-sm text-muted">
-                {group.name}
-              </p>
-              {group.items.map(({ command, i }) => (
-                <div
-                  key={command.id}
-                  id={`${listId}-${command.id}`}
-                  role="option"
-                  aria-selected={i === index}
-                  onMouseMove={() => i !== index && setIndex(i)}
-                  onClick={() => run(command)}
-                  className="cursor-pointer rounded-lg px-3 py-2.5 aria-selected:bg-kelp aria-selected:text-kelp-ink"
-                >
-                  {command.label}
-                </div>
-              ))}
-            </div>
-          ))}
+          {groups.map((group) => {
+            const headingId = `${listId}-g-${group.items[0].command.id}`;
+            return (
+              <div key={headingId} role="group" aria-labelledby={headingId}>
+                <p id={headingId} className="px-3 pt-3 pb-1 text-sm text-muted">
+                  {group.name}
+                </p>
+                {group.items.map(({ command, i }) => (
+                  <div
+                    key={command.id}
+                    id={`${listId}-${command.id}`}
+                    role="option"
+                    aria-selected={i === index}
+                    onMouseMove={() => i !== index && setIndex(i)}
+                    onClick={() => run(command)}
+                    className="cursor-pointer rounded-lg px-3 py-2.5 aria-selected:bg-kelp aria-selected:text-kelp-ink"
+                  >
+                    {command.label}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
         <p role="status" data-palette-notice className="mx-2 mb-2 rounded-lg bg-paper px-3 py-2 text-sm empty:hidden">
           {notice}

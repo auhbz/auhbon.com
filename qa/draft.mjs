@@ -22,8 +22,9 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const liveSecrets = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2") || "{}").secrets ?? []);
 const draftState = (page) => page.evaluate(() => JSON.parse(localStorage.getItem("draft-playground-v1") || "{}"));
 async function openPanel(page) {
-  await page.getByRole("button", { name: "Bells and whistles" }).click();
-  await page.getByRole("dialog", { name: "Bells and whistles" }).waitFor();
+  const panel = page.getByRole("dialog", { name: "Bells and whistles" });
+  if (!(await panel.isVisible())) await page.getByRole("button", { name: "Bells and whistles" }).click();
+  await panel.waitFor();
 }
 async function closePanel(page) {
   await page.keyboard.press("Escape");
@@ -92,7 +93,7 @@ for (let i = 0; i < 3; i++) {
 }
 await page.evaluate(() => (Math.random = window.__rand));
 check(/Rolled 1 and 1/.test(await result.innerText()), "the dice settle on the rolled faces (snake eyes when the dice say so)");
-ds = await draftState(page);
+const ds = await draftState(page);
 check(ds.secrets.includes("d-snake") && ds.secrets.includes("d-hot"), "snake eyes and three doubles in a row are draft secrets");
 await page.locator('[data-dice-game="push"]').click();
 await page.screenshot({ path: `${out}/draft-boardgames.png` });

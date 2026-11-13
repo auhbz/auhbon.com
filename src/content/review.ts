@@ -161,7 +161,6 @@ export const REVIEW: ReviewTier[] = [
           "Glimmers from the clay pots: spendable on something later, or just a counter?",
           "Your mini game secrets note was cut off after 'another should be for an impressive score ()'. I made the third one a quirky skill secret per game (e.g. Pacifist in Asteroids). OK?",
           "Board games (still draft): now has dice physics and a game switcher (Push your luck, Pig, Free roll). Promote, or another pass?",
-          "The earlier effects run logged React hydration error #418. The rerun against the development server passed without browser errors.",
         ],
       },
       {

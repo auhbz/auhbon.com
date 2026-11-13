@@ -2,10 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { DEFAULT_DRAFT, getDraft, subscribeDraft } from "@/lib/draft/store";
-import { Slot } from "@/components/draft/slot";
 import { BoardGames } from "@/components/draft/dice";
-
-const HERO = 'section[aria-labelledby="hero-name"]';
 
 /** Everything interactive that only exists on /dev/draft, switched by the draft store. */
 export function DraftExtras() {
@@ -13,9 +10,9 @@ export function DraftExtras() {
   return (
     <>
       {draft.look === "boardgames" ? (
-        <Slot id="dice" target={HERO}>
+        <div data-draft-slot="dice">
           <BoardGames />
-        </Slot>
+        </div>
       ) : null}
     </>
   );

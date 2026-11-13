@@ -87,6 +87,7 @@ On the `next` branch and https://preview.auhbon.com until Auhbon approves it. Th
 - **Themes.** Pho goes live with toppings; the Pico-8 climber is Flabby and climbs the page; Flabby becomes a special-unlock mini game; Board games (draft) gets dice physics and three dice games.
 - **Wild & Wondrous.** Monkey Mode goes live (stealing words, vines, a bowling ball, and a rampaging gorilla) and Gravity Mode arrives.
 - **Toy box** with a paint brush, sticky notes, a paper airplane, and smoke bombs; the portal device becomes a hideable extra.
+- **Draft.** Render the dice tray in the hero without inserting DOM during hydration.
 - **QA.** Pin the browser clock for time-sensitive assertions and check Early bird at 6 a.m.
 - **Dev.** /dev/review (replaces Hands-on tasks), /dev/goals, /dev/milestones, and a richer /dev/secrets. "Mode" is now "Mini games" everywhere.
 

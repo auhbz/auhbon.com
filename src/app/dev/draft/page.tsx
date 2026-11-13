@@ -1,4 +1,4 @@
-import Home from "@/app/page";
+import { Home } from "@/components/home";
 import { devMetadata } from "@/components/dev/ui";
 import { DraftBanner } from "@/components/draft/draft-banner";
 import { DraftExtras } from "@/components/draft/draft-extras";
@@ -17,9 +17,8 @@ export default function DraftPage() {
   return (
     <DraftRoot>
       <DraftBanner />
-      <Home />
+      <Home heroExtra={<DraftExtras />} />
       <LoveList />
-      <DraftExtras />
     </DraftRoot>
   );
 }

@@ -81,16 +81,15 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 - Live on the public site already: all approved copy edits and the updated CV and About me PDFs.
 - GitHub: pins, repo descriptions, `me` made private, six old repos archived.
 
-**Not done / known issues (next session should start here):**
-1. **Hydration warning.** The effects QA suite logged one React error #418 (server/client HTML mismatch) after the final merge. Pages work, but find and fix it before merging PR #187. Start by running `qa/effects.mjs` against `next dev` to get the readable message.
-2. **QA clock.** Core and fun2 now pin browser wall time so time-based secrets cannot interfere with unrelated checks. Fun2 explicitly tests Night owl at 2 a.m. and Early bird at 6 a.m.
-3. **GitHub issues.** Only a status comment was posted on #185. Go through the open issues and close or update the ones MP5 finished (copy edits #138, typing words #154, climber #174, leaderboards, mini games, and so on).
-4. **Leaderboards.** The API reports storage connected; a real score submission end to end hasn't been tested.
-5. **Secrets.** The MP5 preview includes four Monkey Mode secrets and the portal cake in the main secret list. Carrying over discoveries already saved by draft visitors is a separate question.
-6. **Small known rough edges:** with Monkey Mode on, vines hang over text on phones; on touch, starting a scroll while holding a smoke bomb also throws one.
-7. **Release checkpoint.** When PR #187 is merged, create the `release/2.0.0` branch from main (CHANGELOG already lists it).
-8. **Preview polish (MP6):** the preview banner, "What's new" list, and "Highlight changes" toggle; stage flags so any fun feature can be parked in draft.
-9. **Open decisions for Auhbon** are on /dev/review ("Small calls the builders left for you", the Copy Discuss items, the slideshows, the "I love" list).
+**MP5 closeout:** The production themes suite reproduced React #418 on mobile with the saved Board games draft theme. The dice tray now renders inside the hero's React tree, avoiding direct DOM insertion during hydration. Core and fun2 fix the browser clock, with explicit Night owl and Early bird checks. The GitHub audit closed #154, #166, and #169 and recorded progress on the related open issues.
+
+**Remaining work:**
+1. **Leaderboards.** The API reports storage connected; a real score submission end to end hasn't been tested.
+2. **Secrets.** The MP5 preview includes four Monkey Mode secrets and the portal cake in the main secret list. Carrying over discoveries already saved by draft visitors is a separate question.
+3. **Small known rough edges:** with Monkey Mode on, vines hang over text on phones; on touch, starting a scroll while holding a smoke bomb also throws one.
+4. **Release checkpoint.** When PR #187 is merged, create the `release/2.0.0` branch from main (CHANGELOG already lists it).
+5. **Preview polish (MP6):** the preview banner, "What's new" list, and "Highlight changes" toggle; stage flags so any fun feature can be parked in draft.
+6. **Open decisions for Auhbon** are on /dev/review ("Small calls the builders left for you", the Copy Discuss items, the slideshows, the "I love" list).
 
 ## 5. Copy Review status
 
