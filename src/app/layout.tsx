@@ -12,8 +12,12 @@ import { FxCanvas } from "@/components/fx-canvas";
 import { EasterEggs } from "@/components/easter-eggs";
 import { Celebrations } from "@/components/celebrations";
 import { GameLayer } from "@/components/game-layer";
+import { Climber } from "@/components/climber";
+import { FunExtras } from "@/components/fun-extras";
+import { WildLayer } from "@/components/wild/wild-layer";
 import { SoundFx } from "@/components/fx-canvas";
 import "./globals.css";
+import "./boardgames.css";
 
 // Self-hosted fonts: no request to Google at runtime, which keeps the CSP to 'self'.
 const bricolage = localFont({
@@ -104,6 +108,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <EasterEggs email={profile.email} />
         <Celebrations />
         <GameLayer />
+        <Climber />
+        <FunExtras />
+        <WildLayer />
       </body>
     </html>
   );

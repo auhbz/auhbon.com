@@ -9,7 +9,6 @@ import {
   getDraft,
   peekDraftSecret,
   resetDraftSecrets,
-  setChaos,
   setDraftLook,
   subscribeDraft,
   type DraftSecret,
@@ -34,8 +33,6 @@ export function DraftPanelSection() {
 function DraftPanelBody() {
   const draft = useSyncExternalStore(subscribeDraft, getDraft, () => DEFAULT_DRAFT);
   const headingId = useId();
-  const chaosId = useId();
-  const groupId = useId();
 
   return (
     <section aria-labelledby={headingId} data-draft-panel className="mt-4 rounded-lg border border-dashed border-muted p-3">
@@ -44,43 +41,11 @@ function DraftPanelBody() {
       </h3>
       <p className="text-sm text-muted">Only on this page, for testing. Draft secrets don&apos;t count toward your total.</p>
 
-      <div className="mt-3 flex items-center justify-between gap-4">
-        <div>
-          <span id={chaosId} className="flex items-center gap-2">
-            Chaos <DraftTag />
-          </span>
-          <span className="block text-sm text-muted">{draft.chaos ? "Monkeys multiply, steal things, and love bananas" : "Passive, page-wide mischief"}</span>
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={draft.chaos}
-          aria-labelledby={chaosId}
-          onClick={() => {
-            setChaos(!draft.chaos);
-            sound("toggle");
-          }}
-          className="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full bg-muted transition-colors aria-checked:bg-kelp"
-        >
-          <span aria-hidden="true" className={`inline-block size-5 rounded-full bg-paper shadow transition-transform ${draft.chaos ? "translate-x-6" : "translate-x-1"}`} />
-        </button>
-      </div>
-      {draft.chaos ? (
-        <div role="radiogroup" aria-labelledby={groupId} className="mt-2 grid grid-cols-1 gap-1.5">
-          <span id={groupId} className="sr-only">
-            Chaos style
-          </span>
-          <button type="button" role="radio" aria-checked="true" className="min-h-10 rounded-md border border-kelp bg-kelp px-1.5 text-sm text-kelp-ink">
-            Unleash the monkeys
-          </button>
-        </div>
-      ) : null}
-
       <fieldset className="mt-3">
         <legend className="flex items-center gap-2 text-sm text-muted">
           Draft themes <DraftTag />
         </legend>
-        <div className="mt-1 grid grid-cols-3 gap-2">
+        <div className="mt-1 grid grid-cols-2 gap-2">
           {[{ id: null, label: "None", description: "No draft theme" }, ...DRAFT_LOOKS].map((l) => (
             <label
               key={l.id ?? "none"}
@@ -101,7 +66,6 @@ function DraftPanelBody() {
             </label>
           ))}
         </div>
-        <p className="mt-1 text-sm text-muted">Pico-8 extras (a little climber and Flabby&apos;s game) show up with the Pico-8 theme above.</p>
       </fieldset>
 
       <DraftSecretsList found={draft.secrets} peeked={draft.peeked} />

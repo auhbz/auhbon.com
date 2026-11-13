@@ -16,7 +16,8 @@ GITHUB_API_URL=http://localhost:8787 npm run build > "$LOGS/build.log" 2>&1 || {
 sleep 4
 cd "$ROOT/qa"
 node fun2.mjs "$OUT" > "$LOGS/fun2.log" 2>&1 &
+node core.mjs "$OUT" > "$LOGS/core.log" 2>&1 &
 node interactive.mjs "$OUT" > "$LOGS/interactive.log" 2>&1 &
 node audit.mjs "$OUT" > "$LOGS/audit.log" 2>&1 &
 wait
-for f in fun2 interactive audit; do echo "== $f"; grep -v "^pass" "$LOGS/$f.log" | tail -6; done
+for f in fun2 core interactive audit; do echo "== $f"; grep -v "^pass" "$LOGS/$f.log" | tail -6; done

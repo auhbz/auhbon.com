@@ -6,7 +6,7 @@
  */
 
 /** The date this file was last brought up to date (YYYY-MM-DD). */
-export const DEV_AS_OF = "2026-11-10";
+export const DEV_AS_OF = "2026-11-13";
 
 export type RoadmapStatus = "Shipped" | "Waiting on Auhbon" | "WIP" | "Planned" | "Skipped";
 
@@ -19,6 +19,18 @@ export type RoadmapItem = {
 };
 
 export const roadmap: RoadmapItem[] = [
+  {
+    item: "2.1.0: Selective MP6 release",
+    version: "2.1.0",
+    status: "WIP",
+    notes: "Board games and the approved small fixes. The environment inventory tracks the work held for preview and Draft.",
+  },
+  {
+    item: "2.0.0: Fun & Boring (MP5)",
+    version: "2.0.0",
+    status: "Waiting on Auhbon",
+    notes: "At preview.auhbon.com. Review /dev/review before approving PR #187.",
+  },
   {
     item: "1.15.0: Feedback fixes, round 3",
     version: "1.15.0",
@@ -42,8 +54,8 @@ export const roadmap: RoadmapItem[] = [
   { item: "1.21.0: Draft sandbox & visuals", version: "1.21.0", status: "Shipped", notes: "/dev/draft, /dev/draft/diff and /dev/visuals. Draft features stay off the live site." },
   { item: "1.20.0: Secrets batch", version: "1.20.0", status: "Shipped", notes: "18 new secrets (35 total), badge hints, new milestones, touch gamepad." },
   { item: "1.19.0: Mobile experience", version: "1.19.0", status: "Shipped", notes: "All seven mobile ideas below, now live." },
-  { item: "Copy editing", status: "Waiting on Auhbon", notes: "60 suggestions awaiting approval (re-checked against the CV on Nov 10)." },
-  { item: "Global leaderboards", status: "Waiting on Auhbon", notes: "Needs Upstash Redis connected in Vercel." },
+  { item: "Copy editing", status: "Waiting on Auhbon", notes: "Four Copy Review decisions remain; see /dev/review." },
+  { item: "Global leaderboards", status: "Waiting on Auhbon", notes: "Upstash Redis is connected. A real score submission still needs end-to-end verification." },
   {
     item: "Version URLs",
     status: "Shipped",

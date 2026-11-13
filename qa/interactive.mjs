@@ -1,9 +1,11 @@
 import { chromium } from "playwright";
+import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
 const out = process.argv[2];
-const url = "http://localhost:3000/";
-const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome" });
+const url = process.env.BASE ?? "http://localhost:3000/";
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };
 const axe = async (page, label) => {

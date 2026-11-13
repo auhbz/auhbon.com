@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
-import { dueMilestones, getFun, markCelebrated, MILESTONES } from "@/lib/fun";
+import { dueMilestones, getFun, markCelebrated, scaledMilestones } from "@/lib/fun";
+import { Fireworks } from "@/components/fireworks";
 
 export const CELEBRATE_EVENT = "portfolio:celebrate";
+/** Fired when an animal parade has walked off screen (Wild & Wondrous listens for it). */
+export const PARADE_END_EVENT = "portfolio:parade-end";
 
-/** Throw the party for a secrets milestone (see MILESTONES). */
+/** Throw the party for a secrets milestone (see MILESTONES), by its 100-scale `at`. */
 export function celebrate(at: number) {
   window.dispatchEvent(new CustomEvent<number>(CELEBRATE_EVENT, { detail: at }));
 }
@@ -25,20 +28,29 @@ export function celebrateDue(delayMs = 1200) {
   window.setTimeout(() => celebrate(top), delayMs);
 }
 
-const ANIMALS = ["🐘", "🦒", "🐒", "🦓", "🐧", "🐢", "🦆", "🐇", "🦜", "🐊", "🦔", "🐓", "🦙", "🐿️", "🦘", "🐖"];
+/**
+ * Whole-animal emoji only (every one here is drawn with a full body on the major
+ * platforms). Head-only faces such as the giraffe, zebra, horse, cow, pig, monkey,
+ * tiger, dog, cat, mouse, hamster, rabbit, fox, bear, panda, koala, lion and frog
+ * faces are left out, so nothing marches past as just a head.
+ */
+export const PARADE_ANIMALS = ["🐘", "🐒", "🐧", "🐢", "🦆", "🐇", "🦜", "🐊", "🦔", "🐓", "🦙", "🐿️", "🦘", "🐖", "🐎", "🐄", "🐅", "🐕", "🐈", "🐫", "🦏", "🦛", "🐐", "🐑", "🦌", "🦚", "🦃", "🦡", "🦍", "🐆", "🐃", "🐂", "🐏"];
+const ANIMALS = PARADE_ANIMALS;
 
-type Party = "parade" | "cannons" | "fireworks" | "disco";
+type Party = "parade" | "fireworks" | "lanterns" | "disco";
 /** Which parties each milestone throws. The last one is the grand finale: everything. */
 const PARTIES: Record<number, Party[]> = {
   5: ["parade"],
-  10: ["cannons"],
-  15: ["fireworks"],
+  10: ["fireworks"],
+  15: ["lanterns"],
   25: ["disco"],
-  40: ["parade", "cannons"],
+  40: ["parade", "lanterns"],
   65: ["fireworks", "disco"],
-  97: ["cannons", "fireworks"],
-  100: ["parade", "cannons", "fireworks", "disco"],
+  97: ["lanterns", "fireworks"],
+  100: ["parade", "lanterns", "fireworks", "disco"],
 };
+
+type Lanterns = { id: number; lanterns: { x: number; delay: number; duration: number; size: number; sway: number; hue: number }[] };
 
 type Parade = { id: number; animals: { emoji: string; delay: number; duration: number; size: number; hop: number }[] };
 
@@ -50,6 +62,9 @@ type Parade = { id: number; animals: { emoji: string; delay: number; duration: n
  */
 export function Celebrations() {
   const [parade, setParade] = useState<Parade | null>(null);
+  const [show, setShow] = useState(0);
+  const [lanterns, setLanterns] = useState<Lanterns | null>(null);
+  const endShow = useCallback(() => setShow(0), []);
 
   useEffect(() => {
     const timers: number[] = [];
@@ -65,38 +80,48 @@ export function Celebrations() {
         hop: 0.28 + Math.random() * 0.2,
       }));
       setParade({ id, animals });
-      later(14000, () => setParade((p) => (p?.id === id ? null : p)));
+      later(14000, () => {
+        setParade((p) => (p?.id === id ? null : p));
+        window.dispatchEvent(new Event(PARADE_END_EVENT));
+      });
     };
-    const cannons = () => {
-      for (let i = 0; i < 4; i++) {
-        later(i * 350, () => {
-          burst("confetti", 0, window.innerHeight);
-          burst("confetti", window.innerWidth, window.innerHeight);
-        });
-      }
-    };
-    const fireworks = () => {
-      for (let i = 0; i < 9; i++) {
-        later(i * 420, () => {
-          const x = window.innerWidth * (0.15 + Math.random() * 0.7);
-          const y = window.innerHeight * (0.12 + Math.random() * 0.35);
-          burst(i % 2 ? "sparks" : "confetti", x, y);
-        });
-      }
+    // Rockets, bursts and a finale, on their own canvas (see fireworks.tsx).
+    const fireworks = () => setShow(Date.now());
+    // Paper lanterns drift up from the bottom of the screen, glowing and swaying.
+    const startLanterns = () => {
+      const id = Date.now();
+      const count = window.innerWidth < 640 ? 9 : 16;
+      const list = Array.from({ length: count }, (_, i) => ({
+        x: ((i + 0.5) / count) * 100 + (Math.random() - 0.5) * (60 / count),
+        delay: Math.random() * 3.5,
+        duration: 9 + Math.random() * 4,
+        size: 1.6 + Math.random() * 1.3,
+        sway: 0.6 + Math.random() * 0.8,
+        hue: 18 + Math.random() * 26,
+      }));
+      setLanterns({ id, lanterns: list });
+      later(17500, () => setLanterns((l) => (l?.id === id ? null : l)));
+      // A gentle shower of embers as the first ones lift off.
+      later(400, () => burst("sparks", window.innerWidth / 2, window.innerHeight - 30));
     };
     const disco = () => {
       document.documentElement.dataset.disco = "true";
       later(8000, () => delete document.documentElement.dataset.disco);
     };
-    const run: Record<Party, () => void> = { parade: startParade, cannons, fireworks, disco };
+    const run: Record<Party, () => void> = { parade: startParade, fireworks, lanterns: startLanterns, disco };
 
     const onCelebrate = (e: Event) => {
       const at = (e as CustomEvent<number>).detail;
-      const m = MILESTONES.find((x) => x.at === at);
+      // Keyed by the 100-scale value; the toast shows today's scaled count.
+      const m = scaledMilestones().find((x) => x.at === at);
       if (!m) return;
-      toast(`Milestone: ${at} secrets! ${m.name} ${m.icon}`);
+      toast(`Milestone: ${m.count} secrets! ${m.name} ${m.icon}`);
       sound("secret");
-      if (prefersReducedMotion()) return;
+      // Reduced motion: the toast and sound, plus the fireworks' calm version (still starbursts).
+      if (prefersReducedMotion()) {
+        if (PARTIES[at]?.includes("fireworks")) fireworks();
+        return;
+      }
       for (const p of PARTIES[at] ?? ["parade"]) run[p]();
     };
     window.addEventListener(CELEBRATE_EVENT, onCelebrate);
@@ -107,7 +132,37 @@ export function Celebrations() {
     };
   }, []);
 
-  if (!parade) return null;
+  return (
+    <>
+      {show ? <Fireworks key={show} onDone={endShow} /> : null}
+      {lanterns ? (
+        <div aria-hidden="true" data-lanterns className="lanterns" key={lanterns.id}>
+          {lanterns.lanterns.map((l, i) => (
+            <span
+              key={i}
+              className="lantern"
+              style={
+                {
+                  "--x": `${l.x}%`,
+                  "--delay": `${l.delay}s`,
+                  "--duration": `${l.duration}s`,
+                  "--size": `${l.size}rem`,
+                  "--sway": `${l.sway}`,
+                  "--hue": l.hue,
+                } as React.CSSProperties
+              }
+            >
+              <span className="lantern-body" />
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {parade ? <ParadeStrip parade={parade} /> : null}
+    </>
+  );
+}
+
+function ParadeStrip({ parade }: { parade: Parade }) {
   return (
     // The strip lets clicks through to the page; only the animals catch them (tap one and it jumps).
     <div aria-hidden="true" data-parade className="parade" key={parade.id}>

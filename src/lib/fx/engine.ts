@@ -45,7 +45,7 @@ type Particle = {
 };
 
 /** Secrets the engine can find. */
-export type EngineSecret = "bat" | "cookie" | "leaf" | "skeleton";
+export type EngineSecret = "bat" | "cookie" | "leaf" | "skeleton" | "donuts" | "overload" | "scorched" | "shakeoff" | "sweep";
 /** Dispatch this (optionally with {x, y}) to drop a golden leaf right away; the QA suite uses it. */
 export const GOLDEN_LEAF_EVENT = "portfolio:golden-leaf";
 
@@ -99,7 +99,8 @@ type Drag = {
 type Press = { x: number; y: number; timer: number };
 /** A touch in progress, watched for a fast horizontal swipe across the hero name. */
 type Swipe = { x0: number; y0: number; t0: number; x: number; y: number; flung: boolean };
-type Bubble = { x: number; y: number; r: number; maxR: number; vy: number; phase: number };
+/** kx/ky: a push (the pointer's breeze, or flying out of a split) that eases off. giant: splits when popped. */
+type Bubble = { x: number; y: number; r: number; maxR: number; vy: number; phase: number; kx: number; ky: number; giant?: boolean };
 /** kx/ky: a push (from a click) that eases out; squash: a jelly wobble that settles. */
 type Ghost = { x: number; y: number; alpha: number; lastMove: number; dir: number; t: number; kx: number; ky: number; squash: number };
 /**
@@ -117,6 +118,12 @@ type Car = {
   nitro: number;
   alpha: number;
   parked: number;
+  /** 0..1: how far into a donut it has wound (blends the chase into the orbit). */
+  donut: number;
+  /** Which way round it orbits: 1 or -1 (it keeps the way it was already turning). */
+  spin: number;
+  /** How long it has been doing full donuts. */
+  donutMs: number;
   /** The rear wheels' last spots (viewport), to lay skid marks between frames. */
   rear: [number, number, number, number] | null;
 };
@@ -183,6 +190,21 @@ export class FxEngine {
   private dark = false;
   private ink = "#13232c";
   private cleanup: (() => void)[] = [];
+  /** Secrets this engine has already reported (so each fires once per visit at most). */
+  private found = new Set<EngineSecret>();
+  /** Hamster wheels: while the pointer is on one (or just clicked it), cursor effects stand back. */
+  private overHamster = false;
+  private hamsterUntil = 0;
+  /** Cursed: after being shaken off, the ghost stays away until this time. */
+  private ghostAwayUntil = 0;
+  /** Electric buttons: recent presses (an overload secret). */
+  private zaps: number[] = [];
+  /** Fire trail: which section headings it has scorched. */
+  private scorchedHeads = new Set<Element>();
+  /** Cursed trail: recent sideways reversals of the pointer (shaking the ghost off). */
+  private shake = { dir: 0, from: 0, flips: [] as number[] };
+  /** Bubbles: the "keep the screen clear" watch. */
+  private bubbleWatch = { since: 0, spawned: 0, popped: 0, emptySince: 0 };
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -193,6 +215,8 @@ export class FxEngine {
     this.ctx = canvas.getContext("2d")!;
     this.resize();
     this.listen();
+    // Development only: let QA scripts see where the bubbles are.
+    if (process.env.NODE_ENV !== "production") (window as unknown as { __fxBubbles?: () => [number, number][] }).__fxBubbles = () => this.bubbles.map((b) => [b.x, b.y]);
   }
 
   configure(next: EngineSettings) {
@@ -205,7 +229,10 @@ export class FxEngine {
       this.skids = [];
     }
     if (next.trail !== "cursed") this.setPossessed(false);
-    if (next.dots !== "bubbles") this.bubbles = [];
+    if (next.dots !== "bubbles" || next.reduced) {
+      this.bubbles = [];
+      this.bubbleWatch = { since: 0, spawned: 0, popped: 0, emptySince: 0 };
+    }
     if (next.dots !== "slingshot") this.goblins = [];
     if (!next.trail) this.endPress();
     if (next.motion && !prev.motion) {
@@ -368,6 +395,9 @@ export class FxEngine {
     on("contextmenu", holdGuard);
     document.addEventListener("selectstart", holdGuard);
     this.cleanup.push(() => document.removeEventListener("selectstart", holdGuard));
+    on("pointerover", (e) => {
+      this.overHamster = !!(e.target as Element | null)?.closest?.("[data-hamster]");
+    }, { passive: true });
     on("pointerdown", (e) => this.onDown(e));
     on("pointerup", (e) => this.onUp(e));
     on("pointercancel", (e) => this.onUp(e));
@@ -410,6 +440,99 @@ export class FxEngine {
     this.cleanup.push(() => theme.disconnect());
   }
 
+  /** True while someone is clicking a hamster wheel: trails and click effects hold off so the wheel's show is visible. */
+  private quiet(now = performance.now()) {
+    return this.overHamster || now < this.hamsterUntil;
+  }
+
+  /** Pointer movement, for the effects that care how it moves (not just where it is). */
+  private watchMove(x: number, y: number, now: number) {
+    const dx = x - this.prev.x;
+    const dy = y - this.prev.y;
+    // Bubbles: the pointer's movement makes a breeze that pushes nearby bubbles along
+    // and a little aside, so a quick swipe scatters them and a slow hand can still pop them.
+    if (this.settings.dots === "bubbles" && this.bubbles.length && !this.settings.reduced) {
+      const speed = Math.min(40, Math.hypot(dx, dy));
+      for (const b of this.bubbles) {
+        const ox = b.x - x;
+        const oy = b.y - y;
+        const d = Math.hypot(ox, oy) || 1;
+        if (d > 130) continue;
+        const fall = (1 - d / 130) ** 2 / (b.giant ? 3 : 1);
+        b.kx = Math.max(-7, Math.min(7, b.kx + dx * 0.05 * fall + (ox / d) * speed * 0.025 * fall));
+        b.ky = Math.max(-7, Math.min(7, b.ky + dy * 0.05 * fall + (oy / d) * speed * 0.025 * fall));
+      }
+    }
+    // Cursed: shake the pointer hard from side to side and the ghost loses its grip.
+    if (this.settings.trail === "cursed" && this.ghost && Math.abs(dx) > 0.5) {
+      const sh = this.shake;
+      const dir = Math.sign(dx);
+      // A reversal counts when the stretch before it was a real swing, not a jitter.
+      if (dir !== sh.dir) {
+        if (Math.abs(this.prev.x - sh.from) > 28) sh.flips.push(now);
+        sh.dir = dir;
+        sh.from = this.prev.x;
+      }
+      sh.flips = sh.flips.filter((t) => now - t < 1600);
+      if (sh.flips.length >= 8) {
+        sh.flips = [];
+        this.shakeOff(now);
+      }
+    }
+  }
+
+  /** The ghost, shaken off: it tumbles away in a puff and stays gone for a few seconds. */
+  private shakeOff(now: number) {
+    const g = this.ghost;
+    if (!g) return;
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      this.add({ kind: "wisp", x: g.x, y: g.y, vx: Math.cos(a) * 2.2, vy: Math.sin(a) * 2.2, life: 1, decay: 0.02, size: 12 + Math.random() * 10, hue: 0, gravity: -0.01, spin: 0, angle: 0 });
+    }
+    this.ghost = null;
+    this.ghostAwayUntil = now + 4000;
+    this.setPossessed(false);
+    this.sound("pop");
+    if (!this.found.has("shakeoff")) {
+      this.found.add("shakeoff");
+      this.secret("shakeoff");
+    }
+  }
+
+  /** Electric: press buttons fast enough and the whole lot shorts out. */
+  private zap(now: number) {
+    this.zaps = [...this.zaps.filter((t) => now - t < 3000), now];
+    if (this.zaps.length < 10) return;
+    this.zaps = [];
+    let n = 0;
+    for (const pill of document.querySelectorAll<HTMLElement>(".pill")) {
+      const r = pill.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > this.H || n >= 8) continue;
+      n++;
+      this.burst("sparks", r.left + r.width / 2, r.top + r.height / 2);
+    }
+    const root = document.documentElement;
+    root.dataset.overload = "true";
+    window.setTimeout(() => delete root.dataset.overload, 1300);
+    this.sound("hit");
+    if (!this.found.has("overload")) {
+      this.found.add("overload");
+      this.secret("overload");
+    }
+  }
+
+  /** Fire: note any section heading the flames pass over; all of them is a secret. */
+  private scorchHeading(x: number, y: number) {
+    const h = document.elementFromPoint(x, y)?.closest("main h2");
+    if (!h || this.scorchedHeads.has(h)) return;
+    this.scorchedHeads.add(h);
+    const all = document.querySelectorAll("main h2").length;
+    if (all >= 3 && this.scorchedHeads.size >= all && !this.found.has("scorched")) {
+      this.found.add("scorched");
+      this.secret("scorched");
+    }
+  }
+
   private onMove(x: number, y: number, type: string) {
     // A finger that's holding still may wobble a little; only a real move ends the hold.
     if (type === "touch" && this.press) {
@@ -431,7 +554,8 @@ export class FxEngine {
     }
     const now = performance.now();
     const t = this.settings.trail;
-    if (t && now - this.lastTrail > 16) {
+    this.watchMove(x, y, now);
+    if (t && now - this.lastTrail > 16 && !this.quiet(now)) {
       this.lastTrail = now;
       if (t === "sparkle") this.spawnSparkle(x, y, now);
       else if (t === "fire") this.spawnFire(x, y, now);
@@ -505,10 +629,17 @@ export class FxEngine {
     // Bubbles pop on tap/click.
     if (this.settings.dots === "bubbles") this.popAt(e.clientX, e.clientY);
 
+    // Clicking a hamster wheel: no trail reactions (sparkles, rings, nitro…) on top of it.
+    if (target.closest("[data-hamster]")) {
+      this.hamsterUntil = performance.now() + 900;
+      return;
+    }
+
     // Electric buttons throw sparks when pressed; on touch they also light up briefly.
     const pill = target.closest<HTMLElement>(".pill");
     if (pill && this.settings.buttons === "electric") {
       this.burst("sparks", e.clientX, e.clientY);
+      this.zap(performance.now());
       if (e.pointerType !== "mouse") {
         this.electric = { el: pill, until: Infinity, touch: true };
         this.lastHoldSpark = performance.now();
@@ -661,10 +792,12 @@ export class FxEngine {
       this.lastScorch = now;
       if (this.scorches.length > 220) this.scorches.shift();
       this.scorches.push({ x: x + scrollX, y: y + scrollY, r: 9 + Math.random() * 8, life: 1 });
+      this.scorchHeading(x, y);
     }
   }
 
   private moveGhost(x: number, y: number, now: number) {
+    if (now < this.ghostAwayUntil) return;
     this.ghost ??= { x, y: y + 40, alpha: 0, lastMove: now, dir: 1, t: 0, kx: 0, ky: 0, squash: 0 };
     this.ghost.lastMove = now;
   }
@@ -707,6 +840,7 @@ export class FxEngine {
     }
     if (this.scorches.length > 220) this.scorches.shift();
     this.scorches.push({ x: x + scrollX, y: y + scrollY, r: 18, life: 1 });
+    this.scorchHeading(x, y);
   }
 
   /**
@@ -716,6 +850,7 @@ export class FxEngine {
    */
   private boo(x: number, y: number) {
     const now = performance.now();
+    if (now < this.ghostAwayUntil) return;
     this.ghost ??= { x: x - 34, y: y + 26, alpha: 0, lastMove: now, dir: 1, t: 0, kx: 0, ky: 0, squash: 0 };
     const g = this.ghost;
     const dx = g.x - x;
@@ -741,7 +876,7 @@ export class FxEngine {
   // ---------------------------------------------------------------- car
 
   private newCar(x: number, y: number): Car {
-    return { x: x - 46, y: y + 10, vx: 0, vy: 0, heading: 0, steer: 0, roll: 0, nitro: 0, alpha: 0, parked: 0, rear: null };
+    return { x: x - 46, y: y + 10, vx: 0, vy: 0, heading: 0, steer: 0, roll: 0, nitro: 0, alpha: 0, parked: 0, donut: 0, spin: 1, donutMs: 0, rear: null };
   }
 
   /** Car click or tap: nitro. A burst of speed, and flame from the exhaust. */
@@ -774,56 +909,71 @@ export class FxEngine {
     const c = this.car;
     if (!c) return;
     const p = this.pointer;
-    // The still state: a resting mouse, or a finger long-pressing.
-    const still = !!p && (p.type === "mouse" || this.holding) && !this.drag && now - this.lastMoveAt > 600;
+    const quiet = this.quiet(now);
+    // The still state: a resting mouse, or a finger long-pressing (never over a hamster wheel).
+    const resting = !!p && (p.type === "mouse" || this.holding) && !this.drag && !quiet;
     const boost = c.nitro > 0;
     c.nitro = Math.max(0, c.nitro - dt);
+    // Donuts wind up instead of switching on: from a quarter second after the pointer stops,
+    // the car already steers into an orbit, keeping its speed and the way it was turning,
+    // and blends fully in over about two thirds of a second. Moving again unwinds it quickly.
+    if (resting && p && now - this.lastMoveAt > 250) {
+      if (c.donut === 0) {
+        // Orbit the way it's already going around the pointer, so it never has to reverse.
+        const cross = (c.x - p.x) * c.vy - (c.y - p.y) * c.vx;
+        c.spin = Math.hypot(c.vx, c.vy) > 0.6 && cross < 0 ? -1 : 1;
+      }
+      c.donut = Math.min(1, c.donut + dt / 650);
+    } else c.donut = Math.max(0, c.donut - dt / 220);
+    const e = c.donut * c.donut * (3 - 2 * c.donut); // smoothstep
     let drift = 0;
-    if (still && p) {
-      // Donuts: orbit the pointer with the nose turned in, tires smoking.
-      const a = Math.atan2(c.y - p.y, c.x - p.x) + 0.11 * f;
-      const R = 30;
-      const tx = p.x + Math.cos(a) * R;
-      const ty = p.y + Math.sin(a) * R;
-      const k = Math.min(1, 0.3 * f);
-      c.vx += (tx - c.x - c.vx) * k;
-      c.vy += (ty - c.y - c.vy) * k;
-      const want = a + Math.PI / 2 + 0.95; // the tangent, plus the nose swung toward the center
-      c.heading = wrap(c.heading + wrap(want - c.heading) * Math.min(1, 0.2 * f));
-      c.steer += (0.5 - c.steer) * Math.min(1, 0.2 * f);
-      c.roll += (0.8 - c.roll) * Math.min(1, 0.1 * f);
-      drift = 1;
-      if (Math.random() < 0.35 * f) this.smoke(c);
-    } else if (p) {
-      // Chase a spot just short of the pointer, so the car never sits on top of it.
+    if (p) {
       const dx = p.x - c.x;
       const dy = p.y - c.y;
       const dist = Math.hypot(dx, dy) || 1;
+      // Chase a spot just short of the pointer, so the car never sits on top of it
+      // (and well clear of a hamster wheel someone is clicking).
       const max = boost ? 17 : 9.5;
-      const want = Math.max(0, Math.min(max, (dist - 30) * 0.13));
+      const want = Math.max(0, Math.min(max, (dist - (quiet ? 90 : 30)) * 0.13));
       const k = (boost ? 0.16 : 0.09) * f;
-      const ax = ((dx / dist) * want - c.vx) * k;
-      const ay = ((dy / dist) * want - c.vy) * k;
+      let ax = ((dx / dist) * want - c.vx) * k;
+      let ay = ((dy / dist) * want - c.vy) * k;
+      if (e > 0) {
+        // The orbit: aim for a point a little further round a 30px circle.
+        const a = Math.atan2(c.y - p.y, c.x - p.x) + c.spin * 0.11 * e * f;
+        const ox = (p.x + Math.cos(a) * 30 - c.x - c.vx) * Math.min(1, 0.3 * f);
+        const oy = (p.y + Math.sin(a) * 30 - c.y - c.vy) * Math.min(1, 0.3 * f);
+        ax += (ox - ax) * e;
+        ay += (oy - ay) * e;
+      }
       c.vx += ax;
       c.vy += ay;
-      // Lean into the turn: sideways acceleration relative to the nose.
-      const lateral = -Math.sin(c.heading) * ax + Math.cos(c.heading) * ay;
-      c.roll += (Math.max(-1, Math.min(1, lateral * 0.9)) - c.roll) * Math.min(1, 0.2 * f);
+      // Lean into the turn (sideways acceleration relative to the nose), or hard over in a donut.
+      const lateral = Math.max(-1, Math.min(1, (-Math.sin(c.heading) * ax + Math.cos(c.heading) * ay) * 0.9));
+      c.roll += (lateral * (1 - e) + 0.8 * c.spin * e - c.roll) * Math.min(1, 0.2 * f);
     } else {
       c.vx *= 0.9 ** f;
       c.vy *= 0.9 ** f;
       c.roll *= 0.9 ** f;
     }
     const speed = Math.hypot(c.vx, c.vy);
-    if (!still) {
-      if (speed > 0.5) {
-        const diff = wrap(Math.atan2(c.vy, c.vx) - c.heading);
-        // The nose turns at a limited rate, so a sharp turn slides before it grips.
-        c.heading = wrap(c.heading + Math.max(-0.16, Math.min(0.16, diff * 0.22)) * f);
-        c.steer += (Math.max(-0.55, Math.min(0.55, diff * 1.4)) - c.steer) * Math.min(1, 0.3 * f);
-        drift = Math.abs(diff) > 0.45 && speed > 3.2 ? 1 : 0;
-        if (drift && Math.random() < 0.25 * f) this.smoke(c);
-      } else c.steer *= 0.85 ** f;
+    if (speed > 0.5) {
+      // The nose follows the direction of travel at a limited rate, so a sharp turn slides
+      // before it grips. In a donut it also swings in toward the middle (and is helped
+      // round, so it never lags behind the orbit).
+      const diff = wrap(Math.atan2(c.vy, c.vx) + c.spin * 0.95 * e - c.heading);
+      const lim = 0.16 + 0.12 * e;
+      c.heading = wrap(c.heading + (Math.max(-lim, Math.min(lim, diff * (0.22 + 0.25 * e))) + c.spin * 0.08 * e) * f);
+      const steer = Math.max(-0.55, Math.min(0.55, diff * 1.4)) * (1 - e) + 0.5 * c.spin * e;
+      c.steer += (steer - c.steer) * Math.min(1, 0.3 * f);
+      drift = e > 0.5 || (Math.abs(diff) > 0.45 && speed > 3.2) ? 1 : 0;
+      if (drift && Math.random() < (0.25 + 0.1 * e) * f) this.smoke(c);
+    } else c.steer *= 0.85 ** f;
+    // Donuts for a good long while: a secret.
+    c.donutMs = e > 0.9 ? c.donutMs + dt : 0;
+    if (c.donutMs > 8000 && !this.found.has("donuts")) {
+      this.found.add("donuts");
+      this.secret("donuts");
     }
     c.x += c.vx * f;
     c.y += c.vy * f;
@@ -995,6 +1145,17 @@ export class FxEngine {
         this.bubbles.splice(i, 1);
         this.burst("droplets", b.x, b.y);
         this.sound("pop");
+        this.bubbleWatch.popped++;
+        // A giant bubble splits into a little family that scatters, then floats on up.
+        if (b.giant) {
+          const n = 5;
+          for (let k = 0; k < n; k++) {
+            const a = (k / n) * Math.PI * 2 + Math.random() * 0.5;
+            const r = b.r * (0.32 + Math.random() * 0.08);
+            this.bubbles.push({ x: b.x + Math.cos(a) * r, y: b.y + Math.sin(a) * r, r, maxR: r, vy: b.vy * 1.4, phase: Math.random() * 6, kx: Math.cos(a) * 3.2, ky: Math.sin(a) * 3.2 });
+          }
+          this.burst("droplets", b.x, b.y);
+        }
       }
     }
   }
@@ -1577,24 +1738,45 @@ export class FxEngine {
 
   private updateBubbles(ctx: CanvasRenderingContext2D, now: number, f: number) {
     if (this.settings.dots !== "bubbles" || this.settings.reduced) return;
-    for (const src of document.querySelectorAll<HTMLElement>("[data-bubble]")) {
+    const w = this.bubbleWatch;
+    if (!w.since) w.since = now;
+    const sources = document.querySelectorAll<HTMLElement>("[data-bubble]");
+    let allInView = sources.length > 0;
+    for (const src of sources) {
+      const r = src.getBoundingClientRect();
+      const inView = r.bottom >= 0 && r.top <= this.H;
+      if (!inView) allInView = false;
       const due = this.nextBubble.get(src) ?? 0;
       if (now < due || this.bubbles.length > 16) continue;
       this.nextBubble.set(src, now + 900 + Math.random() * 1100);
-      const r = src.getBoundingClientRect();
-      if (r.bottom < 0 || r.top > this.H) continue;
-      this.bubbles.push({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: 3, maxR: 9 + Math.random() * 13, vy: -(0.5 + Math.random() * 0.7), phase: Math.random() * 6 });
+      if (!inView) continue;
+      w.spawned++;
+      // Now and then (never in the first few), a giant one that splits when popped.
+      const giant = w.spawned > 6 && Math.random() < 1 / 14 && !this.bubbles.some((b) => b.giant);
+      this.bubbles.push({ x: r.left + r.width / 2, y: r.top + r.height / 2, r: 3, maxR: giant ? 34 + Math.random() * 6 : 9 + Math.random() * 13, vy: giant ? -0.4 : -(0.5 + Math.random() * 0.7), phase: Math.random() * 6, kx: 0, ky: 0, giant });
     }
     // Hovering a bubble with a mouse pops it too.
     if (this.pointer?.type === "mouse") this.popAt(this.pointer.x, this.pointer.y);
+    // Keep the screen clear of bubbles for a whole second: only once they've been coming
+    // for a while, you've popped a few, and the bubble makers are on screen and making them.
+    const armed = now - w.since > 6000 && w.spawned >= 10 && w.popped >= 4 && allInView && document.visibilityState === "visible";
+    if (armed && !this.bubbles.length) {
+      w.emptySince ||= now;
+      if (now - w.emptySince >= 1000 && !this.found.has("sweep")) {
+        this.found.add("sweep");
+        this.secret("sweep");
+      }
+    } else w.emptySince = 0;
     // Motion controls: bubbles drift the way the phone tilts.
     const tilt = this.tiltVec();
     ctx.save();
     for (let i = this.bubbles.length - 1; i >= 0; i--) {
       const b = this.bubbles[i];
       b.phase += 0.04 * f;
-      b.y += b.vy * f;
-      b.x += Math.sin(b.phase) * 0.5 * f;
+      b.y += (b.vy + b.ky) * f;
+      b.x += (Math.sin(b.phase) * 0.5 + b.kx) * f;
+      b.kx *= 0.95 ** f;
+      b.ky *= 0.95 ** f;
       if (tilt) {
         b.x = Math.max(b.r, Math.min(this.W - b.r, b.x + tilt[0] * 1.6 * f));
         b.y += tilt[1] * 1.6 * f;
@@ -1624,6 +1806,14 @@ export class FxEngine {
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r * 0.65, -2.4, -1.6);
       ctx.stroke();
+      if (b.giant) {
+        // A giant bubble has a soap-film shimmer, so it reads as special.
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = `hsla(${(now / 12 + b.phase * 40) % 360}, 90%, 70%, 0.55)`;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r * 0.86, 0.2, 2.2);
+        ctx.stroke();
+      }
     }
     ctx.restore();
   }
@@ -1636,7 +1826,7 @@ export class FxEngine {
     const target = this.pointer ?? { x: g.x, y: g.y };
     // Hold still with a mouse and it possesses your cursor.
     // (A finger long-pressing on a phone counts as holding still too.)
-    const possess = (this.pointer?.type === "mouse" || this.holding) && !this.drag && now - g.lastMove > 1400;
+    const possess = (this.pointer?.type === "mouse" || this.holding) && !this.drag && now - g.lastMove > 1400 && !this.quiet(now);
     // Holding still over the skeleton: the ghost possesses it instead of the cursor.
     const skeleton = possess && this.pointer ? this.skeletonAt(this.pointer.x, this.pointer.y) : null;
     const bones = skeleton?.getBoundingClientRect();
@@ -1821,7 +2011,7 @@ export class FxEngine {
   private drawStill(ctx: CanvasRenderingContext2D, now: number, dt: number) {
     const p = this.pointer;
     const trail = this.settings.trail;
-    if (!trail || !p || (p.type !== "mouse" && !this.holding) || this.drag || now - this.lastMoveAt < 600) {
+    if (!trail || !p || (p.type !== "mouse" && !this.holding) || this.drag || now - this.lastMoveAt < 600 || this.quiet(now)) {
       this.stillMs = 0;
       return;
     }

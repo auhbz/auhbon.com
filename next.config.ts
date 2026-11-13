@@ -38,6 +38,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_WORKBENCH: process.env.VERCEL_ENV === "production" ? "off"
+      : process.env.VERCEL_ENV === "preview" ? "on"
+      : process.env.NEXT_PUBLIC_WORKBENCH ?? (isDev ? "on" : "off"),
+  },
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
@@ -53,6 +58,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "preview\\.auhbon\\.com" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
       // The /dev working notes stay out of search engines (the pages also carry a noindex meta tag).
       { source: "/dev", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/dev/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },

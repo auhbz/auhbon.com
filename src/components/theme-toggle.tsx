@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { DEFAULT_THEME, getTheme, setTheme, THEME_EVENT, type Theme } from "@/lib/theme";
-import { DEFAULT_FUN, getFun, LOOKS, subscribeFun } from "@/lib/fun";
+import { DEFAULT_FUN, getFun, lookActive, LOOKS, subscribeFun } from "@/lib/fun";
 
 const ORDER: Theme[] = ["dark", "light", "system"];
 const LABEL: Record<Theme, string> = { system: "System", light: "Light", dark: "Dark" };
@@ -24,7 +24,8 @@ export function ThemeToggle() {
 
   // Bells-and-whistles themes (Terminal, Nature...) bring their own colors, so
   // the light/dark color mode is paused while one is on.
-  const look = fun.on && fun.look !== "classic" ? LOOKS.find((l) => l.id === fun.look)?.label : undefined;
+  const active = lookActive(fun);
+  const look = active !== "classic" ? LOOKS.find((l) => l.id === active)?.label : undefined;
   const label = look
     ? `Color mode: set by the ${look} theme`
     : `Color mode: ${LABEL[current]}. Switch to ${LABEL[next]}`;

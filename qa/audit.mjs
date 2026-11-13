@@ -2,8 +2,8 @@ import { chromium } from "playwright";
 import { AxeBuilder } from "@axe-core/playwright";
 
 const out = process.argv[2];
-const url = "http://localhost:3000/";
-const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome" });
+const url = process.env.BASE ?? "http://localhost:3000/";
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
 
 const configs = [
   { name: "desktop-light", viewport: { width: 1280, height: 900 }, colorScheme: "light" },

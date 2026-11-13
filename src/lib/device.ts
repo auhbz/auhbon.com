@@ -3,7 +3,7 @@
  * touch-first device (coarse pointer), so desktop browsers that happen to expose
  * these APIs (Chrome has both) keep behaving exactly as before.
  */
-import { getFun } from "@/lib/fun";
+import { funActive, getFun } from "@/lib/fun";
 
 const coarse = () => typeof window !== "undefined" && window.matchMedia("(pointer: coarse)").matches;
 
@@ -21,7 +21,7 @@ let quietUntil = 0;
  */
 export function haptic(kind: "tap" | "secret") {
   const s = getFun();
-  if (!s.on || !s.haptics || !canVibrate()) return;
+  if (!funActive(s) || !s.haptics || !canVibrate()) return;
   const now = performance.now();
   // A secret's pattern isn't cut short by the tap from the press that found it.
   if (kind === "tap" && now < quietUntil) return;
