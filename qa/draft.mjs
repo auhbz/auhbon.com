@@ -1,6 +1,7 @@
 // Draft playground (/dev/draft), /dev/draft/diff and /dev/visuals.
 // Usage: node draft.mjs <shots-dir>   (BASE=http://localhost:<port>/ to point elsewhere)
 import { chromium } from "playwright";
+import { setLocalHour } from "./clock.mjs";
 import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
@@ -31,6 +32,7 @@ async function closePanel(page) {
 }
 
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+await setLocalHour(ctx);
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));

@@ -2,6 +2,7 @@
 // the unlock announcements and the "Unlocked toys, features, & elements" panel section.
 // Usage: node wild.mjs <shots-dir>   (BASE=http://localhost:<port>/ to point elsewhere)
 import { chromium } from "playwright";
+import { setLocalHour } from "./clock.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
@@ -27,6 +28,7 @@ const secrets = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k
 
 async function open(viewport, { fun = cheatState, wild = null, reduced = false } = {}) {
   const ctx = await browser.newContext({ viewport, reducedMotion: reduced ? "reduce" : "no-preference", ...(viewport.width < 500 ? { hasTouch: true, isMobile: true } : {}) });
+  await setLocalHour(ctx);
   await ctx.addInitScript(
     ([k, v, w]) => {
       if (!sessionStorage.getItem("seeded")) {

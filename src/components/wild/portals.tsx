@@ -146,7 +146,7 @@ function PortalPuzzles() {
   return (
     <>
       {/* The device itself, tucked into the corner of Education. */}
-      <Slot id="portal-gun" target="#education .min-w-0" className="mt-6 flex justify-end">
+      <Slot id="portal-gun" className="mt-6 flex justify-end">
         {s.held ? null : (
           <button type="button" onClick={pickUp} data-portal-gun aria-label="A strange device. Pick it up" title="Hmm, what's this?" className="portal-gun rounded-md p-1 opacity-70 hover:opacity-100">
             <GunArt />
@@ -158,23 +158,23 @@ function PortalPuzzles() {
         <>
           <Hud state={s} setState={setS} />
 
-          <Slot id="chamber-word" target="#skills .min-w-0" className="mt-10">
+          <Slot id="chamber-word" className="mt-10">
             <Chamber n={1} title="Lost word" hint="This word wandered off from Contact. Put a portal under it, and one where it belongs.">
               {surface("word-shelf")}
             </Chamber>
           </Slot>
-          <Slot id="chamber-blank" target="#contact .min-w-0" className="mt-8">
+          <Slot id="chamber-blank" className="mt-8">
             <p className="flex flex-wrap items-center gap-2 font-display text-xl font-medium tracking-tight">
               Say {surface("blank")} anytime.
             </p>
           </Slot>
 
-          <Slot id="chamber-ledge" target="#work .min-w-0" prepend className="mb-10">
+          <Slot id="chamber-ledge" className="mb-10">
             <Chamber n={2} title="Drop zone" hint="Get the rock onto the target in Experience. Whatever comes out of a ceiling panel falls straight down.">
               {surface("ledge")}
             </Chamber>
           </Slot>
-          <Slot id="chamber-target" target="#experience .min-w-0" className="mt-10">
+          <Slot id="chamber-target" className="mt-10">
             <div className="portal-chamber grid grid-cols-3 gap-2 rounded-lg border border-line p-3" aria-label="Drop zone: three ceiling panels over a target" role="group">
               {(["panel-a", "panel-b", "panel-c"] as const).map((p) => (
                 <div key={p} className="flex flex-col items-center gap-2">
@@ -193,7 +193,7 @@ function PortalPuzzles() {
             {s.solved.target ? <p className="mt-2 text-sm text-muted">Target hit.</p> : null}
           </Slot>
 
-          <Slot id="chamber-vault" target="#skills .min-w-0" className="mt-6">
+          <Slot id="chamber-vault" className="mt-6">
             <Chamber n={3} title="The cake" hint="The cake is locked in a vault. Something heavy on the button might help. Then the plate is in Contact.">
               <div className="flex flex-wrap items-end gap-4">
                 <div className={`portal-vault rounded-md border-2 p-2 ${s.solved.vault ? "border-kelp" : "border-dashed border-muted"}`}>
@@ -208,7 +208,7 @@ function PortalPuzzles() {
               </div>
             </Chamber>
           </Slot>
-          <Slot id="chamber-plate" target="#contact .min-w-0" className="mt-8">
+          <Slot id="chamber-plate" className="mt-8">
             <div className="flex flex-col items-start gap-2">
               {surface("over-plate")}
               <span aria-hidden="true" className="text-3xl">

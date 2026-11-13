@@ -1,3 +1,4 @@
+import { PageSlotAnchor } from "@/components/page-slot";
 import { Suspense, type ReactNode } from "react";
 import { education, experience, profile, projectFilters, projects, skills, type Role } from "@/content/profile";
 import { GitHubRepos, GitHubReposSkeleton } from "@/components/github-repos";
@@ -55,7 +56,12 @@ function Section({
         </div>
         <div className="min-w-0">
           {intro ? <p className="mb-8 max-w-prose text-muted">{intro}</p> : null}
+          {id === "work" && <PageSlotAnchor id="chamber-ledge" />}
           {children}
+          {id === "experience" && <PageSlotAnchor id="chamber-target" />}
+          {id === "education" && <PageSlotAnchor id="portal-gun" />}
+          {id === "skills" && <><PageSlotAnchor id="chamber-word" /><PageSlotAnchor id="chamber-vault" /></>}
+          {id === "contact" && <><PageSlotAnchor id="chamber-blank" /><PageSlotAnchor id="chamber-plate" /></>}
         </div>
       </div>
     </section>

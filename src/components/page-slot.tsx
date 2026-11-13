@@ -1,56 +1,32 @@
 "use client";
 
-import { useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { whenHydrated } from "@/lib/hydrated";
 
-/**
- * Renders client-only extras inside a section of the (unchanged) home page:
- * a detached <div> is created on the client, attached to `target` after
- * mount and removed on unmount. The home page's own markup is never edited,
- * and the slot only exists in the browser, so there's nothing to hydrate.
- */
-const slots = new Map<string, HTMLElement>();
-const noSubscribe = () => () => {};
+const anchors = new Map<string, HTMLDivElement>();
+const listeners = new Set<() => void>();
 
-function slotFor(id: string, className: string) {
-  let el = slots.get(id);
-  if (!el) {
-    el = document.createElement("div");
-    el.dataset.pageSlot = id;
-    el.className = className;
-    slots.set(id, el);
-  }
-  return el;
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
 }
 
-export function Slot({
-  id,
-  target,
-  prepend = false,
-  className = "",
-  children,
-}: {
-  id: string;
-  /** CSS selector for the element to attach to. */
-  target: string;
-  prepend?: boolean;
-  className?: string;
-  children: ReactNode;
-}) {
-  const el = useSyncExternalStore(noSubscribe, () => slotFor(id, className), () => null);
-  useEffect(() => {
-    if (!el) return;
-    // Only once the section has hydrated (see lib/hydrated.ts).
-    const cancel = whenHydrated(target, (host) => {
-      if (!host) return;
-      if (prepend) host.prepend(el);
-      else host.append(el);
-    });
+/** React owns the position of this empty container and commits its ref before portals can use it. */
+export function PageSlotAnchor({ id }: { id: string }) {
+  const register = useCallback((node: HTMLDivElement | null) => {
+    if (!node) return;
+    anchors.set(id, node);
+    listeners.forEach((listener) => listener());
     return () => {
-      cancel();
-      el.remove();
+      if (anchors.get(id) !== node) return;
+      anchors.delete(id);
+      listeners.forEach((listener) => listener());
     };
-  }, [el, target, prepend]);
-  return el ? createPortal(children, el) : null;
+  }, [id]);
+  return <div ref={register} />;
+}
+
+export function Slot({ id, className, children }: { id: string; className: string; children: ReactNode }) {
+  const anchor = useSyncExternalStore(subscribe, () => anchors.get(id) ?? null, () => null);
+  return anchor ? createPortal(<div data-page-slot={id} className={className}>{children}</div>, anchor) : null;
 }
