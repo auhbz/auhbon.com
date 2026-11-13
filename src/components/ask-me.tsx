@@ -14,7 +14,7 @@ export const ASK_QUESTIONS: { id: string; question: string; hint: string }[] = [
   { id: "pho", question: "What's my favorite food?", hint: "It's a soup." },
   { id: "hire", question: "What should you do after reading my resume?", hint: "One short word, and a great idea." },
   { id: "meeple", question: "What are the little wooden people in board games called?", hint: "It's a fun word to say." },
-  { id: "auhbon", question: "What's my first name?", hint: "Spelling counts." },
+  { id: "auhbon", question: "Some secrets are hidden in ordinary words.", hint: "Try typing a word you associate with this site." },
 ];
 
 /** Questions whose answers haven't been typed yet. */

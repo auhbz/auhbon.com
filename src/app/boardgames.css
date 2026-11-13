@@ -1,0 +1,58 @@
+/* --- Draft themes: palettes. :root:root outranks the live looks and light/dark. --- */
+:root:root:is([data-look="boardgames"], [data-draft-look="boardgames"]) {
+  --paper: #133d2d;
+  --surface: #2a1c11;
+  --ink: #f7f0e1;
+  --muted: #c8d3b8;
+  --kelp: #f4c552;
+  --kelp-ink: #1d150c;
+  --line: #3f6a55;
+  --focus: #ff9d6e;
+  color-scheme: dark;
+}
+
+/* --- Board games: felt, a game-board track between sections, pawn bullets, dice. --- */
+html:is([data-look="boardgames"], [data-draft-look="boardgames"]) body {
+  isolation: isolate;
+}
+html:is([data-look="boardgames"], [data-draft-look="boardgames"]) body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.05), transparent 40%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+}
+html:is([data-look="boardgames"], [data-draft-look="boardgames"]) section[id] {
+  position: relative;
+  border-top-color: transparent;
+}
+html:is([data-look="boardgames"], [data-draft-look="boardgames"]) section[id]::before {
+  content: "";
+  position: absolute;
+  inset: -6px 0 auto;
+  height: 12px;
+  pointer-events: none;
+  border-block: 1px solid #1d150c;
+  background: repeating-linear-gradient(90deg, #d24a3c 0 22px, #f7f0e1 22px 24px, #f4c552 24px 46px, #f7f0e1 46px 48px, #3f8fd2 48px 70px, #f7f0e1 70px 72px, #55a868 72px 94px, #f7f0e1 94px 96px);
+}
+html:is([data-look="boardgames"], [data-draft-look="boardgames"]) :is(.rounded-lg, .rounded-xl).border {
+  box-shadow: 0 3px 0 0 #5b3a1d;
+}
+html:is([data-look="boardgames"], [data-draft-look="boardgames"]) main ul.list-disc {
+  list-style-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='12' viewBox='0 0 10 12'%3E%3Ccircle cx='5' cy='3' r='2.4' fill='%23f4c552'/%3E%3Cpath d='M2 11c0-3 1.5-4.5 3-5.5C6.5 6.5 8 8 8 11z' fill='%23f4c552'/%3E%3C/svg%3E");
+}
+html:is([data-look="boardgames"], [data-draft-look="boardgames"]) .hero-name {
+  text-shadow: 0.04em 0.05em 0 #5b3a1d;
+}
+/* The dice tray: green felt with a walnut rim. */
+.draft-tray {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.08), transparent 55%),
+    repeating-radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.06) 0 1px, transparent 1px 3px),
+    #1f6b4a;
+  box-shadow: inset 0 0 0 4px #5b3a1d, inset 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+

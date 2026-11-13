@@ -6,9 +6,10 @@
  * State is mirrored onto <html> data-* attributes so CSS, the canvas engine
  * and components all read the same source of truth and can't contradict.
  */
+import { isAvailable } from "@/lib/availability";
 import { prefersReducedMotion } from "@/lib/events";
 
-export type Look = "classic" | "terminal" | "pico8" | "nature" | "spooky" | "pho";
+export type Look = "classic" | "terminal" | "pico8" | "nature" | "spooky" | "pho" | "boardgames";
 export type Category = "dots" | "buttons" | "trail" | "sound";
 
 type Option = { id: string; label: string; description: string };
@@ -47,7 +48,7 @@ export const CATEGORIES: CategoryDef[] = [
       { id: "flow", label: "Flow", description: "Water: it streams, drips when you wait, and splashes when you click" },
       { id: "fire", label: "Fire", description: "Flames that scorch the words they pass, and grow if you wait" },
       { id: "cursed", label: "Cursed", description: "Something follows you. Don’t stand still." },
-      { id: "car", label: "Car", description: "A tiny car chases you, drifts the corners, does donuts when you wait; click for nitro" },
+      ...(isAvailable("effect:trail:car") ? [{ id: "car", label: "Car", description: "A tiny car chases you, drifts the corners, does donuts when you wait; click for nitro" }] : []),
     ],
   },
   {
@@ -72,6 +73,7 @@ export const LOOKS: { id: Look; label: string; description: string }[] = [
   { id: "pico8", label: "Pico-8", description: "The 16-color fantasy-console palette I made Flabby in" },
   { id: "nature", label: "Nature", description: "Moss, dappled canopy light, flowing water, falling leaves" },
   { id: "spooky", label: "Spooky", description: "Fog, flicker, and curious things that fly at night" },
+  { id: "boardgames", label: "Board games", description: "Felt, walnut, and a tray of dice games" },
   { id: "pho", label: "Pho", description: "A steaming bowl with limes, basil, bean sprouts, and jalapeños on the side" },
 ];
 
@@ -110,7 +112,7 @@ export type SecretDef = {
   area: SecretArea;
 };
 
-export const SECRET_LIST = [
+const SECRET_DEFINITIONS = [
   { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row", hint: "Name", category: "Hidden", difficulty: 2, area: "site" },
   { id: "konami", title: "Cheat code", icon: "🎮", how: "Entered the Konami code (on a keyboard, or the little gamepad on phones)", hint: "Arrows", category: "Typing", difficulty: 2, area: "site" },
   { id: "hire", title: "Great idea", icon: "💼", how: "Typed “hire”", hint: "Employ", category: "Typing", difficulty: 2, area: "site" },
@@ -168,7 +170,12 @@ export const SECRET_LIST = [
   { id: "tower", title: "Tower", icon: "🗼", how: "Stacked 10 blocks in Stacker", hint: "Ten", category: "Games", difficulty: 1, area: "games" },
   { id: "skyscraper", title: "Skyscraper", icon: "🏙️", how: "Stacked 20 blocks in Stacker", hint: "Twenty", category: "Games", difficulty: 3, area: "games" },
   // THEMES (MP5): the Pho theme's bowl, the Pico-8 climber, and Flabby's mini game.
-  { id: "auhbonsway", title: "Auhbon's way", icon: "🌶️", how: "Pho theme: topped the bowl with exactly 3 limes, all the jalapeños, and all the basil", hint: "Spicy", category: "Effects", difficulty: 3, area: "themes" },
+  { id: "auhbonsway", title: "Auhbon's way", icon: "🌶️", how: "Pho theme: topped the bowl with exactly 3 limes, all the jalapeños, all the basil, and no bean sprouts", hint: "Spicy", category: "Effects", difficulty: 3, area: "themes" },
+  { id: "d-snake", title: "Snake eyes", icon: "🐍", how: "Rolled two ones in Free roll (Board games theme)", hint: "Dice", category: "Games", difficulty: 2, area: "themes" },
+  { id: "d-hot", title: "Hot dice", icon: "🎲", how: "Rolled doubles three times in a row in Free roll", hint: "Dice", category: "Games", difficulty: 2, area: "themes" },
+  { id: "d-bullseye", title: "Bullseye", icon: "🎯", how: "Stood on exactly the limit in Push your luck", hint: "Dice", category: "Games", difficulty: 2, area: "themes" },
+  { id: "d-thrifty", title: "Waste not", icon: "💰", how: "Stood on exactly the limit in Push your luck after spending at most one die", hint: "Dice", category: "Games", difficulty: 2, area: "themes" },
+  { id: "d-pig", title: "Hog wild", icon: "🐷", how: "Beat the house at Pig", hint: "Dice", category: "Games", difficulty: 2, area: "themes" },
   { id: "naturalist", title: "Naturalist", icon: "🌿", how: "Pho theme: slurped a whole bowl without adding a single topping", hint: "Plain", category: "Effects", difficulty: 2, area: "themes" },
   { id: "cleanbowl", title: "Clean bowl", icon: "🥢", how: "Pho theme: slurped a whole bowl you'd topped", hint: "Slurp", category: "Effects", difficulty: 1, area: "themes" },
   { id: "dazed", title: "Dazed and confused", icon: "💫", how: "Pico-8 theme: scrolled the little climber into the edge of the screen while he was climbing", hint: "Bonk", category: "Effects", difficulty: 2, area: "extras" },
@@ -191,7 +198,8 @@ export const SECRET_LIST = [
   // Extras.
   { id: "portal-cake", title: "Cake", icon: "🎂", how: "Solved the last portal test chamber", hint: "Lie", category: "Hidden", difficulty: 3, area: "extras" },
 ] as const satisfies readonly SecretDef[];
-export type Secret = (typeof SECRET_LIST)[number]["id"];
+export type Secret = (typeof SECRET_DEFINITIONS)[number]["id"];
+export const SECRET_LIST = SECRET_DEFINITIONS.filter(({ id }) => isAvailable(id));
 export const SECRETS: readonly Secret[] = SECRET_LIST.map((s) => s.id);
 
 /** Words that are secrets when typed (on the page, or into Quick actions). */
@@ -581,7 +589,7 @@ export const comboSecret = (s: FunState): Secret | null => comboSecrets(s)[0] ??
 /** Returns true the first time a secret is found. Secrets can't be found in Boring mode. */
 export function findSecret(id: Secret): boolean {
   const s = getFun();
-  if (!isFunMode(s) || s.secrets.includes(id)) return false;
+  if (!isAvailable(id) || !isFunMode(s) || s.secrets.includes(id)) return false;
   updateFun((st) => ({ ...st, secrets: [...st.secrets, id] }));
   return true;
 }
@@ -595,7 +603,7 @@ export function blockedByMotion(c: Category, variant: string) {
 export function activeVariant(s: FunState, c: Category): string | null {
   const e = s.effects[c];
   if (!funActive(s) || !e.on || blockedByMotion(c, e.variant)) return null;
-  return e.variant;
+  return isAvailable(effectId(c, e.variant)) ? e.variant : null;
 }
 
 /** The theme in use: always Classic in Boring mode. */

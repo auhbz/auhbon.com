@@ -4,7 +4,7 @@
  * hands lives here, sorted by when it matters. Rewritten at the end of each MP.
  */
 
-export const REVIEW_MP = "MP5";
+export const REVIEW_MP = "MP6";
 export const REVIEW_AS_OF = "2026-11-13";
 export const PREVIEW_URL = "https://preview.auhbon.com";
 
@@ -34,9 +34,24 @@ const p = (path: string) => `${PREVIEW_URL}${path}`;
 export const REVIEW: ReviewTier[] = [
   {
     id: "now",
-    title: "Now: before you send MP6",
+    title: "Now: MP6 release and preview",
     intro: "Quick or important. Work top to bottom; tick things off in your MP6 notes as you go.",
     items: [
+      {
+        id: "mp6-release",
+        title: "MP6 selective release",
+        kind: "review",
+        area: "Site",
+        effort: "10 min",
+        summary: "Try the small fixes and see where each feature is available.",
+        details: [
+          "Board games is available in the main Theme picker. Try Push your luck, Pig, and Free roll.",
+          "Pho has five lime wedges, 17 jalapeños, seven bean sprouts, and seven basil. Auhbon’s Way uses three limes, all the jalapeños and basil, and no sprouts.",
+          "The typing prompt points toward word secrets, the Pico-8 climber moves a little faster, and portal panels use their colored outlines without adding words.",
+          "Toy box, Gravity, Car, and their dependent secrets are held for preview. Monkey Mode keeps its approved behavior.",
+        ],
+        links: [{ label: "Public, Preview, and Draft inventory", href: p("/dev/environments") }],
+      },
       {
         id: "mp5-closeout",
         title: "MP5 closeout changes added by Codex",

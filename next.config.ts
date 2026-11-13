@@ -38,6 +38,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_WORKBENCH: process.env.VERCEL_ENV === "production" ? "off"
+      : process.env.VERCEL_ENV === "preview" ? "on"
+      : process.env.NEXT_PUBLIC_WORKBENCH ?? (isDev ? "on" : "off"),
+  },
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,

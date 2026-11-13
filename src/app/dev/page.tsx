@@ -4,6 +4,7 @@ import { DevPageHeader, devMetadata } from "@/components/dev/ui";
 export const metadata = devMetadata("Dev notes", "/dev", "Working notes for auhbon.com.");
 
 const pages = [
+  { href: "/dev/environments", title: "Public, Preview, and Draft", description: "See where each change is available and what still needs review." },
   { href: "/dev/roadmap", title: "Roadmap", description: "What's shipped, in progress, waiting, planned or skipped, plus the mobile ideas." },
   { href: "/dev/secrets", title: "Secrets", description: "Every secret with its hint and how it’s found, by area, the draft secrets, everything secrets unlock, and rough ideas for more." },
   { href: "/dev/milestones", title: "Milestones", description: "A slider that shows where every milestone and unlock lands for any number of secrets." },

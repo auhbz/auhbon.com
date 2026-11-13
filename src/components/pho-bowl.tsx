@@ -12,15 +12,15 @@ type Kind = "lime" | "basil" | "sprouts" | "jalapeno";
 type Counts = Record<Kind, number>;
 
 const TOPPINGS: { id: Kind; label: string; one: string; max: number }[] = [
-  { id: "lime", label: "Limes", one: "a lime wedge", max: 3 },
-  { id: "basil", label: "Thai basil", one: "a sprig of Thai basil", max: 5 },
-  { id: "sprouts", label: "Bean sprouts", one: "some bean sprouts", max: 5 },
-  { id: "jalapeno", label: "Jalapeños", one: "a jalapeño slice", max: 5 },
+  { id: "lime", label: "Limes", one: "a lime wedge", max: 5 },
+  { id: "basil", label: "Thai basil", one: "a sprig of Thai basil", max: 7 },
+  { id: "sprouts", label: "Bean sprouts", one: "some bean sprouts", max: 7 },
+  { id: "jalapeno", label: "Jalapeños", one: "a jalapeño slice", max: 17 },
 ];
 const EMPTY: Counts = { lime: 0, basil: 0, sprouts: 0, jalapeno: 0 };
 const total = (c: Counts) => c.lime + c.basil + c.sprouts + c.jalapeno;
-/** Auhbon's way: exactly 3 limes, every jalapeño and every basil sprig (sprouts don't matter). */
-const isAuhbonsWay = (c: Counts) => c.lime === 3 && c.jalapeno === 5 && c.basil === 5;
+/** Auhbon's way: exactly 3 limes, every jalapeño and every basil sprig and no sprouts. */
+const isAuhbonsWay = (c: Counts) => c.lime === 3 && c.jalapeno === 17 && c.basil === 7 && c.sprouts === 0;
 
 /** Where each topping lands, as [x across the broth (-1 to 1), y below its surface, tilt]. Fixed so a bowl looks the same every time. */
 const SPOTS: Record<Kind, [number, number, number][]> = {
@@ -215,7 +215,7 @@ function Bowl() {
           {left
             ? order.map((kind) => {
                 const n = seen[kind]++;
-                const [fx, dy, tilt] = SPOTS[kind][n];
+                const [fx, dy, tilt] = SPOTS[kind][n] ?? [Math.sin(n * 2.4) * 0.82, 2 + (n % 5) * 2, (n * 17) % 70 - 35];
                 return (
                   <g key={`${kind}-${n}`} transform={`translate(${80 + fx * half} ${surface + dy}) rotate(${tilt}) scale(1.3)`}>
                     <g className="pho-topping" data-topping={kind}>

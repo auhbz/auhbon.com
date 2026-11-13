@@ -12,6 +12,7 @@
  * - Secrets: achievements. Milestones: secret counts with a celebration.
  * - Cheats: per-feature unlock overrides, decoupled from secrets found.
  */
+import { isAvailable } from "@/lib/availability";
 import { useSyncExternalStore } from "react";
 import {
   DEFAULT_FUN,
@@ -66,7 +67,7 @@ export const UNLOCK_KINDS: { id: UnlockKind; label: string }[] = [
  * so every effect and theme is open by about 8 secrets. Mini games open one at
  * a time, early: 3, 6 and 10.
  */
-export const UNLOCKS: UnlockDef[] = [
+const unlockDefinitions: UnlockDef[] = [
   // Effects: i-dots
   { id: "effect:dots:fruit", kind: "effect", label: "Fruit i-dots", at: 0 },
   { id: "effect:dots:slingshot", kind: "effect", label: "Slingshot i-dots", at: 0 },
@@ -107,7 +108,8 @@ export const UNLOCKS: UnlockDef[] = [
   { id: "extra:pots", kind: "extra", label: "Clay pots", at: 15 },
   { id: "extra:leaflings", kind: "extra", label: "Leaflings", at: 18 },
   // THEMES (MP5): the Pho theme, Flabby the Pico-8 climber, and Flabby's mini game (found in Selected work).
-  { id: "theme:pho", kind: "theme", label: "Pho theme", at: 9 },
+  { id: "theme:pho", kind: "theme", label: "Pho theme", at: 8 },
+  { id: "theme:boardgames", kind: "theme", label: "Board games theme", at: 8 },
   { id: "extra:climber", kind: "extra", label: "Pico-8 climber", at: 12 },
   { id: "game:flabby", kind: "game", label: "Flabby", at: 0, secret: "flabby" },
   // WILD workstream: Wild & Wondrous modes, the toy box and its toys, the portal device.
@@ -120,6 +122,8 @@ export const UNLOCKS: UnlockDef[] = [
   { id: "toy:smoke", kind: "toy", label: "Smoke bombs", at: 18 },
   { id: "extra:portal", kind: "extra", label: "Portal device", at: 20 },
 ];
+
+export const UNLOCKS = unlockDefinitions.filter(({ id }) => isAvailable(id));
 
 export const unlockDef = (id: string) => UNLOCKS.find((u) => u.id === id);
 
@@ -134,6 +138,7 @@ export function unlockedBySecrets(def: UnlockDef, s: FunState): boolean {
 
 /** Unlocked if a cheat says so, its secret is found, or enough secrets are found. Unknown ids are unlocked. */
 export function isUnlocked(id: string, s: FunState = getFun()): boolean {
+  if (!isAvailable(id)) return false;
   const def = unlockDef(id);
   if (!def) return true;
   if (s.cheats.enabled && s.cheats.unlocked.includes(id)) return true;
@@ -147,7 +152,8 @@ registerLockCheck(isUnlocked);
  */
 export function lockInfo(id: string, s: FunState = getFun()): { more: number | null; bySecret: boolean } | null {
   if (isUnlocked(id, s)) return null;
-  const def = unlockDef(id)!;
+  const def = unlockDef(id);
+  if (!def) return null;
   const more = def.secret && def.at === 0 ? null : Math.max(1, liveThreshold(def) - s.secrets.length);
   return { more, bySecret: Boolean(def.secret) };
 }

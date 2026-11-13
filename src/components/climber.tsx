@@ -156,7 +156,7 @@ function ClimberCanvas() {
         return;
       }
       if (c.state === "walk") {
-        const v = 0.7;
+        const v = 0.78;
         const nx = c.x + c.dir * v;
         // A wall ahead: step up a tiny ledge, or grab it and climb.
         const wall = blocks.find((k) => k !== c.on && hits(nx, c.y, k));
@@ -220,7 +220,7 @@ function ClimberCanvas() {
       }
       if (c.state === "climb") {
         const k = c.on!;
-        c.y += c.vdir * 0.5;
+        c.y += c.vdir * 0.56;
         // Something above him (or the top of the screen): head back down.
         if (c.vdir < 0 && (c.y <= 2 || blocks.some((o) => o !== k && hits(c.x, c.y, o)))) c.vdir = 1;
         if (c.vdir < 0 && c.y + 8 <= k.t + 0.5) {

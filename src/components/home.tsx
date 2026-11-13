@@ -10,6 +10,7 @@ import { GooglyOs } from "@/components/googly-eyes";
 import { DocumentLink, ExternalLink } from "@/components/external-link";
 import { PodBayDoors } from "@/components/pod-bay-doors";
 import { Skeleton } from "@/components/skeleton";
+import { LiveBoardGames } from "@/components/draft/draft-extras";
 import { PhoBowl } from "@/components/pho-bowl";
 
 const monthFormat = new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric", timeZone: "UTC" });
@@ -134,7 +135,7 @@ export function Home({ heroExtra }: { heroExtra?: ReactNode }) {
         </div>
         {/* Pho theme only (renders nothing otherwise). */}
         <PhoBowl />
-        {heroExtra}
+        {heroExtra ?? <LiveBoardGames />}
       </section>
 
       <Section id="work" title="Selected work">

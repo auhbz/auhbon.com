@@ -4,6 +4,7 @@ Every version is saved as a checkpoint branch named `release/<version>`, so any 
 
 | Version | Label | Checkpoint |
 |---|---|---|
+| 2.1.0 | Selective MP6 release | `release/2.1.0` |
 | 2.0.0 | Fun & Boring (MP5) | `release/2.0.0` (created when MP5 is merged to main) |
 | 1.22.0 | Effects, polish & phone fixes | [`release/1.22.0`](https://github.com/auhbz/auhbon.com/tree/release/1.22.0) |
 | 1.21.0 | Draft sandbox & visuals | [`release/1.21.0`](https://github.com/auhbz/auhbon.com/tree/release/1.21.0) |
@@ -75,6 +76,13 @@ Major Push 4, part 3. New effects, a smoother look and phone fixes.
 - Style pickers in the panel lay out in balanced rows.
 
 ---
+
+## 2.1.0: Selective MP6 release
+
+- Promote Board games with Push your luck, Pig, and Free roll.
+- Update Pho toppings, make the Pico-8 climber slightly faster, and clarify the typing hint and portal color indicator.
+- Keep Toy box, Gravity, Car, and their dependent secrets on preview.
+- Add a Public, Preview, and Draft comparison to the dev pages.
 
 ## 2.0.0: Fun & Boring (MP5)
 

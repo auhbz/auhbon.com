@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { CELEBRATE_EVENT, PARADE_END_EVENT } from "@/components/celebrations";
 import { markSeen, useWild } from "@/lib/wild/store";
-import { unlockDef, unlockedBySecrets, useExtraVisible, useFunMode } from "@/lib/unlocks";
+import { UNLOCKS, unlockedBySecrets, useExtraVisible, useFunMode } from "@/lib/unlocks";
 import { DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
 import { prefersReducedMotion } from "@/lib/events";
 import { sound } from "@/lib/fx";
@@ -44,7 +44,7 @@ export function Announcements() {
   const wild = useWild();
   // Only unlocks earned with secrets get a moment: a cheat is a deliberate choice, no surprise needed.
   const state = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
-  const earned = (id: string) => unlockedBySecrets(unlockDef(id)!, state);
+  const earned = (id: string) => Boolean(UNLOCKS.find((def) => def.id === id && unlockedBySecrets(def, state)));
   const wildOpen = earned("wild:monkeys");
   const box = useExtraVisible("toy:box") && earned("toy:box");
   const portal = useExtraVisible("extra:portal") && earned("extra:portal");

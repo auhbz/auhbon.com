@@ -17,6 +17,7 @@ import { FunExtras } from "@/components/fun-extras";
 import { WildLayer } from "@/components/wild/wild-layer";
 import { SoundFx } from "@/components/fx-canvas";
 import "./globals.css";
+import "./boardgames.css";
 
 // Self-hosted fonts: no request to Google at runtime, which keeps the CSP to 'self'.
 const bricolage = localFont({

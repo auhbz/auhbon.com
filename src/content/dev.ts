@@ -20,6 +20,12 @@ export type RoadmapItem = {
 
 export const roadmap: RoadmapItem[] = [
   {
+    item: "2.1.0: Selective MP6 release",
+    version: "2.1.0",
+    status: "WIP",
+    notes: "Board games and the approved small fixes. The environment inventory tracks the work held for preview and Draft.",
+  },
+  {
     item: "2.0.0: Fun & Boring (MP5)",
     version: "2.0.0",
     status: "Waiting on Auhbon",

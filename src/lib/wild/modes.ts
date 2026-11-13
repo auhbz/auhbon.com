@@ -1,7 +1,9 @@
 /** The Wild & Wondrous modes (plain data, safe for server components). */
 export type WildMode = "monkeys" | "gravity";
 
-export const WILD_MODES: { id: WildMode; unlock: string; label: string; description: string }[] = [
+import { isAvailable } from "@/lib/availability";
+
+const modeDefinitions: { id: WildMode; unlock: string; label: string; description: string }[] = [
   {
     id: "monkeys",
     unlock: "wild:monkeys",
@@ -15,3 +17,5 @@ export const WILD_MODES: { id: WildMode; unlock: string; label: string; descript
     description: "The page comes loose and falls. Grab the pieces and toss them, then put everything back",
   },
 ];
+
+export const WILD_MODES = modeDefinitions.filter(({ unlock }) => isAvailable(unlock));

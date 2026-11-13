@@ -62,12 +62,12 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
   // Toppings by click (keyboard on desktop: Enter on a plate).
   if (tag === "desktop") {
     await page.locator('[data-plate="lime"]').focus();
-    for (let i = 0; i < 4; i++) await page.keyboard.press("Enter");
-  } else for (let i = 0; i < 4; i++) await page.locator('[data-plate="lime"]').click({ force: true });
-  check((await bowl.getAttribute("data-toppings")) === "3-0-0-0", `${tag} pho: limes cap at 3 (${await bowl.getAttribute("data-toppings")})`);
-  for (let i = 0; i < 5; i++) await page.locator('[data-plate="basil"]').click();
+    for (let i = 0; i < 3; i++) await page.keyboard.press("Enter");
+  } else for (let i = 0; i < 3; i++) await page.locator('[data-plate="lime"]').click({ force: true });
+  check((await bowl.getAttribute("data-toppings")) === "3-0-0-0", `${tag} pho: three limes are added (${await bowl.getAttribute("data-toppings")})`);
+  for (let i = 0; i < 7; i++) await page.locator('[data-plate="basil"]').click();
   // Jalapeños by dragging onto the bowl.
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 17; i++) {
     const p = await page.locator('[data-plate="jalapeno"]').boundingBox();
     const b = await bowl.boundingBox();
     if (tag === "desktop") {
@@ -79,10 +79,10 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
       await page.mouse.up();
     } else await page.locator('[data-plate="jalapeno"]').click();
   }
-  check((await bowl.getAttribute("data-toppings")) === "3-5-0-5", `${tag} pho: toppings land (${await bowl.getAttribute("data-toppings")})`);
+  check((await bowl.getAttribute("data-toppings")) === "3-7-0-17", `${tag} pho: toppings land (${await bowl.getAttribute("data-toppings")})`);
   s = await secrets(page);
   check(s.includes("auhbonsway"), `${tag} pho: 3 limes + max jalapeños + max basil = Auhbon's way`);
-  check((await page.locator(".pho-topping").count()) === 13, `${tag} pho: 13 toppings drawn in the bowl`);
+  check((await page.locator(".pho-topping").count()) === 27, `${tag} pho: 27 toppings drawn in the bowl`);
   await page.locator("[data-pho]").screenshot({ path: `${out}/pho-${tag}-topped.png` });
   for (let i = 0; i < 5; i++) await bowl.click();
   s = await secrets(page);

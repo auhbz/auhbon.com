@@ -271,11 +271,6 @@ function PortalPanel({ id, state, onPlace }: { id: Surface; state: State; onPlac
           {id === "blank" ? "_____" : "panel"}
         </span>
       )}
-      {portal ? (
-        <span aria-hidden="true" className="portal-tag">
-          {portal}
-        </span>
-      ) : null}
     </button>
   );
 }
@@ -285,8 +280,8 @@ function Hud({ state, setState }: { state: State; setState: (f: (s: State) => St
   return (
     <div role="group" aria-label="Portal device" data-portal-hud data-wild-ui className="fixed top-28 right-3 z-[57] flex max-w-[calc(100vw-1.5rem)] flex-wrap items-center gap-2 rounded-xl border border-line bg-surface p-2 text-sm shadow-lg sm:top-20">
       <span className="flex items-center gap-1.5 px-1">
-        <span aria-hidden="true" className={`portal-dot is-${state.next}`} />
-        Next: <strong>{state.next}</strong>
+        <span aria-hidden="true" className={`portal-portal-dot is-${state.next}`} />
+        Next: <strong className={state.next === "orange" ? "rounded bg-[#ffb04d] px-1 text-[#13232c]" : "rounded bg-[#8fd0ff] px-1 text-[#13232c]"}>{state.next}</strong>
       </span>
       <button
         type="button"

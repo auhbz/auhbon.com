@@ -2,9 +2,14 @@
 
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { DiceTray, d6, type Mark } from "@/lib/draft/dice-physics";
-import { revealDraft } from "@/lib/draft/store";
+import { reveal } from "@/components/easter-eggs";
+import { revealDraft, type DraftSecret } from "@/lib/draft/store";
 import { prefersReducedMotion } from "@/lib/events";
 import { sound } from "@/lib/fx";
+
+function revealBoardGameSecret(id: DraftSecret, message: string) {
+  reveal(id, message);
+}
 
 type GameId = "push" | "pig" | "free";
 const GAMES: { id: GameId; label: string }[] = [
@@ -19,7 +24,8 @@ const noSubscribe = () => () => {};
  * one and let go to throw it), and a little panel to switch between dice
  * games: Auhbon's Push your luck, Pig against the house, and a free roll.
  */
-export function BoardGames() {
+export function BoardGames({ draft = true }: { draft?: boolean }) {
+  const award = draft ? revealDraft : revealBoardGameSecret;
   const reduced = useSyncExternalStore(noSubscribe, prefersReducedMotion, () => false);
   const [tray] = useState(() => new DiceTray());
   const [game, setGame] = useState<GameId>("push");
@@ -110,15 +116,15 @@ export function BoardGames() {
         />
       </div>
       <div className="mt-3" role="tabpanel" aria-label={GAMES.find((g) => g.id === game)!.label}>
-        {game === "push" ? <PushYourLuck key="push" tray={tray} onSummary={setSummary} /> : null}
-        {game === "pig" ? <Pig key="pig" tray={tray} onSummary={setSummary} /> : null}
-        {game === "free" ? <FreeRoll key="free" tray={tray} onSummary={setSummary} /> : null}
+        {game === "push" ? <PushYourLuck key="push" tray={tray} onSummary={setSummary} award={award} /> : null}
+        {game === "pig" ? <Pig key="pig" tray={tray} onSummary={setSummary} award={award} /> : null}
+        {game === "free" ? <FreeRoll key="free" tray={tray} onSummary={setSummary} award={award} /> : null}
       </div>
     </div>
   );
 }
 
-type GameProps = { tray: DiceTray; onSummary: (s: string) => void };
+type GameProps = { tray: DiceTray; onSummary: (s: string) => void; award: (id: DraftSecret, message: string) => void };
 
 const btn = "min-h-11 rounded-lg border border-line px-3 text-sm font-medium hover:border-ink/40 disabled:opacity-50";
 const primary = "min-h-11 rounded-lg border border-kelp bg-kelp px-3 text-sm font-medium text-kelp-ink hover:opacity-90 disabled:opacity-50";
@@ -130,7 +136,7 @@ const primary = "min-h-11 rounded-lg border border-kelp bg-kelp px-3 text-sm fon
  * as you can without going over. To reroll dice you have to spend one (it
  * leaves the game), so every reroll costs you something.
  */
-function PushYourLuck({ tray, onSummary }: GameProps) {
+function PushYourLuck({ tray, onSummary, award }: GameProps) {
   const [limit, setLimit] = useState(() => 16 + Math.floor(Math.random() * 9));
   const [dice, setDice] = useState<{ id: number; value: number }[]>([]);
   const [marks, setMarks] = useState<Record<number, Mark>>({});
@@ -209,8 +215,8 @@ function PushYourLuck({ tray, onSummary }: GameProps) {
     setBest((b) => Math.max(b, total));
     if (total === limit) {
       setResult(`Bullseye! Exactly ${limit}.`);
-      revealDraft("d-bullseye", "Bullseye!");
-      if (spent <= 1) revealDraft("d-thrifty", "Waste not: right on the limit, hardly a die spent.");
+      award("d-bullseye", "Bullseye!");
+      if (spent <= 1) award("d-thrifty", "Waste not: right on the limit, hardly a die spent.");
     } else setResult(`You stood on ${total}, ${limit - total} under the limit. Score: ${total}.`);
     sound("secret");
   };
@@ -275,7 +281,7 @@ const PIG_GOAL = 50;
 const HOUSE_HOLDS = 15;
 
 /** Pig: roll to build a turn total, hold to bank it; a 1 loses the turn. First to 50 beats the house. */
-function Pig({ tray, onSummary }: GameProps) {
+function Pig({ tray, onSummary, award }: GameProps) {
   const [you, setYou] = useState(0);
   const [house, setHouse] = useState(0);
   const [turn, setTurn] = useState(0);
@@ -361,7 +367,7 @@ function Pig({ tray, onSummary }: GameProps) {
     if (banked >= PIG_GOAL) {
       setWho("over");
       setNote(`You win, ${banked} to ${house}!`);
-      revealDraft("d-pig", "Hog wild! You beat the house.");
+      award("d-pig", "Hog wild! You beat the house.");
     } else {
       setWho("house");
       setNote(`You banked ${turn}. The house's turn.`);
@@ -415,7 +421,7 @@ function Pig({ tray, onSummary }: GameProps) {
 // ------------------------------------------------------------ Free roll
 
 /** Two dice, no rules. Snake eyes and three doubles in a row are draft secrets. */
-function FreeRoll({ tray, onSummary }: GameProps) {
+function FreeRoll({ tray, onSummary, award }: GameProps) {
   const [message, setMessage] = useState("Throw the dice: drag one and let go, or press Roll.");
   const [streak, setStreak] = useState(0);
   const streakRef = useRef(0);
@@ -435,14 +441,14 @@ function FreeRoll({ tray, onSummary }: GameProps) {
         let note = doubles ? ` Doubles! ${next} in a row.` : "";
         if (a === 1 && b === 1) {
           note = " Snake eyes!";
-          revealDraft("d-snake", "Snake eyes.");
+          award("d-snake", "Snake eyes.");
         }
-        if (next === 3) revealDraft("d-hot", "Three doubles in a row. Hot dice!");
+        if (next === 3) award("d-hot", "Three doubles in a row. Hot dice!");
         setMessage(`Rolled ${a} and ${b}.${note}`);
         onSummary(`Showing ${a} and ${b}.`);
       },
     });
-  }, [tray, onSummary]);
+  }, [tray, onSummary, award]);
 
   return (
     <div className="flex flex-wrap items-center gap-2" data-free>
