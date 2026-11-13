@@ -111,7 +111,7 @@ Source: the "auhbon.com Copy Review" doc (Nov 10). Auhbon picked Approve, Skip, 
   - R0, rebuild the one-page resume from the CV. Recommendation: not now; the Nov 2026 resume already has every approved fix.
   - R3, en dashes in date ranges on the SE resume. Recommendation: yes.
 - **Waiting for Auhbon's hands (LinkedIn; paste-ready text is on /dev/review → "LinkedIn updates"):** C3, C4, C6, C14, C17/L2, C18, L4, L5 (add auhbon.com to Featured, first), L6 (Projects), L8 (Open to Work, recruiters only), and Oxford commas.
-- **Small leftovers:** the tutoring resume header still links the old "portfolio content" doc (swap for auhbon.com?); the Cover Letter Bank hasn't had an Oxford comma pass.
+- **Small leftover:** the tutoring resume header still links the old "portfolio content" doc. The Cover Letter Bank Oxford comma pass is in a separate private copy beside the original.
 - **Files:** in Google Drive next to the originals: "Auhbon Amiri – Software Engineer Resume (Nov 2026)", "Auhbon Amiri – Tutoring Resume (Nov 2026)", "Auhbon Amiri – CV (Nov 2026, rev 2)", "Auhbon Amiri – CV, private master (Nov 2026, rev 2)", "Auhbon Amiri – About Me (Nov 2026, rev 2)". The master CV is the source of truth for all copy.
 
 ## 6. ChatGPT Project instructions (paste as-is)
