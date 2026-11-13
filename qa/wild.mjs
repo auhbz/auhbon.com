@@ -51,6 +51,7 @@ const mainText = (page) => page.locator("main section").evaluateAll((sections) =
   sections.filter((section) => !section.closest("[data-page-slot]")).map((section) => {
     const content = section.cloneNode(true);
     content.querySelectorAll("[data-page-slot]").forEach((slot) => slot.remove());
+    content.querySelector("#hero-name > [aria-hidden='true']")?.remove();
     return content.textContent;
   }).join("\n"),
 );
