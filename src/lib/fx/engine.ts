@@ -909,6 +909,7 @@ export class FxEngine {
     const c = this.car;
     if (!c) return;
     const p = this.pointer;
+    const previousSpeed = Math.hypot(c.vx, c.vy);
     const quiet = this.quiet(now);
     // The still state: a resting mouse, or a finger long-pressing (never over a hamster wheel).
     const resting = !!p && (p.type === "mouse" || this.holding) && !this.drag && !quiet;
@@ -964,7 +965,8 @@ export class FxEngine {
       : requestedSpeed > 0.5 ? Math.atan2(c.vy, c.vx) : c.heading;
     const turn = Math.max(-0.14 * f, Math.min(0.14 * f, wrap(requestedHeading - c.heading)));
     c.heading = wrap(c.heading + turn);
-    const speed = Math.max(2, requestedSpeed);
+    const targetSpeed = Math.max(2, Math.min(boost ? 17 : 9.5, requestedSpeed));
+    const speed = Math.max(2, previousSpeed + Math.max(-0.55 * f, Math.min(0.55 * f, targetSpeed - previousSpeed)));
     c.vx = Math.cos(c.heading) * speed;
     c.vy = Math.sin(c.heading) * speed;
     if (speed > 0.5) {
