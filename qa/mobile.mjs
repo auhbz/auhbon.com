@@ -345,7 +345,7 @@ const vibrateSpy = () => {
 
 // ------------------------------------------------------------ iOS permission flow (emulated)
 {
-  const ios = (answer) => `(() => { window.__asked = 0; DeviceOrientationEvent.requestPermission = () => { window.__asked++; return Promise.resolve(${JSON.stringify(answer)}); }; })()`;
+  const ios = (answer) => `(() => { window.__asked = 0; window.DeviceOrientationEvent ??= class DeviceOrientationEvent extends Event {}; DeviceOrientationEvent.requestPermission = () => { window.__asked++; return Promise.resolve(${JSON.stringify(answer)}); }; })()`;
   for (const answer of ["denied", "granted"]) {
     const { ctx, page, errors } = await newPhone(ios(answer));
     await page.getByRole("button", { name: "Bells and whistles" }).tap();
