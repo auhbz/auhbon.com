@@ -940,10 +940,12 @@ export class FxEngine {
       let ax = ((dx / dist) * want - c.vx) * k;
       let ay = ((dy / dist) * want - c.vy) * k;
       if (e > 0) {
-        // The orbit: aim for a point a little further round a 30px circle.
-        const a = Math.atan2(c.y - p.y, c.x - p.x) + c.spin * 0.11 * e * f;
-        const ox = (p.x + Math.cos(a) * 30 - c.x - c.vx) * Math.min(1, 0.3 * f);
-        const oy = (p.y + Math.sin(a) * 30 - c.y - c.vy) * Math.min(1, 0.3 * f);
+        // Follow the tangent, with an inward correction when outside the orbit.
+        const a = Math.atan2(-dy, -dx);
+        const radial = Math.max(-2.5, Math.min(6, (dist - 38) * 0.22));
+        const gain = Math.min(1, 0.25 * f);
+        const ox = (-Math.sin(a) * c.spin * 4.4 - Math.cos(a) * radial - c.vx) * gain;
+        const oy = (Math.cos(a) * c.spin * 4.4 - Math.sin(a) * radial - c.vy) * gain;
         ax += (ox - ax) * e;
         ay += (oy - ay) * e;
       }
