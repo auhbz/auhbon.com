@@ -16,6 +16,7 @@ const rows = [
   ["Later celebrations", "MP5 versions", "Same", "Disco floor, Confetti storm, Dancing suns, and doubled finale", "Choose effects and order"],
   ["Dev-visit and Jerry’s Way secrets", "Next release", "Available", "Same", "Review secret wording and triggers"],
   ["Nature grass and glimmers", "Next release", "Available", "Same", "Spending pending"],
+  ["Cookie tag performance", "Existing effect", "Existing effect", "Same", "Open: rapid taps miss the mobile performance target under 4× CPU throttling"],
   ["Spoiler controls", "Next release", "Hover, tap, or Reveal all", "Same", "Review on touch"],
   ["I love list", "Draft on release snapshot", "Removed", "Removed", "Rejected. Removal reaches public on next release"],
   ["Visuals", "Available", "Same", "Linked from dev", "Removed stale draft listing"],

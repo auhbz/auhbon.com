@@ -84,6 +84,19 @@ export const REVIEW: ReviewTier[] = [
         links: [{ label: "Preview Draft", href: p("/dev/draft") }, { label: "Environment inventory", href: p("/dev/environments") }],
       },
       {
+        id: "mp6-open",
+        title: "Open after MP6",
+        kind: "review",
+        area: "Site",
+        effort: "2 min",
+        summary: "Mobile Cookie performance needs more work. The preview experiments still need your review.",
+        details: [
+          "Mobile QA passed the interaction checks. Rapid Cookie tag taps missed the 100 ms frame-time target under 4× CPU throttling.",
+          "Toy selection, glimmer spending, the Monkey Mode prototype, and the later celebration order are still open.",
+          "The public 2.1.0 release keeps Toy box, Gravity, Car, and their secrets held back.",
+        ],
+      },
+      {
         id: "copy-discuss",
         title: "Four copy items you marked Discuss",
         kind: "decide",
