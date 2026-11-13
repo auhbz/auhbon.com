@@ -38,6 +38,27 @@ export const REVIEW: ReviewTier[] = [
     intro: "Quick or important. Work top to bottom; tick things off in your MP6 notes as you go.",
     items: [
       {
+        id: "mp5-closeout",
+        title: "MP5 closeout changes added by Codex",
+        kind: "review",
+        area: "Site",
+        effort: "10 min",
+        summary: "These checks cover the changes made after Claude handed off MP5.",
+        details: [
+          "On a phone in Fun mode with Toy box available, scroll to the footer. Open Gamepad, close it, then open Toy box. Both controls should respond.",
+          "On Draft, select Board games and reload. Start a dice game and confirm the tray still appears in the hero.",
+          "With the Portal device unlocked, reload the homepage. Pick it up, open a chamber, then put it down. The device should appear by Education and the chambers should clear.",
+          "In Fun mode, open Quick actions and search for a command. Group labels, arrow navigation, and Enter should work.",
+          "In Gravity Mode, let several pieces fall and choose Put everything back. Read the restored text where the pieces came from.",
+          "The preview domain now opens without a login and tells search engines not to index it. The PR and handoff links point to preview.auhbon.com.",
+        ],
+        links: [
+          { label: "Preview", href: PREVIEW_URL },
+          { label: "Draft", href: p("/dev/draft") },
+          { label: "MP5 pull request", href: "https://github.com/auhbz/auhbon.com/pull/187" },
+        ],
+      },
+      {
         id: "how-we-work",
         title: "How we work: three versions of the site",
         kind: "review",
@@ -72,8 +93,6 @@ export const REVIEW: ReviewTier[] = [
           "Flabby: a tiny Flabby sits by his 'Source code' link in Selected work. Clicking him unlocks the Flabby mini game (now harder, with drifting pipes after 20).",
           "Wild & Wondrous: Monkey Mode (steals words and headings, vines, variable speeds, bowling ball, a gorilla who goes bananas) and the new Gravity Mode.",
           "Toy box: paint brush, sticky notes, paper airplane, and smoke bombs. Portal gun is now an unlockable extra you can hide.",
-          "On a phone in Fun mode, scroll to the footer and open Gamepad with the Toy box visible. Both buttons should be reachable.",
-          "On /dev/draft, select Board games and reload. The dice tray should still appear and let you start a game.",
           "Dev pages: /dev/secrets (hints, notes, areas, draft secrets, unlockables), /dev/goals, and /dev/milestones (the slider).",
         ],
         links: [

@@ -89,6 +89,8 @@ On the `next` branch and https://preview.auhbon.com until Auhbon approves it. Th
 - **Toy box** with a paint brush, sticky notes, a paper airplane, and smoke bombs; the portal device becomes a hideable extra.
 - **Draft.** Render the dice tray in the hero without inserting DOM during hydration.
 - **Mobile.** Leave room for the footer gamepad beside the floating Toy box.
+- **Wild & Wondrous.** Restore lifted text without overlapping splits, and mount portal puzzles in React-owned containers.
+- **Quick actions.** Give each result group a unique accessible label.
 - **QA.** Pin the browser clock for time-sensitive assertions and check Early bird at 6 a.m.
 - **Dev.** /dev/review (replaces Hands-on tasks), /dev/goals, /dev/milestones, and a richer /dev/secrets. "Mode" is now "Mini games" everywhere.
 

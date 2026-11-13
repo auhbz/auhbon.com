@@ -70,7 +70,10 @@ const only = process.argv[3];
     // A gentle sway doesn't count.
     for (let i = 0; i < 40; i++) { await p.mouse.move(700 + Math.sin(i / 3) * 12, 500); await p.waitForTimeout(16); }
     check(!(await secrets(p)).includes("shakeoff"), "cursed: small wiggles don't shake the ghost off");
-    for (let r = 0; r < 12; r++) for (let i = 0; i < 4; i++) { await p.mouse.move(700 + (r % 2 ? 1 : -1) * (i + 1) * 20, 500); await p.waitForTimeout(12); }
+    for (let r = 0; r < 12; r++) {
+      await p.mouse.move(r % 2 ? 780 : 620, 500);
+      await p.waitForTimeout(45);
+    }
     await p.waitForTimeout(300);
     check((await secrets(p)).includes("shakeoff"), "cursed: shaking hard shakes the ghost off");
   }

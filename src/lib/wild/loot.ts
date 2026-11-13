@@ -29,6 +29,7 @@ const GONE = "wildGone";
 const SKIP = "#hero-name, [data-wild-ui], [data-wild-ghosts], [data-portal-surface], [data-draft-slot], [data-hamster], [aria-hidden='true'], .sr-only, [data-wild-gone], [data-wild-vanish], dialog, [popover], header, nav";
 const WORDY = "main :is(h1, h2, h3, p, li, dt, dd, time)";
 const WHOLE = "main :is(.pill, button, a.text-link, h2, h3)";
+const splitText = new WeakSet<Text>();
 
 let layer: HTMLElement | null = null;
 let users = 0;
@@ -110,7 +111,7 @@ export function liftElement(el: HTMLElement): Loot {
 /** Lift characters [start, end) out of a text node, leaving a same-size gap. */
 export function liftWords(node: Text, start: number, end: number): Loot | null {
   const parent = node.parentElement;
-  if (!parent) return null;
+  if (!parent || splitText.has(node)) return null;
   const range = document.createRange();
   range.setStart(node, start);
   range.setEnd(node, end);
@@ -124,6 +125,8 @@ export function liftWords(node: Text, start: number, end: number): Loot | null {
   span.dataset[GONE] = "";
   span.textContent = word;
   const rest = document.createTextNode(full.slice(end));
+  splitText.add(node);
+  splitText.add(rest);
   node.nodeValue = before;
   node.after(span, rest);
 
@@ -144,6 +147,8 @@ export function liftWords(node: Text, start: number, end: number): Loot | null {
     home: () => (span.isConnected ? span.getBoundingClientRect() : r),
     restore: () => {
       ghost.remove();
+      splitText.delete(node);
+      splitText.delete(rest);
       if (node.isConnected && node.nodeValue === before) node.nodeValue = full;
       span.remove();
       rest.remove();
@@ -173,7 +178,7 @@ export function wordsCandidate(blocks = [...document.querySelectorAll<HTMLElemen
   for (let tries = 0; tries < 6 && inViewBlocks.length; tries++) {
     const block = pick(inViewBlocks);
     const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT, {
-      acceptNode: (n) => (n.parentElement && usable(n.parentElement) && /[A-Za-z]{2}/.test(n.nodeValue ?? "") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
+      acceptNode: (n) => (!splitText.has(n as Text) && n.parentElement && usable(n.parentElement) && /[A-Za-z]{2}/.test(n.nodeValue ?? "") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
     });
     const nodes: Text[] = [];
     for (let n = walker.nextNode(); n; n = walker.nextNode()) nodes.push(n as Text);
