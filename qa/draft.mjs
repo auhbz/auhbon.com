@@ -104,8 +104,8 @@ await closePanel(page);
 check(!(await page.locator("html").getAttribute("data-draft-look")), "a live look clears the draft theme");
 check((await page.locator("[data-flabby]").count()) === 0, "Flabby's draft perch is gone (he's live now)");
 
-// Keyboard warrior (live) fires on any key while Bells & whistles is on, so it is allowed here.
-const stray = (await liveSecrets(page)).filter((id) => id !== "keys");
+// The keyboard and visiting the dev section can earn their own live secrets.
+const stray = (await liveSecrets(page)).filter((id) => id !== "keys" && id !== "behind-the-scenes");
 check(stray.length === 0, `after every draft secret, no draft play counted as a live secret (${stray})`);
 await openPanel(page);
 check(/^\s*\d+ of \d+/.test(await page.locator("[data-draft-secret-count]").innerText()), "draft secrets have their own counter");
