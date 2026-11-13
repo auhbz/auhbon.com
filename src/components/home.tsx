@@ -1,4 +1,5 @@
 import { PageSlotAnchor } from "@/components/page-slot";
+import { NatureGlimmers } from "@/components/nature-glimmers";
 import { Suspense, type ReactNode } from "react";
 import { education, experience, profile, projectFilters, projects, skills, type Role } from "@/content/profile";
 import { GitHubRepos, GitHubReposSkeleton } from "@/components/github-repos";
@@ -256,6 +257,7 @@ export function Home({ heroExtra }: { heroExtra?: ReactNode }) {
           <HiddenEgg />
         </div>
       </Section>
+      <NatureGlimmers />
     </>
   );
 }

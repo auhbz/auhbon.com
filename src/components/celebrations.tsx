@@ -5,8 +5,10 @@ import { prefersReducedMotion } from "@/lib/events";
 import { burst, sound, toast } from "@/lib/fx";
 import { dueMilestones, getFun, markCelebrated, scaledMilestones } from "@/lib/fun";
 import { Fireworks } from "@/components/fireworks";
+import { workbench } from "@/lib/availability";
 
 export const CELEBRATE_EVENT = "portfolio:celebrate";
+export const DRAFT_FINALE_EVENT = "portfolio:draft-finale";
 /** Fired when an animal parade has walked off screen (Wild & Wondrous listens for it). */
 export const PARADE_END_EVENT = "portfolio:parade-end";
 
@@ -62,19 +64,19 @@ type Parade = { id: number; animals: { emoji: string; delay: number; duration: n
  */
 export function Celebrations() {
   const [parade, setParade] = useState<Parade | null>(null);
-  const [show, setShow] = useState(0);
+  const [show, setShow] = useState<{ id: number; density: number } | null>(null);
   const [lanterns, setLanterns] = useState<Lanterns | null>(null);
-  const endShow = useCallback(() => setShow(0), []);
+  const endShow = useCallback(() => setShow(null), []);
 
   useEffect(() => {
     const timers: number[] = [];
     const later = (ms: number, f: () => void) => timers.push(window.setTimeout(f, ms));
 
-    const startParade = () => {
+    const startParade = (density = 1) => {
       const id = Date.now();
-      const animals = Array.from({ length: 14 }, (_, i) => ({
+      const animals = Array.from({ length: 14 * density }, (_, i) => ({
         emoji: ANIMALS[(i * 5 + Math.floor(Math.random() * 3)) % ANIMALS.length],
-        delay: i * 0.45 + Math.random() * 0.3,
+        delay: i * 0.45 / density + Math.random() * 0.3,
         duration: 6 + Math.random() * 3,
         size: 1.8 + Math.random() * 1.2,
         hop: 0.28 + Math.random() * 0.2,
@@ -86,11 +88,11 @@ export function Celebrations() {
       });
     };
     // Rockets, bursts and a finale, on their own canvas (see fireworks.tsx).
-    const fireworks = () => setShow(Date.now());
+    const fireworks = (density = 1) => setShow({ id: Date.now(), density });
     // Paper lanterns drift up from the bottom of the screen, glowing and swaying.
-    const startLanterns = () => {
+    const startLanterns = (density = 1) => {
       const id = Date.now();
-      const count = window.innerWidth < 640 ? 9 : 16;
+      const count = (window.innerWidth < 640 ? 9 : 16) * density;
       const list = Array.from({ length: count }, (_, i) => ({
         x: ((i + 0.5) / count) * 100 + (Math.random() - 0.5) * (60 / count),
         delay: Math.random() * 3.5,
@@ -125,8 +127,18 @@ export function Celebrations() {
       for (const p of PARTIES[at] ?? ["parade"]) run[p]();
     };
     window.addEventListener(CELEBRATE_EVENT, onCelebrate);
+    const draftFinale = () => {
+      if (!workbench || document.documentElement.dataset.draft !== "on") return;
+      fireworks(2);
+      if (prefersReducedMotion()) return;
+      startParade(2);
+      startLanterns(2);
+      disco();
+    };
+    window.addEventListener(DRAFT_FINALE_EVENT, draftFinale);
     return () => {
       window.removeEventListener(CELEBRATE_EVENT, onCelebrate);
+      window.removeEventListener(DRAFT_FINALE_EVENT, draftFinale);
       timers.forEach((t) => window.clearTimeout(t));
       delete document.documentElement.dataset.disco;
     };
@@ -134,7 +146,7 @@ export function Celebrations() {
 
   return (
     <>
-      {show ? <Fireworks key={show} onDone={endShow} /> : null}
+      {show ? <Fireworks key={show.id} onDone={endShow} density={show.density} /> : null}
       {lanterns ? (
         <div aria-hidden="true" data-lanterns className="lanterns" key={lanterns.id}>
           {lanterns.lanterns.map((l, i) => (

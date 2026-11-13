@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useId } from "react";
-import { useExtraVisible, useUnlocked } from "@/lib/unlocks";
+import { useEffect, useId, useSyncExternalStore } from "react";
+import { DEFAULT_FUN, getFun, subscribeFun } from "@/lib/fun";
+import { isUnlocked, useExtraVisible, useUnlocked } from "@/lib/unlocks";
 import { holdToy, TOYS, useHeldToy, type ToyId } from "@/lib/toys";
 import { toGoLabel } from "@/lib/wild/store";
 import { sound } from "@/lib/fx";
@@ -68,6 +69,8 @@ export function ToyBox() {
 
 function ToyBoxPanel({ held }: { held: ToyId | null }) {
   const headingId = useId();
+  const state = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
+  const next = TOYS.find((toy) => !isUnlocked(toy.unlock, state));
   return (
     <div
       id={PANEL}
@@ -83,14 +86,14 @@ function ToyBoxPanel({ held }: { held: ToyId | null }) {
       <p className="text-sm text-muted">Pull a toy out to play. Put it back when you&apos;re done.</p>
       <ul className="mt-3 grid grid-cols-2 gap-2" aria-label="Toys">
         {TOYS.map((t) => (
-          <ToySlot key={t.id} toy={t} held={held === t.id} />
+          <ToySlot key={t.id} toy={t} held={held === t.id} next={next === t} />
         ))}
       </ul>
     </div>
   );
 }
 
-function ToySlot({ toy, held }: { toy: (typeof TOYS)[number]; held: boolean }) {
+function ToySlot({ toy, held, next }: { toy: (typeof TOYS)[number]; held: boolean; next: boolean }) {
   const unlocked = useUnlocked(toy.unlock);
   if (!unlocked) {
     const need = toGoLabel(toy.unlock);
@@ -99,15 +102,15 @@ function ToySlot({ toy, held }: { toy: (typeof TOYS)[number]; held: boolean }) {
         <button
           type="button"
           aria-disabled="true"
-          aria-label={`Locked toy. ${need} to unlock it`}
-          title={need}
+          aria-label={next ? `Locked toy. ${need} to unlock it` : "Locked toy"}
+          title={next ? need : undefined}
           data-toy-slot={toy.id}
           data-locked
           onClick={() => sound("hit")}
           className="toy-slot flex aspect-square w-full cursor-not-allowed flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-line p-1 text-center"
         >
-          <ToyIcon id={toy.id} className="toy-silhouette" />
-          <span className="text-xs leading-tight text-muted">{need}</span>
+          <ToyIcon id={toy.id} className={next ? "toy-silhouette" : "toy-silhouette blur-sm"} />
+          <span className="text-xs leading-tight text-muted">{next ? need : "Locked"}</span>
         </button>
       </li>
     );

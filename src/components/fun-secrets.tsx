@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { workbench } from "@/lib/availability";
 import { reveal } from "@/components/easter-eggs";
 import { FUN_EVENT, getFun, SHUFFLE_EVENT } from "@/lib/fun";
-import { funMode } from "@/lib/unlocks";
+import { funMode, useFunMode } from "@/lib/unlocks";
 
 const isFun = () => funMode(getFun()) === "fun";
 const found = (id: string) => getFun().secrets.includes(id);
@@ -46,6 +48,12 @@ const isEarlyBirdHour = () => {
  */
 export function FunSecrets() {
   const [dozing, setDozing] = useState(false);
+  const path = usePathname();
+  const mode = useFunMode();
+
+  useEffect(() => {
+    if (workbench && mode === "fun" && (path === "/dev" || path.startsWith("/dev/"))) reveal("behind-the-scenes", "You found the working notes.");
+  }, [mode, path]);
 
   useEffect(() => {
     let lastInput = performance.now();

@@ -7,6 +7,8 @@ import { GravityMode } from "@/components/wild/gravity-mode";
 import { Announcements } from "@/components/wild/announcements";
 import { Portals } from "@/components/wild/portals";
 import { ToyBox } from "@/components/toys/toy-box";
+import { useIsDraft } from "@/components/draft/draft-root";
+import { workbench } from "@/lib/availability";
 import "./wild.css";
 
 /**
@@ -17,12 +19,13 @@ import "./wild.css";
 export function WildLayer() {
   const fun = useFunMode() === "fun";
   const wild = useWild();
+  const draft = useIsDraft() && workbench;
   const monkeys = useUnlocked("wild:monkeys");
   const gravity = useUnlocked("wild:gravity");
   const on = fun && wild.on;
   return (
     <>
-      {on && wild.mode === "monkeys" && monkeys ? <MonkeyMode /> : null}
+      {on && wild.mode === "monkeys" && monkeys ? <MonkeyMode draft={draft} /> : null}
       {on && wild.mode === "gravity" && gravity ? <GravityMode /> : null}
       <ToyBox />
       <Portals />

@@ -3,7 +3,8 @@ import { devMetadata } from "@/components/dev/ui";
 import { DraftBanner } from "@/components/draft/draft-banner";
 import { DraftExtras } from "@/components/draft/draft-extras";
 import { DraftRoot } from "@/components/draft/draft-root";
-import { LoveList } from "@/components/draft/love-list";
+import { CelebrationLab } from "@/components/draft/celebration-lab";
+import { workbench } from "@/lib/availability";
 import "./draft.css";
 
 export const metadata = devMetadata("Draft playground", "/dev/draft", "The live home page plus ideas being tested before they go live.");
@@ -18,7 +19,7 @@ export default function DraftPage() {
     <DraftRoot>
       <DraftBanner />
       <Home heroExtra={<DraftExtras />} />
-      <LoveList />
+      {workbench ? <CelebrationLab /> : null}
     </DraftRoot>
   );
 }

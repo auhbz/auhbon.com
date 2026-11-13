@@ -25,6 +25,17 @@ function readGlimmers() {
   }
 }
 
+export function addGlimmers(amount: number) {
+  const total = readGlimmers() + amount;
+  try {
+    localStorage.setItem(KEY, String(total));
+  } catch {
+    // Storage can be unavailable in a private browsing context.
+  }
+  toast(`+${amount} glimmers (${total} in all)`);
+  return total;
+}
+
 type Drop = { id: number; color: string; dx: number; delay: number };
 
 /**
@@ -65,14 +76,8 @@ function Pot({ index }: { index: number }) {
     setBroken(true);
     setDrops(Array.from({ length: n }, (_, i) => ({ id: Date.now() + i, color: COLORS[Math.floor(Math.random() * COLORS.length)], dx: (i - (n - 1) / 2) * 1.1 + (Math.random() - 0.5) * 0.4, delay: i * 0.06 })));
     if (activeVariant(getFun(), "sound")) extraSound.smash(n);
-    const total = readGlimmers() + n;
-    try {
-      localStorage.setItem(KEY, String(total));
-    } catch {
-      // Counted for this visit only.
-    }
+    const total = addGlimmers(n);
     if (total >= GLIMMER_GOAL && !getFun().secrets.includes("gems")) reveal("gems", `Pot luck! ${total} glimmers collected. ✨`);
-    else toast(`+${n} glimmers (${total} in all)`);
   };
 
   return (

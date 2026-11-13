@@ -22,7 +22,7 @@ export const roadmap: RoadmapItem[] = [
   {
     item: "2.1.0: Selective MP6 release",
     version: "2.1.0",
-    status: "WIP",
+    status: "Shipped",
     notes: "Board games and the approved small fixes. The environment inventory tracks the work held for preview and Draft.",
   },
   {

@@ -4,6 +4,7 @@ import { useSyncExternalStore } from "react";
 import { DEFAULT_DRAFT, getDraft, subscribeDraft } from "@/lib/draft/store";
 import { DEFAULT_FUN, getFun, lookActive, subscribeFun } from "@/lib/fun";
 import { BoardGames } from "@/components/draft/dice";
+import { workbench } from "@/lib/availability";
 
 /** Everything interactive that only exists on /dev/draft, switched by the draft store. */
 export function LiveBoardGames() {
@@ -17,7 +18,7 @@ export function DraftExtras() {
     <>
       {draft.look === "boardgames" ? (
         <div data-draft-slot="dice">
-          <BoardGames />
+          <BoardGames draft={workbench} />
         </div>
       ) : null}
     </>

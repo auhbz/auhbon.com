@@ -27,7 +27,7 @@ type Case = "gorilla" | "ball";
  * (Enter on the crate tosses a banana, Enter on the ball rolls it at the crate,
  * "Bonk a monkey" bonks the nearest thief, Esc calms the gorilla).
  */
-export function MonkeyMode() {
+export function MonkeyMode({ draft = false }: { draft?: boolean }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const engine = useRef<MonkeyEngine | null>(null);
   const crate = useRef<HTMLButtonElement>(null);
@@ -41,6 +41,7 @@ export function MonkeyMode() {
     const release = acquireGhostLayer();
     const fx = new MonkeyEngine(canvas.current, {
       reduced: prefersReducedMotion(),
+      draft,
       onSecret: (id) => reveal(id, MESSAGES[id]),
       onStatus: setStatus,
       onShake: shakePage,
@@ -55,7 +56,7 @@ export function MonkeyMode() {
       engine.current = null;
       delete (window as unknown as { __wildMonkeys?: MonkeyEngine }).__wildMonkeys;
     };
-  }, []);
+  }, [draft]);
 
   useEffect(() => engine.current?.setReduced(reduced), [reduced]);
   useEffect(() => engine.current?.setBallEl(status.ball ? ball.current : null), [status.ball]);
@@ -93,7 +94,7 @@ export function MonkeyMode() {
     if (which === "gorilla") engine.current?.releaseGorilla(x, y);
     else {
       engine.current?.spawnBall(x, y);
-      toast("A bowling ball! Drag it and throw it at the banana crate.");
+      toast(draft ? "Something heavy was behind that glass." : "A bowling ball! Drag it and throw it at the banana crate.");
     }
   };
 
@@ -152,8 +153,8 @@ export function MonkeyMode() {
           type="button"
           data-wild-ui
           data-bowling-ball
-          aria-label="Bowling ball: drag it and throw it at the banana crate, or press to roll it"
-          title="Drag and throw me at the crate"
+          aria-label={draft ? "Bowling ball: drag to throw it, or press to roll it" : "Bowling ball: drag it and throw it at the banana crate, or press to roll it"}
+          title={draft ? "Drag to throw" : "Drag and throw me at the crate"}
           onPointerDown={(e) => {
             e.currentTarget.setPointerCapture?.(e.pointerId);
             engine.current?.grabBall(e.pointerId, e.clientX, e.clientY);

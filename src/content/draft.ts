@@ -16,7 +16,7 @@ export type DraftFeature = {
   notes?: string;
 };
 
-export const DRAFT_AS_OF = "2026-11-11";
+export const DRAFT_AS_OF = "2026-11-13";
 
 export const DRAFT_FEATURES: DraftFeature[] = [
   {
@@ -38,62 +38,20 @@ export const DRAFT_FEATURES: DraftFeature[] = [
     feature: "Board games theme",
     where: "Theme picker, draft section",
     status: "testing",
-    notes:
-      "Felt and walnut palette, a game-board track between sections, and pawn bullets. In the hero, a felt dice tray with physics (drag a die and let go to throw it; dice bounce off the rim and each other, tumble, and settle) and a switcher between three dice games: Push your luck (get close to a limit without going over; spend a die to reroll others), Pig against the house (first to 50), and Free roll. Draft secrets: Bullseye, Waste not, Hog wild, Snake eyes, and Hot dice. Reduced motion: throws settle at once.",
+    notes: "The public version has the original three games. Draft adds Knucklebones, instructions for Pig, and secrets for finishing games. Free roll earns no draft secrets.",
   },
   {
-    id: "loves",
-    feature: "“I ❤️” list",
-    where: "New section after Contact",
-    status: "ready",
-    notes: "Every line a little longer than the one above. Screen readers get a plain list.",
+    id: "monkey-frenzy",
+    feature: "Monkey Mode frenzy",
+    where: "Wild & Wondrous on Preview Draft",
+    status: "testing",
+    notes: "More bananas and monkeys, more contested bananas, a gorilla pile-on, and a subtler bowling ball hint.",
   },
   {
-    id: "visuals",
-    feature: "/dev/visuals",
-    where: "Dev notes",
-    status: "ready",
-    notes: "Farm story tree, site architecture, releases and the effects catalog. Dev-only, so nothing to ship to the home page.",
+    id: "celebrations",
+    feature: "Celebration ideas",
+    where: "Bottom of Preview Draft",
+    status: "testing",
+    notes: "Try Disco floor, Confetti storm, and Dancing suns before choosing milestone order.",
   },
 ];
-
-/**
- * The "I ❤️" list as a staircase: each line is a little longer than the one
- * above (checked by qa/draft.mjs). Every item from Auhbon's list appears once.
- */
-export const LOVES: string[][] = [
-  ["cats"],
-  ["goats"],
-  ["plants"],
-  ["pickles"],
-  ["raccoons"],
-  ["cucumbers"],
-  ["spicy food"],
-  ["blueberries"],
-  ["Anime-Planet"],
-  ["Steam & Valve"],
-  ["Arnold Palmers"],
-  ["beans", "popcorn"],
-  ["making playlists"],
-  ["Muay Thai", "music"],
-  ["fresh herbs", "yoga"],
-  ["hosting game nights"],
-  ["teaching board games"],
-  ["The Lord of the Rings"],
-  ["logic and word puzzles"],
-  ["philosophy", "psychology"],
-  ["weird little indie games"],
-  ["mathematics", "game design"],
-  ["humor", "making people laugh"],
-  ["hikes", "running", "bouldering"],
-  ["inventorying", "helping people"],
-  ["writing poetry", "books", "koans"],
-  ["cold weather", "playing in grass"],
-  ["meeting people", "friends & family"],
-  ["Love on the Spectrum", "Nicolas Cage"],
-  ["dogs", "kiwis", "eating pho", "volleyball"],
-  ["Nintendo", "animation", "Survivor", "cowboys"],
-  ["singing", "physics", "Letterboxd", "petrichor"],
-];
-
-export const LOVE_SEPARATOR = " · ";

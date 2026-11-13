@@ -124,6 +124,7 @@ function Bowl() {
     sound("pop");
     setStatus(`Added ${t.one}. ${next[kind]} of ${t.max}.`);
     if (isAuhbonsWay(next)) reveal("auhbonsway", "Three limes, all the jalapeños, all the basil. Auhbon's way. 🌶️");
+    if (TOPPINGS.every(({ id, max }) => next[id] === max)) reveal("jerrys-way", "Everything on top. Jerry’s way.");
   };
 
   const fresh = () => {

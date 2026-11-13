@@ -76,7 +76,7 @@ export class GravityEngine {
   loosen(budget = innerWidth < 640 ? 16 : 26): number {
     const maxW = innerWidth - 24;
     const ok = (el: HTMLElement) => {
-      if (!isHydrated(el) || el.closest("[data-wild-ui], [data-wild-ghosts], [data-wild-gone], [data-portal-surface], [data-draft-slot], .sr-only, [aria-hidden='true'], [popover], dialog")) return false;
+      if (!isHydrated(el) || el.querySelector("[data-wild-gone]") || el.closest("[data-wild-ui], [data-wild-ghosts], [data-wild-gone], [data-portal-surface], [data-draft-slot], .sr-only, [aria-hidden='true'], [popover], dialog")) return false;
       const r = el.getBoundingClientRect();
       if (!(r.width > 0 && r.height > 0 && r.top > 56 && r.bottom < innerHeight - 4 && r.width < maxW && r.height < 220)) return false;
       return !picked.some((t) => t.contains(el) || el.contains(t));
@@ -99,6 +99,7 @@ export class GravityEngine {
     add(shuffled(q("main :is(h2, h3)")), 8);
     add(shuffled(q("main :is(.pill, button, a.text-link)")), 10, short);
     add(shuffled(q("main :is(p, dt, dd, li, time)")), 8, (el) => short(el) && !el.querySelector("p, ul, ol, dl"));
+    add(q("main :is(p, dt, dd, li, time)"), budget, (el) => Boolean(el.textContent?.trim()) && !el.querySelector("p, ul, ol, dl"));
 
     const loots: Loot[] = picked.map((el) => liftElement(el));
     // Then a few loose words out of the longer paragraphs.

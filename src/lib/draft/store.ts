@@ -20,11 +20,13 @@ export const DRAFT_LOOKS: { id: DraftLook; label: string; description: string }[
  * only looks at SECRET_LIST).
  */
 export const DRAFT_SECRETS = [
-  { id: "d-snake", title: "Snake eyes", icon: "🐍", how: "Rolled two ones in Free roll (Board games theme)", feature: "boardgames" },
-  { id: "d-hot", title: "Hot dice", icon: "🎲", how: "Rolled doubles three times in a row in Free roll", feature: "boardgames" },
   { id: "d-bullseye", title: "Bullseye", icon: "🎯", how: "Stood on exactly the limit in Push your luck", feature: "boardgames" },
   { id: "d-thrifty", title: "Waste not", icon: "💰", how: "Stood on exactly the limit in Push your luck after spending at most one die", feature: "boardgames" },
   { id: "d-pig", title: "Hog wild", icon: "🐷", how: "Beat the house at Pig", feature: "boardgames" },
+  { id: "d-finish-pig", title: "Played Pig", icon: "🐷", how: "Finished a game of Pig", feature: "boardgames" },
+  { id: "d-finish-push", title: "Took a chance", icon: "🎲", how: "Finished a game of Push your luck", feature: "boardgames" },
+  { id: "d-finish-knucklebones", title: "Bone roller", icon: "🎲", how: "Finished a game of Knucklebones", feature: "boardgames" },
+  { id: "d-win-knucklebones", title: "Beat the lamb", icon: "🐑", how: "Beat the house at Knucklebones", feature: "boardgames" },
 ] as const;
 export type DraftSecret = (typeof DRAFT_SECRETS)[number]["id"];
 const DRAFT_SECRET_IDS: readonly string[] = DRAFT_SECRETS.map((s) => s.id);

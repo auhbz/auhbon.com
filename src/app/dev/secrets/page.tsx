@@ -4,6 +4,7 @@ import { DRAFT_SECRETS } from "@/lib/draft/store";
 import { AreaCounts, Unlockables } from "@/components/dev/fun-dev";
 import { SecretsBar } from "@/components/secrets-bar";
 import Link from "next/link";
+import { RevealAllSpoilers, SecretSpoiler } from "@/components/dev/spoilers";
 import { DevPageHeader, DevSection, ResponsiveTable, StatusPill, devMetadata } from "@/components/dev/ui";
 
 export const metadata = devMetadata("Secrets", "/dev/secrets", "Every secret on auhbon.com, with spoilers hidden.");
@@ -48,12 +49,13 @@ export default function Secrets() {
   const count = SECRET_LIST.length;
   const milestones = scaledMilestones(count);
   return (
-    <>
+    <div data-secret-spoilers>
       <DevPageHeader
         title="Secrets"
         asOf={DEV_AS_OF}
         intro="Every secret hidden on the site, with its one-word hint and how it's found (spoilers!), plus what secrets unlock."
       />
+      <RevealAllSpoilers />
 
       <DevSection id="progress" title="Progress">
         <p className="font-display text-xl font-semibold tracking-tight">
@@ -104,7 +106,7 @@ export default function Secrets() {
                     { header: "Difficulty", cell: (r) => <Difficulty level={r.difficulty} />, className: "w-36" },
                     { header: "Hint", cell: (r) => <span className="font-medium">{r.hint}</span>, className: "w-28" },
                     { header: "Area", cell: (r) => SECRET_AREA_LABELS[r.area], className: "w-32" },
-                    { header: "Unlocked note", cell: (r) => r.how },
+                    { header: "Unlocked note", cell: (r) => <SecretSpoiler text={r.how} /> },
                   ]}
                 />
               </div>
@@ -126,7 +128,7 @@ export default function Secrets() {
           columns={[
             { header: "Secret", cell: (r) => <Title row={r} />, className: "w-[30%]" },
             { header: "Feature", cell: (r) => r.feature, className: "w-32" },
-            { header: "How it's found", cell: (r) => r.how },
+            { header: "How it's found", cell: (r) => <SecretSpoiler text={r.how} /> },
           ]}
         />
       </DevSection>
@@ -147,6 +149,6 @@ export default function Secrets() {
           ]}
         />
       </DevSection>
-    </>
+    </div>
   );
 }

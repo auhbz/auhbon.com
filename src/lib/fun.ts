@@ -113,6 +113,8 @@ export type SecretDef = {
 };
 
 const SECRET_DEFINITIONS = [
+  { id: "behind-the-scenes", title: "Behind the scenes", icon: "🛠️", how: "Visited a dev page in Fun mode", hint: "Workshop", category: "Hidden", difficulty: 2, area: "site" },
+  { id: "jerrys-way", title: "Jerry’s way", icon: "🍜", how: "Used the maximum of every topping in the Pho theme", hint: "Everything", category: "Effects", difficulty: 2, area: "themes" },
   { id: "name", title: "High five", icon: "🖐️", how: "Clicked my name five times in a row", hint: "Name", category: "Hidden", difficulty: 2, area: "site" },
   { id: "konami", title: "Cheat code", icon: "🎮", how: "Entered the Konami code (on a keyboard, or the little gamepad on phones)", hint: "Arrows", category: "Typing", difficulty: 2, area: "site" },
   { id: "hire", title: "Great idea", icon: "💼", how: "Typed “hire”", hint: "Employ", category: "Typing", difficulty: 2, area: "site" },

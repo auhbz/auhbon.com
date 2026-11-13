@@ -8,12 +8,17 @@ const rows = [
   ["Fun/Boring, locks, cheats, progress, and MP5 celebrations", "Release baseline", "Same", "Same", "Approved"],
   ["Hamsters, bubbles, and Flabby", "Release baseline", "Same", "Same", "Approved"],
   ["Pho, typing hint, Pico-8 climber, and portal HUD", "MP6 small fixes", "Same", "Same", "Release checks"],
-  ["Monkey Mode", "Approved MP5 version", "Same", "Same for now", "Banana and gorilla redesign pending"],
-  ["Board games", "Push your luck, Pig, and Free roll", "Same", "Separate test settings", "Draft game changes pending"],
-  ["Toy box and its secrets", "Held", "Available", "Available on preview", "Toy review and locked slots pending"],
-  ["Gravity and its secrets", "Held", "Available", "Available on preview", "Drop more needs work"],
-  ["Car and Donut shop secret", "Held", "Available", "Available on preview", "Driving changes pending"],
-  ["Later celebrations", "MP5 versions", "Same", "Options pending", "Choose effects and order"],
+  ["Monkey Mode", "Approved MP5 version", "Same", "Frenzy and gorilla pile-on", "Review prototype"],
+  ["Board games", "Push your luck, Pig, and Free roll", "Same", "Knucklebones, Pig instructions, and draft secrets", "Review game balance and completion secrets"],
+  ["Toy box and its secrets", "Held", "Available", "Available on preview", "Later locked toys blurred. Toy selection still open"],
+  ["Gravity and its secrets", "Held", "Available", "Available on preview", "Review expanded Drop more and restoration"],
+  ["Car and Donut shop secret", "Held", "Available", "Available on preview", "Review continuous motion and gentler steering"],
+  ["Later celebrations", "MP5 versions", "Same", "Disco floor, Confetti storm, Dancing suns, and doubled finale", "Choose effects and order"],
+  ["Dev-visit and Jerry’s Way secrets", "Next release", "Available", "Same", "Review secret wording and triggers"],
+  ["Nature grass and glimmers", "Next release", "Available", "Same", "Spending pending"],
+  ["Spoiler controls", "Next release", "Hover, tap, or Reveal all", "Same", "Review on touch"],
+  ["I love list", "Draft on release snapshot", "Removed", "Removed", "Rejected. Removal reaches public on next release"],
+  ["Visuals", "Available", "Same", "Linked from dev", "Removed stale draft listing"],
 ] as const;
 
 export default function EnvironmentsPage() {

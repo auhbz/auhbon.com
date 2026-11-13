@@ -956,14 +956,22 @@ export class FxEngine {
       c.vy *= 0.9 ** f;
       c.roll *= 0.9 ** f;
     }
-    const speed = Math.hypot(c.vx, c.vy);
+    // Keep the direction of travel and the nose together. Ease through turns
+    // and maintain a minimum forward speed, even close to the pointer.
+    const requestedSpeed = Math.hypot(c.vx, c.vy);
+    const requestedHeading = !p && (c.x < 24 || c.x > innerWidth - 24 || c.y < 24 || c.y > innerHeight - 24)
+      ? Math.atan2(innerHeight / 2 - c.y, innerWidth / 2 - c.x)
+      : requestedSpeed > 0.5 ? Math.atan2(c.vy, c.vx) : c.heading;
+    const turn = Math.max(-0.14 * f, Math.min(0.14 * f, wrap(requestedHeading - c.heading)));
+    c.heading = wrap(c.heading + turn);
+    const speed = Math.max(2, requestedSpeed);
+    c.vx = Math.cos(c.heading) * speed;
+    c.vy = Math.sin(c.heading) * speed;
     if (speed > 0.5) {
       // The nose follows the direction of travel at a limited rate, so a sharp turn slides
       // before it grips. In a donut it also swings in toward the middle (and is helped
       // round, so it never lags behind the orbit).
-      const diff = wrap(Math.atan2(c.vy, c.vx) + c.spin * 0.95 * e - c.heading);
-      const lim = 0.16 + 0.12 * e;
-      c.heading = wrap(c.heading + (Math.max(-lim, Math.min(lim, diff * (0.22 + 0.25 * e))) + c.spin * 0.08 * e) * f);
+      const diff = wrap(requestedHeading - c.heading);
       const steer = Math.max(-0.55, Math.min(0.55, diff * 1.4)) * (1 - e) + 0.5 * c.spin * e;
       c.steer += (steer - c.steer) * Math.min(1, 0.3 * f);
       drift = e > 0.5 || (Math.abs(diff) > 0.45 && speed > 3.2) ? 1 : 0;
@@ -992,8 +1000,8 @@ export class FxEngine {
       }
     }
     c.rear = rear;
-    // Parked with nothing to chase (finger lifted, mouse left): it fades away.
-    if (!p && speed < 0.2) c.parked += dt;
+    // Coast briefly after the pointer leaves, then fade away.
+    if (!p) c.parked += dt;
     else c.parked = 0;
     const gone = c.parked > 1200;
     c.alpha += ((gone ? 0 : 1) - c.alpha) * Math.min(1, (gone ? 0.06 : 0.15) * f);

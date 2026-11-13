@@ -22,6 +22,7 @@ export default function DraftDiff() {
           </>
         }
       />
+      <p className="mb-5"><Link className="text-link" href="/dev/environments">Compare Public, Preview, and Draft</Link></p>
       <DevSection id="checklist" title="Checklist">
         <p className="mb-4 text-muted">
           {counts.map((c, i) => (

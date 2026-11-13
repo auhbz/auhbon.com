@@ -40,7 +40,7 @@ type Flash = { x: number; y: number; r: number; life: number; hue: number };
 const SHELLS: Shell[] = ["peony", "ring", "willow", "crossette", "crackle", "palm"];
 const MAX_STARS = 1400;
 
-export function Fireworks({ duration = 9500, onDone }: { duration?: number; onDone: () => void }) {
+export function Fireworks({ duration = 9500, density = 1, onDone }: { duration?: number; density?: number; onDone: () => void }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const done = useRef(onDone);
 
@@ -183,7 +183,9 @@ export function Fireworks({ duration = 9500, onDone }: { duration?: number; onDo
       [5200, "willow", 0.4],
       [5600, "crossette", 0.62],
     ];
-    for (const [at, shell, x] of plan) timers.push(window.setTimeout(() => launch(shell, x), at));
+    for (const [at, shell, x] of plan) {
+      for (let i = 0; i < density; i++) timers.push(window.setTimeout(() => launch(shell, i && x !== undefined ? 1 - x : x), at + i * 110));
+    }
     for (let i = 0; i < 7; i++) timers.push(window.setTimeout(() => launch(i === 6 ? "willow" : undefined, 0.1 + (i / 6) * 0.8), 6400 + i * 140));
     timers.push(window.setTimeout(() => launch("crackle", 0.5), 7400));
 
@@ -288,7 +290,7 @@ export function Fireworks({ duration = 9500, onDone }: { duration?: number; onDo
       timers.forEach((t) => window.clearTimeout(t));
       window.removeEventListener("resize", resize);
     };
-  }, [duration]);
+  }, [density, duration]);
 
   return <canvas ref={ref} aria-hidden="true" data-fireworks className="pointer-events-none fixed inset-0 z-[56] h-full w-full" />;
 }

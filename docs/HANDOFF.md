@@ -93,6 +93,12 @@ Codex's additions are listed under “MP5 closeout changes added by Codex” on 
 5. **Preview polish (MP6):** the preview banner, "What's new" list, and "Highlight changes" toggle; stage flags so any fun feature can be parked in draft.
 6. **Open decisions for Auhbon** are on /dev/review ("Small calls the builders left for you", the Copy Discuss items, the slideshows, the "I love" list).
 
+## MP6 release and experiments
+
+PR #187 published 2.1.0. The public build omits Toy box, Gravity, Car, and their dependent unlocks and secrets. The preview build keeps them available. Public Monkey Mode is the approved version and public Board games has the original three games.
+
+Use /dev/environments for the Public, Preview, and Draft matrix and /dev/review for the MP6 checklist. Preview Draft includes Knucklebones, the Monkey Mode frenzy prototype, and celebration replays. Glimmer spending, toy selection, the celebration order, and the remaining career-copy decisions are open.
+
 ## 5. Copy Review status
 
 Source: the "auhbon.com Copy Review" doc (Nov 10). Auhbon picked Approve, Skip, Discuss, or wrote a note on each row.

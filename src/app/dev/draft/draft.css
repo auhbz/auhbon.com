@@ -21,29 +21,39 @@
   color: var(--muted);
 }
 
-/* --- "I ❤️": every line a little longer than the last; their ends make a staircase. --- */
-.draft-loves {
-  container-type: inline-size;
-}
-.draft-loves-row {
-  width: fit-content;
-  margin: 0;
-  padding: 0.12em 0.5em 0.12em 0;
-  white-space: nowrap;
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: min(1.25rem, calc(100cqi / (var(--longest) * 0.56)));
-  line-height: 1.5;
-  border-right: 2px solid var(--kelp);
-  border-bottom: 2px solid var(--kelp);
-  /* Even steps: each row's box grows by the same amount, so the outline is a true staircase
-     (proportional text alone can make a row with more letters a hair narrower). */
-  min-width: calc((4 + var(--i) * (var(--longest) - 4) / (var(--n) - 1)) * 0.55em + 0.5em);
-}
-.draft-loves-row:nth-child(even) {
-  color: color-mix(in srgb, var(--ink) 88%, var(--kelp));
-}
-.draft-loves-sep {
-  color: var(--muted);
-}
 
+.draft-party {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  pointer-events: none;
+  overflow: hidden;
+  animation: draft-party-fade 5s both;
+}
+.draft-party-disco {
+  background: repeating-conic-gradient(from 20deg at 50% 75%, #9b5ff233 0deg 16deg, #38bdf82b 16deg 30deg, #fbbf2433 30deg 46deg);
+}
+.draft-party span {
+  position: absolute;
+  animation: draft-party-dance 3.2s both;
+}
+.draft-party-confetti span {
+  animation-name: draft-party-fall;
+}
+@keyframes draft-party-fade {
+  0%, 100% { opacity: 0; }
+  10%, 75% { opacity: 1; }
+}
+@keyframes draft-party-dance {
+  0%, 100% { opacity: 0; transform: translateY(4rem) rotate(-20deg) scale(0.2); }
+  30% { opacity: 1; transform: translateY(-2rem) rotate(18deg) scale(1.15); }
+  65% { opacity: 1; transform: translateY(1rem) rotate(-15deg) scale(0.9); }
+}
+@keyframes draft-party-fall {
+  0% { opacity: 0; transform: translateY(-80vh) rotate(-40deg); }
+  20%, 65% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(100vh) rotate(200deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .draft-party { display: none; }
+}

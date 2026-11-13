@@ -80,6 +80,7 @@ export class MonkeyEngine {
   private last = 0;
   private clock = 0;
   private spawnTimer = 0;
+  private pile: Monkey[] = [];
   private nextId = 1;
   private bonks = 0;
   private frenzyUntil = 0;
@@ -96,6 +97,7 @@ export class MonkeyEngine {
     private canvas: HTMLCanvasElement,
     private opts: {
       reduced: boolean;
+      draft?: boolean;
       onSecret: (id: MonkeySecret) => void;
       onStatus: (s: MonkeyStatus) => void;
       onShake: (strength: 1 | 2 | 3) => void;
@@ -115,7 +117,7 @@ export class MonkeyEngine {
   }
 
   get cap() {
-    return this.opts.reduced ? 3 : MAX_MONKEYS;
+    return this.opts.reduced ? 3 : this.opts.draft ? 18 : MAX_MONKEYS;
   }
   get reduced() {
     return this.opts.reduced;
@@ -206,6 +208,8 @@ export class MonkeyEngine {
     const g: Gorilla = { x, y, vx: (tx - x) / 0.9, vy: -950, tx, phase: "jump", t: 0, age: 0, beats: 0 };
     if (this.opts.reduced) Object.assign(g, { x: -60, y: this.floor() - 10, phase: "rampage", tx });
     this.gorilla = g;
+    this.pile = [];
+    if (this.opts.draft && !this.opts.reduced) for (let i = 0; i < 6; i++) this.spawn();
     this.opts.onSecret("monkey-gorilla");
     this.status();
   }
@@ -602,8 +606,14 @@ export class MonkeyEngine {
       m.pace = this.opts.reduced ? 1 : Math.random() < 0.2 ? rand(1.6, 2.2) : rand(0.5, 1.2);
       m.paceT = rand(1.5, 4);
     }
-    const speed = m.speed * m.pace * (wild ? 2.4 : 1) * (m.state === "leave" ? 2 : 1);
+    const speed = m.speed * m.pace * (wild ? this.opts.draft ? 3 : 2.4 : 1) * (m.state === "leave" ? 2 : 1);
     const g = this.gorilla;
+    const pileIndex = this.pile.indexOf(m);
+    if (g && pileIndex >= 0) {
+      m.x = g.x + Math.cos(pileIndex * 2.4) * (12 + pileIndex * 3);
+      m.y = g.y - 22 + Math.sin(pileIndex * 2.4) * 27;
+      return;
+    }
 
     if (m.state === "dizzy") {
       if (m.t > 1.3) {
@@ -676,6 +686,15 @@ export class MonkeyEngine {
         if (Math.random() < 0.35) this.say(m.x, m.y - 30, "nom", 14);
         m.state = "wander";
         this.pickWander(m);
+        if (this.opts.draft && wild) {
+          const rival = this.monkeys.find((other) => other !== m && other.state === "banana" && Math.hypot(other.x - m.x, other.y - m.y) < 42);
+          if (rival) {
+            rival.state = "dizzy";
+            rival.t = 0;
+            this.addBanana(m.x, m.y, rand(-160, 160), -300);
+            this.say(m.x, m.y - 28, "BONK!");
+          }
+        }
       }
     } else if (m.state === "banana") {
       m.state = "wander";
@@ -799,6 +818,30 @@ export class MonkeyEngine {
     g.age += dt;
     const floor = this.floor() - 10;
     const reduced = this.opts.reduced;
+    if (this.opts.draft && !reduced && g.phase !== "leave" && g.age > 5) {
+      const next = Math.min(9, Math.floor((g.age - 5) * 2));
+      if (this.pile.length < next) {
+        const m = this.monkeys.find((monkey) => monkey.state !== "leave" && !this.pile.includes(monkey));
+        if (m) {
+          this.dropLoot(m);
+          this.letGo(m);
+          this.pile.push(m);
+        }
+      }
+      if (g.age > 10.5) {
+        for (const m of this.pile) {
+          m.state = "fly";
+          m.t = 0;
+          m.vx = rand(-650, 650);
+          m.vy = rand(-1000, -550);
+        }
+        this.pile = [];
+        this.shockwave(g.x, g.y, true);
+        this.calmGorilla();
+      } else if (this.pile.length >= 8) {
+        return;
+      }
+    }
     const air = (onLand: () => void) => {
       g.vy += 2200 * dt;
       g.x += g.vx * dt;
@@ -947,7 +990,7 @@ export class MonkeyEngine {
   /** The crate tips over: bananas everywhere, and the troop goes bananas. */
   private spill(x: number, y: number) {
     const reduced = this.opts.reduced;
-    const n = reduced ? 8 : 26;
+    const n = reduced ? 8 : this.opts.draft ? 40 : 26;
     for (let i = 0; i < n; i++) {
       const a = -Math.PI / 2 + (Math.random() - 0.3) * 2.2;
       const v = rand(300, 1000);
@@ -959,7 +1002,7 @@ export class MonkeyEngine {
     this.say(x + 40, y - 50, "STRIKE!", 30);
     this.opts.onSound("hit");
     if (!reduced) this.opts.onShake(2);
-    for (let i = 0; i < 4; i++) this.spawn();
+    for (let i = 0; i < (this.opts.draft && !reduced ? 9 : 4); i++) this.spawn();
     this.opts.onSecret("monkey-frenzy");
     this.status();
   }
@@ -1020,7 +1063,7 @@ export class MonkeyEngine {
     }
 
     const g = this.gorilla;
-    if (g) {
+    if (g && this.pile.length < 8) {
       c.save();
       c.translate(g.x, g.y);
       const beat = g.phase === "beat" && !this.opts.reduced ? 1 + Math.abs(Math.sin(g.t * 12)) * 0.14 : 1;

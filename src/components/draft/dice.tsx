@@ -3,19 +3,27 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { DiceTray, d6, type Mark } from "@/lib/draft/dice-physics";
 import { reveal } from "@/components/easter-eggs";
+import { Knucklebones } from "@/components/draft/knucklebones";
 import { revealDraft, type DraftSecret } from "@/lib/draft/store";
 import { prefersReducedMotion } from "@/lib/events";
 import { sound } from "@/lib/fx";
 
-function revealBoardGameSecret(id: DraftSecret, message: string) {
-  reveal(id, message);
+type BoardGameSecret = DraftSecret | "d-snake" | "d-hot";
+
+function revealBoardGameSecret(id: BoardGameSecret, message: string) {
+  if (id !== "d-finish-pig" && id !== "d-finish-push" && id !== "d-finish-knucklebones" && id !== "d-win-knucklebones") reveal(id, message);
 }
 
-type GameId = "push" | "pig" | "free";
+function revealDraftBoardGameSecret(id: BoardGameSecret, message: string) {
+  if (id !== "d-snake" && id !== "d-hot") revealDraft(id, message);
+}
+
+type GameId = "push" | "pig" | "free" | "knucklebones";
 const GAMES: { id: GameId; label: string }[] = [
   { id: "push", label: "Push your luck" },
   { id: "pig", label: "Pig" },
   { id: "free", label: "Free roll" },
+  { id: "knucklebones", label: "Knucklebones" },
 ];
 const noSubscribe = () => () => {};
 
@@ -25,7 +33,7 @@ const noSubscribe = () => () => {};
  * games: Auhbon's Push your luck, Pig against the house, and a free roll.
  */
 export function BoardGames({ draft = true }: { draft?: boolean }) {
-  const award = draft ? revealDraft : revealBoardGameSecret;
+  const award = draft ? revealDraftBoardGameSecret : revealBoardGameSecret;
   const reduced = useSyncExternalStore(noSubscribe, prefersReducedMotion, () => false);
   const [tray] = useState(() => new DiceTray());
   const [game, setGame] = useState<GameId>("push");
@@ -79,7 +87,7 @@ export function BoardGames({ draft = true }: { draft?: boolean }) {
   return (
     <div className="draft-boardgames mt-10 rounded-xl border border-line bg-surface p-3 sm:p-4" data-boardgames>
       <div role="tablist" aria-label="Dice games" className="flex flex-wrap gap-1.5" id={tabsId}>
-        {GAMES.map((g) => (
+        {GAMES.filter((g) => draft || g.id !== "knucklebones").map((g) => (
           <button
             key={g.id}
             type="button"
@@ -96,7 +104,7 @@ export function BoardGames({ draft = true }: { draft?: boolean }) {
           </button>
         ))}
       </div>
-      <div ref={box} className="draft-tray mt-3 overflow-hidden rounded-lg">
+      <div ref={box} hidden={game === "knucklebones"} className="draft-tray mt-3 overflow-hidden rounded-lg">
         <canvas
           ref={canvas}
           role="img"
@@ -116,15 +124,16 @@ export function BoardGames({ draft = true }: { draft?: boolean }) {
         />
       </div>
       <div className="mt-3" role="tabpanel" aria-label={GAMES.find((g) => g.id === game)!.label}>
-        {game === "push" ? <PushYourLuck key="push" tray={tray} onSummary={setSummary} award={award} /> : null}
-        {game === "pig" ? <Pig key="pig" tray={tray} onSummary={setSummary} award={award} /> : null}
-        {game === "free" ? <FreeRoll key="free" tray={tray} onSummary={setSummary} award={award} /> : null}
+        {game === "knucklebones" ? <Knucklebones /> : null}
+        {game === "push" ? <PushYourLuck key="push" tray={tray} onSummary={setSummary} award={award} draft={draft} /> : null}
+        {game === "pig" ? <Pig key="pig" tray={tray} onSummary={setSummary} award={award} draft={draft} /> : null}
+        {game === "free" ? <FreeRoll key="free" tray={tray} onSummary={setSummary} award={award} draft={draft} /> : null}
       </div>
     </div>
   );
 }
 
-type GameProps = { tray: DiceTray; onSummary: (s: string) => void; award: (id: DraftSecret, message: string) => void };
+type GameProps = { tray: DiceTray; onSummary: (s: string) => void; award: (id: BoardGameSecret, message: string) => void; draft: boolean };
 
 const btn = "min-h-11 rounded-lg border border-line px-3 text-sm font-medium hover:border-ink/40 disabled:opacity-50";
 const primary = "min-h-11 rounded-lg border border-kelp bg-kelp px-3 text-sm font-medium text-kelp-ink hover:opacity-90 disabled:opacity-50";
@@ -136,7 +145,7 @@ const primary = "min-h-11 rounded-lg border border-kelp bg-kelp px-3 text-sm fon
  * as you can without going over. To reroll dice you have to spend one (it
  * leaves the game), so every reroll costs you something.
  */
-function PushYourLuck({ tray, onSummary, award }: GameProps) {
+function PushYourLuck({ tray, onSummary, award, draft }: GameProps) {
   const [limit, setLimit] = useState(() => 16 + Math.floor(Math.random() * 9));
   const [dice, setDice] = useState<{ id: number; value: number }[]>([]);
   const [marks, setMarks] = useState<Record<number, Mark>>({});
@@ -206,6 +215,7 @@ function PushYourLuck({ tray, onSummary, award }: GameProps) {
 
   const stand = () => {
     setPhase("done");
+    if (draft) award("d-finish-push", "You finished Push your luck.");
     setMarks({});
     if (total > limit) {
       setResult(`Bust! ${total} is over ${limit}. Score: 0.`);
@@ -281,7 +291,7 @@ const PIG_GOAL = 50;
 const HOUSE_HOLDS = 15;
 
 /** Pig: roll to build a turn total, hold to bank it; a 1 loses the turn. First to 50 beats the house. */
-function Pig({ tray, onSummary, award }: GameProps) {
+function Pig({ tray, onSummary, award, draft }: GameProps) {
   const [you, setYou] = useState(0);
   const [house, setHouse] = useState(0);
   const [turn, setTurn] = useState(0);
@@ -326,6 +336,7 @@ function Pig({ tray, onSummary, award }: GameProps) {
               setTurn(0);
               if (banked >= PIG_GOAL) {
                 setWho("over");
+                if (draft) award("d-finish-pig", "You finished a game of Pig.");
                 setNote(`The house wins, ${banked} to ${s.current.you}.`);
               } else {
                 setWho("you");
@@ -339,7 +350,7 @@ function Pig({ tray, onSummary, award }: GameProps) {
         }
       },
     });
-  }, [tray]);
+  }, [tray, award, draft]);
 
   // The house plays its turn one roll at a time.
   useEffect(() => {
@@ -366,6 +377,7 @@ function Pig({ tray, onSummary, award }: GameProps) {
     sound("pop");
     if (banked >= PIG_GOAL) {
       setWho("over");
+      if (draft) award("d-finish-pig", "You finished a game of Pig.");
       setNote(`You win, ${banked} to ${house}!`);
       award("d-pig", "Hog wild! You beat the house.");
     } else {
@@ -383,7 +395,7 @@ function Pig({ tray, onSummary, award }: GameProps) {
 
   return (
     <div data-pig data-who={who}>
-      <p className="text-sm text-muted">First to {PIG_GOAL} wins. Drag the die and let go to throw it, or press Roll.</p>
+      <p className="text-sm text-muted">{draft ? "Roll for points, or hold to bank them. Roll a 1 and lose the points from that turn. " : ""}First to {PIG_GOAL} wins. Drag the die and let go to throw it, or press Roll.</p>
       <p className="mt-2 flex flex-wrap gap-x-5 text-sm tabular-nums">
         <span>
           You <strong data-pig-you>{you}</strong>
@@ -421,7 +433,7 @@ function Pig({ tray, onSummary, award }: GameProps) {
 // ------------------------------------------------------------ Free roll
 
 /** Two dice, no rules. Snake eyes and three doubles in a row are draft secrets. */
-function FreeRoll({ tray, onSummary, award }: GameProps) {
+function FreeRoll({ tray, onSummary, award, draft }: GameProps) {
   const [message, setMessage] = useState("Throw the dice: drag one and let go, or press Roll.");
   const [streak, setStreak] = useState(0);
   const streakRef = useRef(0);
@@ -441,14 +453,14 @@ function FreeRoll({ tray, onSummary, award }: GameProps) {
         let note = doubles ? ` Doubles! ${next} in a row.` : "";
         if (a === 1 && b === 1) {
           note = " Snake eyes!";
-          award("d-snake", "Snake eyes.");
+          if (!draft) award("d-snake", "Snake eyes.");
         }
-        if (next === 3) award("d-hot", "Three doubles in a row. Hot dice!");
+        if (!draft && next === 3) award("d-hot", "Three doubles in a row. Hot dice!");
         setMessage(`Rolled ${a} and ${b}.${note}`);
         onSummary(`Showing ${a} and ${b}.`);
       },
     });
-  }, [tray, onSummary, award]);
+  }, [tray, onSummary, award, draft]);
 
   return (
     <div className="flex flex-wrap items-center gap-2" data-free>

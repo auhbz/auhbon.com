@@ -54,13 +54,7 @@ check((await page.locator(".draft-banner a[href='/']").count()) === 1 && (await 
 check((await page.locator("html").getAttribute("data-draft")) === "on", "html carries data-draft");
 const robots = await page.locator('meta[name="robots"]').getAttribute("content");
 check(/noindex/.test(robots ?? ""), `draft is noindex (${robots})`);
-check(await page.locator("#loves-heading").isVisible(), "I ❤️ section present");
-const rows = await page.locator(".draft-loves-row").evaluateAll((els) => els.map((e) => ({ text: e.textContent.length, w: e.getBoundingClientRect().width })));
-check(rows.every((r, i) => i === 0 || r.text > rows[i - 1].text), "each love line is longer than the one above (text)");
-const narrower = rows.map((r, i) => (i && r.w <= rows[i - 1].w ? `${i}: ${Math.round(rows[i - 1].w)}→${Math.round(r.w)}` : null)).filter(Boolean);
-check(!narrower.length, `each love line is wider than the one above (rendered) ${narrower.join(", ")}`);
-check((await page.locator("#loves ul.sr-only li").count()) === 55, "screen readers get a plain list of all 55 loves");
-await page.locator("#loves").screenshot({ path: `${out}/draft-loves.png` });
+check(await page.locator("#loves-heading").count() === 0, "rejected list is absent");
 await page.screenshot({ path: `${out}/draft-top.png` });
 await axe(page, "/dev/draft 1280");
 
@@ -96,7 +90,7 @@ for (let i = 0; i < 3; i++) {
 await page.evaluate(() => (Math.random = window.__rand));
 check(/Rolled 1 and 1/.test(await result.innerText()), "the dice settle on the rolled faces (snake eyes when the dice say so)");
 const ds = await draftState(page);
-check(ds.secrets.includes("d-snake") && ds.secrets.includes("d-hot"), "snake eyes and three doubles in a row are draft secrets");
+check(!ds.secrets.includes("d-snake") && !ds.secrets.includes("d-hot"), "Free roll awards no draft secrets");
 await page.locator('[data-dice-game="push"]').click();
 await page.screenshot({ path: `${out}/draft-boardgames.png` });
 await axe(page, "board games theme");
@@ -139,7 +133,6 @@ for (const [w, h] of [[375, 812], [1280, 900]]) {
   const hs = await p.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
   check(!hs, `/dev/draft ${w}px: no horizontal scroll`);
   if (w === 375) {
-    await p.locator("#loves").screenshot({ path: `${out}/draft-loves-375.png` });
   }
   for (const path of ["dev/draft/diff", "dev/visuals"]) {
     await p.goto(`${base}${path}`, { waitUntil: "networkidle" });

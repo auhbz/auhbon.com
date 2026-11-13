@@ -84,6 +84,12 @@ Major Push 4, part 3. New effects, a smoother look and phone fixes.
 - Keep Toy box, Gravity, Car, and their dependent secrets on preview.
 - Add a Public, Preview, and Draft comparison to the dev pages.
 
+### MP6 preview follow-up
+
+- Add the dev-visit and Jerry’s Way secrets, spoiler controls, and grass glimmers.
+- Update the preview Car, Gravity, and Toy box. Add Draft Knucklebones, Monkey Mode frenzy, and celebration replays.
+- Remove the rejected “I love” list from Preview Draft and remove Visuals from the draft inventory.
+
 ## 2.0.0: Fun & Boring (MP5)
 
 On the `next` branch and https://preview.auhbon.com until Auhbon approves it. The custom preview host is configured to send a noindex header.
