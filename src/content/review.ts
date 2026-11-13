@@ -65,7 +65,6 @@ export const REVIEW: ReviewTier[] = [
           "Toy box: the next locked toy has a readable silhouette and unlock hint. Later toys are blurred. The toys themselves are still awaiting review.",
           "Visit a dev page in Fun mode and try the all-toppings Pho recipe. In /dev/secrets, check that spoiler notes start closed and Reveal all works.",
           "Nature: cut grass at the bottom of the page. Its glimmers go into the same balance as pot glimmers. Spending is future work.",
-          "On a phone, try tapping Cookie-styled project tags repeatedly. Preview uses simpler bite masks on touch to reduce rendering work.",
         ],
         links: [{ label: "Preview", href: PREVIEW_URL }, { label: "Secrets", href: p("/dev/secrets") }],
       },

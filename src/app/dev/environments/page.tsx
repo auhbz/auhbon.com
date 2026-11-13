@@ -17,7 +17,6 @@ const rows = [
   ["Dev-visit and Jerry’s Way secrets", "Next release", "Available", "Same", "Review secret wording and triggers"],
   ["Nature grass and glimmers", "Next release", "Available", "Same", "Spending pending"],
   ["Spoiler controls", "Next release", "Hover, tap, or Reveal all", "Same", "Review on touch"],
-  ["Cookie bite masks", "Original masks", "Simpler masks on touch", "Same", "Check mobile performance"],
   ["I love list", "Draft on release snapshot", "Removed", "Removed", "Rejected. Removal reaches public on next release"],
   ["Visuals", "Available", "Same", "Linked from dev", "Removed stale draft listing"],
 ] as const;
