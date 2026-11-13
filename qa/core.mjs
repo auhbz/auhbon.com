@@ -1,6 +1,6 @@
 // CORE (MP5): Fun / Boring toggle, unlocks, cheats, scaled milestones, dev pages.
 // Usage: BASE=http://localhost:3101/ node qa/core.mjs [shots-dir]
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import { setLocalHour } from "./clock.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
@@ -9,7 +9,7 @@ const out = process.argv[2] ?? "/tmp";
 const url = process.env.BASE ?? "http://localhost:3000/";
 const N = [...readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "([\w-]+)", title: .*?category: "(\w+)"/g)].length;
 const KEY = "bells-and-whistles-v2";
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+const browser = await launchBrowser();
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };
 const axe = async (page, label) => {

@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import { setLocalHour } from "./clock.mjs";
 import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
@@ -8,7 +8,7 @@ const url = process.env.BASE ?? "http://localhost:3000/";
 // Every secret (id and category), read from the source so the counts stay in step.
 const SECRET_DEFS = [...(await import("node:fs")).readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "([\w-]+)", title: .*?category: "(\w+)"/g)].map((m) => ({ id: m[1], category: m[2] }));
 const SECRET_COUNT = SECRET_DEFS.length;
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
+const browser = await launchBrowser(["--autoplay-policy=no-user-gesture-required"]);
 funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };

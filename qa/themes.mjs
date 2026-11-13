@@ -1,12 +1,12 @@
 // MP5 THEMES: Pho theme (live), the Pico-8 climber, Flabby's mini game, and the draft Board games theme.
 // Usage: node themes.mjs <shots-dir>   (BASE=http://localhost:<port>/ to point elsewhere)
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
 const out = process.argv[2] ?? ".";
 const base = process.env.BASE ?? "http://localhost:3000/";
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+const browser = await launchBrowser();
 const issues = [];
 const check = (ok, msg) => {
   console.log(`${ok ? "pass" : "FAIL"}  ${msg}`);

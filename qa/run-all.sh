@@ -1,7 +1,7 @@
 #!/bin/bash
 # Browser QA for auhbon.com: static checks, production build, then the three suites in parallel.
 # Usage (from the repo root): qa/run-all.sh [shots-dir]
-# First time: (cd qa && npm install) — Playwright drives a local Chrome (set CHROME if not at /opt/google/chrome/chrome).
+# First time: (cd qa && npm ci && npx playwright install --only-shell chromium).
 set -u
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT=${1:-$ROOT/qa/.shots}; LOGS=$ROOT/qa/.logs; mkdir -p "$OUT" "$LOGS"
@@ -11,7 +11,7 @@ curl -s -o /dev/null localhost:8787 || (cd "$ROOT/qa/fixture" && nohup python3 -
 cd "$ROOT"
 npx next typegen >/dev/null 2>&1
 npm run lint --silent && npx tsc --noEmit && node scripts/emoji-check.mjs >/dev/null || { echo "STATIC CHECKS FAILED"; exit 1; }
-GITHUB_API_URL=http://localhost:8787 npm run build > "$LOGS/build.log" 2>&1 || { echo "BUILD FAILED"; tail -20 "$LOGS/build.log"; exit 1; }
+NEXT_PUBLIC_WORKBENCH=on GITHUB_API_URL=http://localhost:8787 npm run build > "$LOGS/build.log" 2>&1 || { echo "BUILD FAILED"; tail -20 "$LOGS/build.log"; exit 1; }
 (GITHUB_API_URL=http://localhost:8787 nohup npm start > "$LOGS/server.log" 2>&1 &)
 sleep 4
 cd "$ROOT/qa"

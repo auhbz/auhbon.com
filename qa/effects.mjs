@@ -1,7 +1,7 @@
 // EFFECTS (MP5): hamster breakaway, passive secrets, chicken, pots, leaflings, Boring mode, fireworks and lanterns.
 // Usage: BASE=http://localhost:3102/ node qa/effects.mjs [shots-dir]
 // Seeds Fun mode with every fun feature unlocked by cheat.
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import fs from "node:fs";
 const ids = [...fs.readFileSync(new URL("../src/lib/unlocks.ts", import.meta.url), "utf8").matchAll(/\{ id: "((?:effect|theme|game|wild|toy|extra):[\w:-]+)"/g)].map((m) => m[1]);
 const BASE_URL = process.env.BASE ?? "http://localhost:3000/";
@@ -12,7 +12,7 @@ const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if 
 const state = (effects, extra = {}) => ({ mode: "fun", funSeen: true, on: true, welcomed: true, hideSpot: 3, celebrated: [5,10,15,25,40,65,97,100], cheats: { enabled: true, unlocked: ids }, effects: { dots: { on: false, variant: "fruit" }, buttons: { on: false, variant: "rainbow" }, trail: { on: false, variant: "sparkle" }, sound: { on: false, variant: "chimes", hover: true }, ...effects }, look: "classic", secrets: [], ...extra });
 const secrets = (p) => p.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets);
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+  const b = await launchBrowser();
   const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } });
   const p = await ctx.newPage();
   const errors = [];

@@ -1,14 +1,14 @@
 // MP5 WILD: Wild & Wondrous (Monkey Mode, Gravity Mode), the toy box and its toys, the portal device,
 // the unlock announcements and the "Unlocked toys, features, & elements" panel section.
 // Usage: node wild.mjs <shots-dir>   (BASE=http://localhost:<port>/ to point elsewhere)
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import { setLocalHour } from "./clock.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
 const out = process.argv[2] ?? ".";
 const base = process.env.BASE ?? "http://localhost:3000/";
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+const browser = await launchBrowser();
 const issues = [];
 const check = (ok, msg) => {
   console.log(`${ok ? "pass" : "FAIL"}  ${msg}`);

@@ -1,7 +1,7 @@
 // EFFECTS (MP5): car donuts, Electric overload, Cursed shake-off, Fire headings, hamster quiet zone, bubble sweep (dev server only), Ask me, dozing.
 // Usage: BASE=http://localhost:3102/ node qa/effects2.mjs [shots-dir] [only,these,parts]
 // Seeds Fun mode with every fun feature unlocked by cheat.
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import fs from "node:fs";
 const ids = [...fs.readFileSync(new URL("../src/lib/unlocks.ts", import.meta.url), "utf8").matchAll(/\{ id: "((?:effect|theme|game|wild|toy|extra):[\w:-]+)"/g)].map((m) => m[1]);
 const BASE_URL = process.env.BASE ?? "http://localhost:3000/";
@@ -14,7 +14,7 @@ const state = (effects, extra = {}) => ({ mode: "fun", funSeen: true, on: true, 
 const secrets = (p) => p.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets);
 const only = process.argv[3];
 (async () => {
-  const b = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+  const b = await launchBrowser();
   const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } });
   const p = await ctx.newPage();
   const errors = [];

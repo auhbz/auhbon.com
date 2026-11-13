@@ -1,6 +1,6 @@
 // Mobile experience suite (1.18.0): 375x812 with touch. Usage: node mobile.mjs <shots dir>
 // Server defaults to localhost:3000; set BASE=http://localhost:3100/ to point elsewhere.
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import { setLocalHour } from "./clock.mjs";
 import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
@@ -8,7 +8,7 @@ import { AxeBuilder } from "@axe-core/playwright";
 const out = process.argv[2] ?? ".";
 const url = process.env.BASE ?? "http://localhost:3000/";
 const KEY = "bells-and-whistles-v2";
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
+const browser = await launchBrowser(["--autoplay-policy=no-user-gesture-required"]);
 funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };

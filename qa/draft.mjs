@@ -1,13 +1,13 @@
 // Draft playground (/dev/draft), /dev/draft/diff and /dev/visuals.
 // Usage: node draft.mjs <shots-dir>   (BASE=http://localhost:<port>/ to point elsewhere)
-import { chromium } from "playwright";
+import { launchBrowser } from "./browser.mjs";
 import { setLocalHour } from "./clock.mjs";
 import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
 const out = process.argv[2] ?? ".";
 const base = process.env.BASE ?? "http://localhost:3000/";
-const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
+const browser = await launchBrowser();
 funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => {

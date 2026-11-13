@@ -87,6 +87,8 @@ npm run build
 
 Copy `.env.example` to `.env.local` to add an optional `GITHUB_TOKEN`.
 
+Browser QA uses Playwright's headless Chromium shell with a temporary profile. Run `npm ci` and `npx playwright install --only-shell chromium` from `qa` once before running the suites.
+
 ## Deploying
 
 Deployed on Vercel from `main`. Every pull request gets a preview URL; CI must pass before merging.
