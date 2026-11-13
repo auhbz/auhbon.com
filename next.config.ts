@@ -53,6 +53,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "preview\\.auhbon\\.com" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
       // The /dev working notes stay out of search engines (the pages also carry a noindex meta tag).
       { source: "/dev", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },
       { source: "/dev/:path*", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] },

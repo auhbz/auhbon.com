@@ -1,4 +1,5 @@
 import { chromium } from "playwright";
+import { setLocalHour } from "./clock.mjs";
 import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
@@ -7,7 +8,7 @@ const url = process.env.BASE ?? "http://localhost:3000/";
 // Every secret (id and category), read from the source so the counts stay in step.
 const SECRET_DEFS = [...(await import("node:fs")).readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "([\w-]+)", title: .*?category: "(\w+)"/g)].map((m) => ({ id: m[1], category: m[2] }));
 const SECRET_COUNT = SECRET_DEFS.length;
-const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
 funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };
@@ -29,6 +30,7 @@ const painted = (page, box) => page.evaluate((box) => {
 }, box);
 
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+await setLocalHour(ctx);
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
@@ -421,6 +423,7 @@ await choose("Cursor trail", "Cursed");
 {
   // MP5: a first-time visitor is in Boring mode, and the guide points at the Boring / Fun toggle.
   const gctx = await browser.plainContext({ viewport: { width: 1280, height: 900 } });
+  await setLocalHour(gctx);
   const gp = await gctx.newPage();
   await gp.goto(url, { waitUntil: "networkidle" });
   const g = gp.locator("[data-goblin-guide]");
@@ -453,6 +456,7 @@ check(errors.length === 0, `sound packs play without errors ${errors.join(" | ")
 // --- New sound packs are audible and level-matched (p4): render into an OfflineAudioContext ---
 {
   const lp = await browser.newPage();
+  await setLocalHour(lp.context());
   await lp.addInitScript(() => {
     class Rec extends OfflineAudioContext {
       constructor() { super(1, 44100 * 2, 44100); window.__rec = this; }
@@ -818,15 +822,10 @@ check(errors.length === 0, `no console/page errors (${errors.length}) ${errors.s
 await ctx.close();
 
 // --- Secrets batch (P4) ---------------------------------------------------------------
-/** An IANA zone where it's currently `hour` o'clock (give or take the minutes). */
-const zoneFor = (hour) => {
-  let n = (new Date().getUTCHours() - hour + 48) % 24;
-  if (n > 12) n -= 24;
-  return n === 0 ? "Etc/GMT" : n > 0 ? `Etc/GMT+${n}` : `Etc/GMT${n}`;
-};
 const KEY = "bells-and-whistles-v2";
-const desk = async (timezoneId) => {
-  const c = await browser.newContext({ viewport: { width: 1280, height: 900 }, timezoneId });
+const desk = async (hour) => {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await setLocalHour(c, hour);
   const p = await c.newPage();
   const errs = [];
   p.on("pageerror", (e) => errs.push(e.message));
@@ -844,7 +843,7 @@ const desk = async (timezoneId) => {
   return { c, p, errs, has, openPanel, pick, bellsPanel };
 };
 {
-  const { c, p, errs, has, openPanel, pick, bellsPanel } = await desk(zoneFor(12));
+  const { c, p, errs, has, openPanel, pick, bellsPanel } = await desk(12);
   // Clean site: none of the extras exist, and keys find nothing.
   check(!(await p.locator("[data-pod-bay]").isVisible()) && !(await p.locator("[data-skeleton]").isVisible()) && !(await p.locator("[data-konami-pad]").isVisible()), "clean site: no pod bay doors, skeleton or gamepad");
   await p.keyboard.press("Shift");
@@ -947,16 +946,22 @@ const desk = async (timezoneId) => {
 }
 // Night owl: Bells & whistles on between midnight and 4 a.m. local time.
 {
-  const { c, p, has, openPanel } = await desk(zoneFor(2));
+  const { c, p, has, openPanel } = await desk(2);
   await openPanel();
   await p.getByRole("switch", { name: "Enable bells and whistles" }).click();
   await p.waitForTimeout(400);
-  check(await has("nightowl"), `night owl: found at 2 a.m. local (${zoneFor(2)})`);
+  check(await has("nightowl"), "night owl: found at 2 a.m. local");
+  await c.close();
+}
+{
+  const { c, p, has } = await desk(6);
+  await p.waitForTimeout(1600);
+  check(await has("earlybird"), "Early bird: found in Fun mode at 6 a.m. local");
   await c.close();
 }
 // The in-game secrets (game modes open once every other secret is found).
 {
-  const { c, p, errs, has, openPanel, bellsPanel } = await desk(zoneFor(12));
+  const { c, p, errs, has, openPanel, bellsPanel } = await desk(12);
   const others = SECRET_DEFS.filter((s) => s.category !== "Games").map((s) => s.id);
   await p.evaluate(([k, secrets]) => localStorage.setItem(k, JSON.stringify({ on: true, effects: { dots: { on: true, variant: "fruit" }, buttons: { on: true, variant: "rainbow" }, trail: { on: false, variant: "sparkle" }, sound: { on: false, variant: "chimes" } }, look: "classic", secrets, peeked: [], hinted: [], welcomed: true, hideSpot: 3, celebrated: [5, 10, 15, 25], motion: false, haptics: true })), [KEY, others]);
   await p.reload({ waitUntil: "load" });
@@ -1005,6 +1010,7 @@ const desk = async (timezoneId) => {
 
 // --- Reduced motion -------------------------------------------------------------------
 const rm = await browser.newContext({ viewport: { width: 1280, height: 900 }, reducedMotion: "reduce" });
+await setLocalHour(rm);
 const p2 = await rm.newPage();
 await p2.goto(url, { waitUntil: "networkidle" });
 await p2.getByRole("button", { name: "Bells and whistles" }).click();
@@ -1016,6 +1022,7 @@ await rm.close();
 
 // --- Mobile (touch) ---------------------------------------------------------------------
 const mob = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true });
+await setLocalHour(mob);
 const p3 = await mob.newPage();
 const merr = [];
 p3.on("pageerror", (e) => merr.push(e.message));

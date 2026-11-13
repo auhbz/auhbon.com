@@ -29,7 +29,7 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 
 1. Auhbon drafts a **Major Push (MP)** in a Google Doc: numbered notes, grouped in sections (Admin/Workflow, Approvals, Copy, Secrets, Effects & Themes, Modes & Toys, Notes to self). If he doesn't mention something, assume it's fine as is.
 2. Before building, the assistant **audits the MP**: rough usage cost per item, items that are cheaper for Auhbon to do by hand (LinkedIn edits, GitHub or Vercel UI clicks, visual checks), and items worth deferring. Auhbon picks what to build now.
-3. **All MP work goes to the `next` branch**, which Vercel publishes as the **preview site** (planned address: preview.auhbon.com). **Nothing reaches the public site until Auhbon approves.**
+3. **All MP work goes to the `next` branch**, which Vercel publishes as the **preview site** (https://preview.auhbon.com). **Nothing reaches the public site until Auhbon approves.**
 4. Auhbon reviews the preview against **/dev/review**, which is rewritten at the end of every MP and lists everything that needs his eyes, a decision, or his hands (sorted Now / Soon / Ongoing). Anything not listed is done.
 5. **To publish**, Auhbon merges the `next` → `main` pull request on GitHub. Partial approval is fine: anything he isn't ready to publish gets moved to draft (see below) and everything else ships.
 6. Exceptions that may go straight to `main`: copy he has already approved word for word, and urgent fixes.
@@ -40,7 +40,7 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 | Version | What it is | Where | Who sees it |
 |---|---|---|---|
 | Public | What's live and approved | auhbon.com (`main`) | Everyone |
-| Preview | Public plus everything from the latest MP: the default home for all new work and revisions | `next` branch → preview.auhbon.com (until set up: the Vercel preview URL) | Anyone with the link; unlisted and not indexed by search engines |
+| Preview | Public plus everything from the latest MP: the default home for all new work and revisions | `next` branch → preview.auhbon.com | Anyone with the link; unlisted and not indexed by search engines |
 | Draft | Experiments and parked work-in-progress, shown on top of the site at /dev/draft with diff indicators | /dev/draft on both public and preview | Anyone with the link |
 
 - **Why preview is a separate copy of the site, not a page inside it:** an MP changes things that already exist (copy, effects, Boring mode itself). Showing those requires running the whole next version of the site, which is what a branch deployment is. A page like auhbon.com/dev/preview can't run a different version of the site without fragile proxying. preview.auhbon.com is just as easy to share.
@@ -53,7 +53,7 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 | What | Where |
 |---|---|
 | Public site | https://auhbon.com (the `main` branch) |
-| Preview site (MP5 and later) | https://auhbon-com-git-next-auhbon-3857.vercel.app (the `next` branch; planned: preview.auhbon.com) |
+| Preview site (MP5 and later) | https://preview.auhbon.com (the `next` branch) |
 | Draft (experiments) | /dev/draft on public or preview |
 | Review list | /dev/review on the preview site |
 | Dev pages | /dev: review, roadmap, versions, secrets (with hints, unlockables, draft secrets, and secret ideas), goals, milestones (scaling slider), draft, visuals |
@@ -69,7 +69,7 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 - Fun / Boring toggle, Boring by default; secrets only in Fun; the guide goblin points at the toggle until Fun is tried.
 - Cheats (type 137 on the numpad): unlock everything, unlock all secrets, and a switch per unlockable, independent of secrets found.
 - Unlock progression: effects and themes open within about 7 secrets, mini games one at a time; locked items show with a padlock and how many secrets they need; "Unlocked: …" toasts.
-- Milestones and thresholds scale to the live secret count (35 today) and return to 5, 10, 15, 25, 40, 65, 97, 100 at 100 secrets; /dev/milestones has a slider to check it. The progress bar shows the live cap and the 100 goal.
+- Milestones and thresholds scale to the live secret count (74 in MP5) and return to 5, 10, 15, 25, 40, 65, 97, 100 at 100 secrets; /dev/milestones has a slider to check it. The progress bar shows the live cap and the 100 goal.
 - "Mode" renamed "Mini games" everywhere; "Mode" now only means Wild & Wondrous.
 - Effects: easier hamster breakaway with cursor effects off on the wheel, smooth car donuts, bubbles moved up and centered, a cursor breeze and giant bubbles, spectacular fireworks (milestone 2), a Lantern festival (milestone 3), full-body parade animals.
 - About 30 new secrets, including 3 per mini game, B&W-specific ones, a Zelda-style chicken, clay pots with gems ("glimmers"), forest-spirit "leaflings", 100 clicks, shuffling, welcome back, early bird, sleepy, and typing prompts ("Quick question" bubble and "Ask me" in Quick actions). 24 more ideas are on /dev/secrets.
@@ -83,13 +83,13 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 
 **Not done / known issues (next session should start here):**
 1. **Hydration warning.** The effects QA suite logged one React error #418 (server/client HTML mismatch) after the final merge. Pages work, but find and fix it before merging PR #187. Start by running `qa/effects.mjs` against `next dev` to get the readable message.
-2. **QA timing quirk.** The Early bird secret fires between 5 and 8 a.m. local time and breaks a few qa/core.mjs and qa/fun2.mjs assertions during those hours. Make the suites freeze the clock (for example with Playwright's clock API) so they pass at any hour.
+2. **QA clock.** Core and fun2 now pin browser wall time so time-based secrets cannot interfere with unrelated checks. Fun2 explicitly tests Night owl at 2 a.m. and Early bird at 6 a.m.
 3. **GitHub issues.** Only a status comment was posted on #185. Go through the open issues and close or update the ones MP5 finished (copy edits #138, typing words #154, climber #174, leaderboards, mini games, and so on).
 4. **Leaderboards.** The API reports storage connected; a real score submission end to end hasn't been tested.
-5. **Draft secrets** Auhbon found on /dev/draft for the monkeys and the portal cake weren't carried over to the live secrets.
+5. **Secrets.** The MP5 preview includes four Monkey Mode secrets and the portal cake in the main secret list. Carrying over discoveries already saved by draft visitors is a separate question.
 6. **Small known rough edges:** with Monkey Mode on, vines hang over text on phones; on touch, starting a scroll while holding a smoke bomb also throws one.
 7. **Release checkpoint.** When PR #187 is merged, create the `release/2.0.0` branch from main (CHANGELOG already lists it).
-8. **Preview polish (MP6):** the preview banner, "What's new" list, and "Highlight changes" toggle; stage flags so any fun feature can be parked in draft; noindex on the preview host.
+8. **Preview polish (MP6):** the preview banner, "What's new" list, and "Highlight changes" toggle; stage flags so any fun feature can be parked in draft.
 9. **Open decisions for Auhbon** are on /dev/review ("Small calls the builders left for you", the Copy Discuss items, the slideshows, the "I love" list).
 
 ## 5. Copy Review status
@@ -202,12 +202,12 @@ When I change or approve copy for my career materials:
 - **GitHub:** auhbz. The assistant can push to the repo; settings like repo visibility need Auhbon to confirm access with his password or passkey.
 - **Vercel:** project "auhbon-com" (team auhbon-3857). Pushes to `main` deploy the public site; pushes to `next` deploy the preview site. Upstash Redis is connected through Vercel Storage.
 - **Spaceship:** DNS for auhbon.com (www redirects to the apex).
-- **Setting up preview.auhbon.com (one-time, Auhbon does this in about 15 minutes):**
+- **Preview domain setup (completed Nov 12, 2026, retained for reference):**
   1. **Vercel, add the domain.** vercel.com → team "auhbon-3857" → project "auhbon-com" → Settings → Domains → Add Domain. Enter `preview.auhbon.com`. If it asks which environment or branch, choose Preview and Git branch `next`. If it doesn't ask, find the new domain in the list, click Edit, set Git Branch to `next`, and save. Vercel then shows "Invalid Configuration" plus the DNS record it wants (usually Type CNAME, Name `preview`, Value `cname.vercel-dns.com` or a longer `…vercel-dns…` value). Copy the value exactly as shown.
   2. **Spaceship, add the DNS record.** spaceship.com → Domain Manager → auhbon.com → Advanced DNS (DNS records) → Add record: Type `CNAME`, Host `preview`, Value = what Vercel showed, TTL = default. Save. Don't change the existing records for `@` and `www`.
   3. **Wait** 5–30 minutes. Vercel's Domains list should turn to "Valid Configuration" and issue the HTTPS certificate on its own.
   4. **Vercel, remove the login wall.** Project → Settings → Deployment Protection → Vercel Authentication → set it to Disabled (or the option that leaves preview deployments public), then Save. Password Protection is a paid add-on and isn't needed. Note: this makes every preview deployment public, which is fine because the repo is public anyway.
   5. **Test** in a private/incognito window, not logged in to Vercel: preview.auhbon.com should show the MP5 version (Boring/Fun toggle at the top).
-  6. **The assistant then** adds a `noindex` header for the preview host (so search engines skip it) and updates links from the long Vercel URL to preview.auhbon.com.
+  6. The custom preview host gets an `X-Robots-Tag: noindex, nofollow` header from `next.config.ts`.
 - **Google Drive:** CV, resumes, About Me, Cover Letter Bank (one folder).
 - **LinkedIn:** linkedin.com/in/auhbon. Auhbon edits it himself from paste-ready text.

@@ -1,6 +1,7 @@
 // CORE (MP5): Fun / Boring toggle, unlocks, cheats, scaled milestones, dev pages.
 // Usage: BASE=http://localhost:3101/ node qa/core.mjs [shots-dir]
 import { chromium } from "playwright";
+import { setLocalHour } from "./clock.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 
@@ -8,7 +9,7 @@ const out = process.argv[2] ?? "/tmp";
 const url = process.env.BASE ?? "http://localhost:3000/";
 const N = [...readFileSync(new URL("../src/lib/fun.ts", import.meta.url), "utf8").matchAll(/\{ id: "([\w-]+)", title: .*?category: "(\w+)"/g)].length;
 const KEY = "bells-and-whistles-v2";
-const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome" });
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };
 const axe = async (page, label) => {
@@ -21,6 +22,7 @@ const attrs = (page) => page.evaluate(() => ({ ...document.documentElement.datas
 const toastText = (page) => page.locator(".toast").innerText().catch(() => "");
 
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+await setLocalHour(ctx);
 const page = await ctx.newPage();
 const errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
@@ -164,6 +166,7 @@ await page.keyboard.press("Escape");
 
 // --- Phone: boring header ----------------------------------------------------
 const phone = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+await setLocalHour(phone);
 const pp = await phone.newPage();
 await pp.goto(url, { waitUntil: "networkidle" });
 const navBox = await pp.locator("nav[aria-label='Sections'] li:last-child a").boundingBox();

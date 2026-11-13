@@ -7,7 +7,7 @@ import { AxeBuilder } from "@axe-core/playwright";
 const out = process.argv[2] ?? ".";
 const url = process.env.BASE ?? "http://localhost:3000/";
 const KEY = "bells-and-whistles-v2";
-const browser = await chromium.launch({ executablePath: "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
+const browser = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome", args: ["--autoplay-policy=no-user-gesture-required"] });
 funByDefault(browser);
 const issues = [];
 const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if (!ok) issues.push(msg); };

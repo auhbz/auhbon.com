@@ -6,7 +6,7 @@
 
 export const REVIEW_MP = "MP5";
 export const REVIEW_AS_OF = "2026-11-12";
-export const PREVIEW_URL = "https://auhbon-com-git-next-auhbon-3857.vercel.app";
+export const PREVIEW_URL = "https://preview.auhbon.com";
 
 export type ReviewKind = "review" | "decide" | "do";
 export type ReviewArea = "Site" | "Copy" | "Accounts" | "Workflow" | "Career";
@@ -46,11 +46,11 @@ export const REVIEW: ReviewTier[] = [
         summary: "Public (auhbon.com), Preview (every MP lands here first), and Draft (/dev/draft, experiments and parked work). Nothing goes public until you merge the MP pull request.",
         details: [
           "Public: auhbon.com, the main branch. Only what you've approved.",
-          "Preview: the next branch, at preview.auhbon.com once it's set up. Public plus everything from the latest MP. Shareable without a login, not indexed by search engines. Planned: a 'What's new' list and a 'Highlight changes' toggle.",
+          "Preview: the next branch, at preview.auhbon.com. Public plus everything from the latest MP. Shareable without a login, not indexed by search engines. Planned: a 'What's new' list and a 'Highlight changes' toggle.",
           "Draft: /dev/draft. Experiments and anything you want to hold back. To publish an MP except one item, move that item to draft and merge the rest.",
           "Full details and the preview.auhbon.com setup steps: docs/HANDOFF.md in the repo.",
         ],
-        links: [{ label: "HANDOFF.md", href: "https://github.com/auhbz/auhbon.com/blob/main/docs/HANDOFF.md" }],
+        links: [{ label: "HANDOFF.md", href: "https://github.com/auhbz/auhbon.com/blob/next/docs/HANDOFF.md" }],
       },
       {
         id: "preview",
@@ -64,7 +64,7 @@ export const REVIEW: ReviewTier[] = [
           "Switch to Fun: burst, the Bells & whistles button and secrets chip arrive. Switching back never loses secrets or scores.",
           "Locks: most effects and themes start locked and open within about 7 secrets. Mini games open one at a time (3, 5, and 8 secrets today).",
           "Cheats: type 137 on the numpad. 'Unlock everything', 'Unlock all secrets', and a switch for every unlockable.",
-          "Progress bar: solid to 35 (all live secrets today), hatched 'coming soon' to 100.",
+          "Progress bar: solid to the current secret count, hatched 'coming soon' to 100.",
           "Effects: easier hamster breakaway (and no cursor effects on the wheel), smooth car donuts, higher and more centered bubbles that drift in your cursor's breeze, a rare giant bubble that splits.",
           "Celebrations: new Fireworks at milestone 2 (rockets, six shell types), a Lantern festival at milestone 3, and a parade with only full-body animals.",
           "Pho theme: side plates of limes, basil, bean sprouts, and jalapeños; top your bowl.",
@@ -93,7 +93,7 @@ export const REVIEW: ReviewTier[] = [
           "Partial approval works too: say 'ship everything except X' and I'll hold X back.",
         ],
         recommend: "Ship Boring-by-default soon even if some fun parts need another pass: it's what recruiters see first.",
-        links: [{ label: "Pull requests", href: "https://github.com/auhbz/auhbon.com/pulls" }],
+        links: [{ label: "MP5 pull request", href: "https://github.com/auhbz/auhbon.com/pull/187" }],
       },
       {
         id: "copy-discuss",
@@ -161,7 +161,7 @@ export const REVIEW: ReviewTier[] = [
           "Glimmers from the clay pots: spendable on something later, or just a counter?",
           "Your mini game secrets note was cut off after 'another should be for an impressive score ()'. I made the third one a quirky skill secret per game (e.g. Pacifist in Asteroids). OK?",
           "Board games (still draft): now has dice physics and a game switcher (Push your luck, Pig, Free roll). Promote, or another pass?",
-          "Known issue for MP6 (not yet fixed): the effects test suite logged one React hydration warning (#418) after the final merge. Pages work, but it should be tracked down before shipping.",
+          "The earlier effects run logged React hydration error #418. The rerun against the development server passed without browser errors.",
         ],
       },
       {

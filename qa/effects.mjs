@@ -12,11 +12,12 @@ const check = (ok, msg) => { console.log(`${ok ? "pass" : "FAIL"}  ${msg}`); if 
 const state = (effects, extra = {}) => ({ mode: "fun", funSeen: true, on: true, welcomed: true, hideSpot: 3, celebrated: [5,10,15,25,40,65,97,100], cheats: { enabled: true, unlocked: ids }, effects: { dots: { on: false, variant: "fruit" }, buttons: { on: false, variant: "rainbow" }, trail: { on: false, variant: "sparkle" }, sound: { on: false, variant: "chimes", hover: true }, ...effects }, look: "classic", secrets: [], ...extra });
 const secrets = (p) => p.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets);
 (async () => {
-  const b = await chromium.launch({ executablePath: "/opt/google/chrome/chrome" });
+  const b = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
   const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } });
   const p = await ctx.newPage();
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
+  p.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
   const load = async (st) => { await p.goto(BASE_URL); await p.evaluate((s) => localStorage.setItem("bells-and-whistles-v2", JSON.stringify(s)), st); await p.reload({ waitUntil: "networkidle" }); await p.waitForTimeout(400); };
 
   // Hamster: break free, secret
@@ -100,4 +101,5 @@ const secrets = (p) => p.evaluate(() => JSON.parse(localStorage.getItem("bells-a
   check(errors.length === 0, `no page errors ${errors.join(" | ")}`);
   await b.close();
   console.log(fails ? `${fails} FAILED` : "all passed");
+  process.exitCode = fails ? 1 : 0;
 })();

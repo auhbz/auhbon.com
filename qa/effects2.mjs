@@ -14,7 +14,7 @@ const state = (effects, extra = {}) => ({ mode: "fun", funSeen: true, on: true, 
 const secrets = (p) => p.evaluate(() => JSON.parse(localStorage.getItem("bells-and-whistles-v2")).secrets);
 const only = process.argv[3];
 (async () => {
-  const b = await chromium.launch({ executablePath: "/opt/google/chrome/chrome" });
+  const b = await chromium.launch({ executablePath: process.env.CHROME ?? "/opt/google/chrome/chrome" });
   const ctx = await b.newContext({ viewport: { width: 1280, height: 800 } });
   const p = await ctx.newPage();
   const errors = [];

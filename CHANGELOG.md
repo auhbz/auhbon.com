@@ -78,7 +78,7 @@ Major Push 4, part 3. New effects, a smoother look and phone fixes.
 
 ## 2.0.0: Fun & Boring (MP5)
 
-On the `next` branch and its Vercel preview until Auhbon approves it.
+On the `next` branch and https://preview.auhbon.com until Auhbon approves it. The custom preview host is configured to send a noindex header.
 
 - **Fun / Boring toggle.** Boring (the default) is a plain professional portfolio; Fun brings back the playground. Switching never touches secrets, unlocks, or scores. Secrets only exist in Fun.
 - **Unlocks and cheats.** Effects, themes, mini games, Wild & Wondrous modes, toys, and extras unlock as secrets are found. Thresholds and milestones scale to the number of live secrets (goal: 100). Typing 137 enables cheats with a switch per unlockable.
@@ -87,6 +87,7 @@ On the `next` branch and its Vercel preview until Auhbon approves it.
 - **Themes.** Pho goes live with toppings; the Pico-8 climber is Flabby and climbs the page; Flabby becomes a special-unlock mini game; Board games (draft) gets dice physics and three dice games.
 - **Wild & Wondrous.** Monkey Mode goes live (stealing words, vines, a bowling ball, and a rampaging gorilla) and Gravity Mode arrives.
 - **Toy box** with a paint brush, sticky notes, a paper airplane, and smoke bombs; the portal device becomes a hideable extra.
+- **QA.** Pin the browser clock for time-sensitive assertions and check Early bird at 6 a.m.
 - **Dev.** /dev/review (replaces Hands-on tasks), /dev/goals, /dev/milestones, and a richer /dev/secrets. "Mode" is now "Mini games" everywhere.
 
 ## 1.19.0: Mobile experience
