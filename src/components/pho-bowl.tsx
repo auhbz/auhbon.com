@@ -249,6 +249,7 @@ function Bowl() {
                   aria-label={`Add ${t.one} to the bowl (${have} of ${t.max} added)`}
                   onPointerDown={(e) => {
                     if (done || e.button !== 0) return;
+                    suppressClick.current = false;
                     press.current = { kind: t.id, id: e.pointerId, x: e.clientX, y: e.clientY, moved: false };
                   }}
                   onPointerMove={(e) => {

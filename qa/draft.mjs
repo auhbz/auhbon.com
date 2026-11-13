@@ -93,6 +93,7 @@ const ds = await draftState(page);
 check(!ds.secrets.includes("d-snake") && !ds.secrets.includes("d-hot"), "Free roll awards no draft secrets");
 await page.locator('[data-dice-game="push"]').click();
 await page.screenshot({ path: `${out}/draft-boardgames.png` });
+await page.locator("main").evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
 await axe(page, "board games theme");
 
 // The portal device went live in MP5 (an extra): see qa/wild.mjs.

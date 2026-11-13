@@ -70,13 +70,14 @@ for (const vp of [{ width: 1280, height: 900 }, { width: 390, height: 844 }]) {
   for (let i = 0; i < 17; i++) {
     const p = await page.locator('[data-plate="jalapeno"]').boundingBox();
     const b = await bowl.boundingBox();
-    if (tag === "desktop") {
+    if (tag === "desktop" && i < 3) {
       await page.mouse.move(p.x + p.width / 2, p.y + p.height / 2);
       await page.mouse.down();
       await page.mouse.move(p.x + p.width / 2 + 20, p.y + 10, { steps: 3 });
       await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2, { steps: 6 });
       if (i === 2) await page.screenshot({ path: `${out}/pho-drag.png` });
       await page.mouse.up();
+      check((await bowl.getAttribute("data-toppings"))?.endsWith(`-${i + 1}`), "dragging a jalapeño adds it");
     } else await page.locator('[data-plate="jalapeno"]').click();
   }
   check((await bowl.getAttribute("data-toppings")) === "3-7-0-17", `${tag} pho: toppings land (${await bowl.getAttribute("data-toppings")})`);
