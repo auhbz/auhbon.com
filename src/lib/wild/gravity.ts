@@ -78,7 +78,7 @@ export class GravityEngine {
     const ok = (el: HTMLElement) => {
       if (!isHydrated(el) || el.querySelector("[data-wild-gone]") || el.closest("[data-wild-ui], [data-wild-ghosts], [data-wild-gone], [data-portal-surface], [data-draft-slot], .sr-only, [aria-hidden='true'], [popover], dialog")) return false;
       const r = el.getBoundingClientRect();
-      if (!(r.width > 0 && r.height > 0 && r.top > 56 && r.bottom < innerHeight - 4 && r.width < maxW && r.height < 220)) return false;
+      if (!(r.width > 0 && r.height > 0 && r.bottom > 56 && r.top < innerHeight - 4 && r.width <= maxW && r.height < innerHeight)) return false;
       return !picked.some((t) => t.contains(el) || el.contains(t));
     };
     const picked: HTMLElement[] = [];

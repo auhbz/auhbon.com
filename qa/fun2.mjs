@@ -943,7 +943,7 @@ const desk = async (hour) => {
   const cats = await p.locator("#implemented-heading ~ div h3").allInnerTexts();
   check(cats.length >= 5 && cats.some((t) => t.startsWith("Combos")) && cats.some((t) => t.startsWith("Typing")) && cats.some((t) => t.startsWith("Games")), `dev/secrets: grouped by category (${cats.map((t) => t.split(" ")[0]).join(", ")})`);
   check((await p.getByText(/^(Easy|Medium|Hard)$/).count()) >= SECRET_COUNT, "dev/secrets: every secret shows a difficulty");
-  const spoiler = p.getByText("Typed “hire”", { exact: true });
+  const spoiler = p.getByRole("table", { name: "Typing secrets" }).getByText("Typed “hire”", { exact: true });
   check(!(await spoiler.isVisible()), "dev/secrets: unlocked notes are hidden by default");
   await p.getByRole("checkbox", { name: "Reveal all" }).check();
   check(await spoiler.isVisible(), "dev/secrets: Reveal all shows the unlocked notes");

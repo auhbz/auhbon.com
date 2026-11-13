@@ -73,7 +73,14 @@ export function Knucklebones() {
           </div>
         </div>
         <div>
-          <h4 className="font-semibold"><span aria-hidden="true">🐑</span> The wicked lamb · {score(house)}</h4>
+          <h4 className="flex items-center gap-2 font-semibold">
+            <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
+              <path d="M8 13 4 3l9 6m11 4 4-10-9 6" fill="#a92c39" />
+              <path d="M4 15a5 5 0 0 1 6-5 7 7 0 0 1 12 0 5 5 0 0 1 6 5l-5 5v4a7 7 0 0 1-14 0v-4z" fill="#e8dfcf" />
+              <path d="m10 19 4 2m8-2-4 2m-4 5h4" fill="none" stroke="#871a32" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            The wicked lamb · {score(house)}
+          </h4>
           <div className="grid grid-cols-3 gap-1">
             {house.map((column, index) => (
               <div key={index} className="grid min-h-14 place-items-center rounded border border-line" aria-label={`House column ${index + 1}`}>
