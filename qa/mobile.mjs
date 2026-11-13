@@ -1,6 +1,7 @@
 // Mobile experience suite (1.18.0): 375x812 with touch. Usage: node mobile.mjs <shots dir>
 // Server defaults to localhost:3000; set BASE=http://localhost:3100/ to point elsewhere.
 import { chromium } from "playwright";
+import { setLocalHour } from "./clock.mjs";
 import { funByDefault } from "./legacy-fun.mjs";
 import { AxeBuilder } from "@axe-core/playwright";
 
@@ -41,6 +42,7 @@ const effects = (e) => Object.fromEntries(Object.entries(e).map(([k, v]) => [k, 
 
 const newPhone = async (init) => {
   const ctx = await browser.newContext({ viewport: { width: 375, height: 812 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
+  await setLocalHour(ctx);
   if (init) await ctx.addInitScript(init);
   const page = await ctx.newPage();
   const errors = [];
@@ -102,13 +104,14 @@ const vibrateSpy = () => {
   // Haptics: never while Bells & whistles is off.
   await page.evaluate(() => (window.__vibes = []));
   await page.getByRole("button", { name: "Shuffle everything" }).scrollIntoViewIfNeeded();
+  await page.getByRole("button", { name: "Shuffle everything" }).tap();
+  check((await page.evaluate(() => window.__vibes)).includes(10), "light vibration on a press while on");
   await page.getByRole("switch", { name: "Enable bells and whistles" }).tap();
-  await page.getByRole("switch", { name: "Enable bells and whistles" }).tap(); // off again
-  const offVibes = await page.evaluate(() => window.__vibes.length);
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => (window.__vibes = []));
+  await page.getByRole("button", { name: "Bells and whistles" }).tap();
+  check(!(await page.evaluate(() => window.__vibes)).includes(10), "opening the panel with effects off gives no tap vibration");
   await page.getByRole("switch", { name: "Enable bells and whistles" }).tap(); // on
-  const vibes = await page.evaluate(() => window.__vibes);
-  check(vibes.length >= 1 && vibes.at(-1) === 10, `light vibration on a press while on (${JSON.stringify(vibes)})`);
-  check(offVibes === 1, `no vibration from the press that turned it off (${offVibes} total so far: only the first "on" press)`);
   await haptics.tap();
   await page.evaluate(() => (window.__vibes = []));
   await page.getByRole("button", { name: "Shuffle everything" }).tap();

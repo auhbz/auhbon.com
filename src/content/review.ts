@@ -5,7 +5,7 @@
  */
 
 export const REVIEW_MP = "MP5";
-export const REVIEW_AS_OF = "2026-11-12";
+export const REVIEW_AS_OF = "2026-11-13";
 export const PREVIEW_URL = "https://preview.auhbon.com";
 
 export type ReviewKind = "review" | "decide" | "do";
@@ -72,6 +72,8 @@ export const REVIEW: ReviewTier[] = [
           "Flabby: a tiny Flabby sits by his 'Source code' link in Selected work. Clicking him unlocks the Flabby mini game (now harder, with drifting pipes after 20).",
           "Wild & Wondrous: Monkey Mode (steals words and headings, vines, variable speeds, bowling ball, a gorilla who goes bananas) and the new Gravity Mode.",
           "Toy box: paint brush, sticky notes, paper airplane, and smoke bombs. Portal gun is now an unlockable extra you can hide.",
+          "On a phone in Fun mode, scroll to the footer and open Gamepad with the Toy box visible. Both buttons should be reachable.",
+          "On /dev/draft, select Board games and reload. The dice tray should still appear and let you start a game.",
           "Dev pages: /dev/secrets (hints, notes, areas, draft secrets, unlockables), /dev/goals, and /dev/milestones (the slider).",
         ],
         links: [

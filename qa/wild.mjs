@@ -46,7 +46,14 @@ async function open(viewport, { fun = cheatState, wild = null, reduced = false }
   await page.goto(base, { waitUntil: "networkidle" });
   return { ctx, page, errors };
 }
-const mainText = (page) => page.evaluate(() => document.querySelector("main").innerText);
+// Portal controls and hint messages have their own checks below.
+const mainText = (page) => page.locator("main section").evaluateAll((sections) =>
+  sections.filter((section) => !section.closest("[data-page-slot]")).map((section) => {
+    const content = section.cloneNode(true);
+    content.querySelectorAll("[data-page-slot]").forEach((slot) => slot.remove());
+    return content.textContent;
+  }).join("\n"),
+);
 const wildState = (mode, on = true) => JSON.stringify({ on, mode, seen: ["wild", "toy:box", "extra:portal"] });
 
 // --- Panel: Wild & Wondrous and the extras section --------------------------------
@@ -162,12 +169,15 @@ const wildState = (mode, on = true) => JSON.stringify({ on, mode, seen: ["wild",
   const low = s.bodies.filter((b) => b.y > 600).length;
   check(low >= s.bodies.length * 0.6, `they fell to the bottom (${low} of ${s.bodies.length} low)`);
   await page.screenshot({ path: `${out}/wild-gravity.png`, scale: "css" });
-  // Fling the name upward.
-  const name = s.bodies.find((b) => b.name);
-  await page.mouse.move(name.x, name.y);
+  // Playwright finds an unobstructed point on the moving name before pressing.
+  const name = page.locator("[data-gravity-name]");
+  await name.hover();
+  const { x, y, width, height } = await name.boundingBox();
+  const start = { x: x + width / 2, y: y + height / 2 };
+  await page.mouse.move(start.x, start.y);
   await page.mouse.down();
   for (let i = 1; i <= 5; i++) {
-    await page.mouse.move(name.x, name.y - i * 70);
+    await page.mouse.move(start.x, start.y - i * 90);
     await wait(12);
   }
   await page.mouse.up();

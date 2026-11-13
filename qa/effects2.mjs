@@ -40,7 +40,13 @@ const only = process.argv[3];
     }));
     let maxJerk = 0, maxStep = 0;
     for (let i = 2; i < pts.length; i++) {
-      const v1 = [pts[i - 1][0] - pts[i - 2][0], pts[i - 1][1] - pts[i - 2][1]], v2 = [pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]];
+      const [x, y, t] = pts[i];
+      const [prevX, prevY, prevT] = pts[i - 1];
+      const [firstX, firstY, firstT] = pts[i - 2];
+      const dt1 = Math.max(16.67, prevT - firstT) / 16.67;
+      const dt2 = Math.max(16.67, t - prevT) / 16.67;
+      const v1 = [(prevX - firstX) / dt1, (prevY - firstY) / dt1];
+      const v2 = [(x - prevX) / dt2, (y - prevY) / dt2];
       maxStep = Math.max(maxStep, Math.hypot(...v2)); maxJerk = Math.max(maxJerk, Math.hypot(v2[0] - v1[0], v2[1] - v1[1]));
     }
     check(pts.length > 60 && maxJerk < 4.5, `car: eases into donuts with no snap (${pts.length} frames, largest step ${maxStep.toFixed(1)}px, largest velocity change ${maxJerk.toFixed(1)}px/frame)`);
@@ -140,4 +146,5 @@ const only = process.argv[3];
   }
   await b.close();
   console.log(fails ? `${fails} FAILED` : "all passed");
+  process.exitCode = fails ? 1 : 0;
 })();

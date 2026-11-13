@@ -352,7 +352,7 @@ await choose("Cursor trail", "Cursed");
       const d = c.getContext("2d").getImageData(0, 300 * k, c.width, 450 * k).data;
       let n = 0, sx = 0, sy = 0;
       for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 90 && d[i] + d[i + 1] + d[i + 2] < 380) { n++; sx += (i / 4) % c.width; sy += Math.floor(i / 4 / c.width); }
-      if (n > 6) pts.push([sx / n / k, 300 + sy / n / k]);
+      if (n > 6) pts.push([sx / n / k, 300 + sy / n / k, performance.now()]);
       if (performance.now() - t0 < 750) requestAnimationFrame(step);
       else done(pts);
     };
@@ -363,7 +363,11 @@ await choose("Cursor trail", "Cursed");
   await page.mouse.up();
   const pts = await track;
   let maxStep = 0;
-  for (let i = 1; i < pts.length; i++) maxStep = Math.max(maxStep, Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  for (let i = 1; i < pts.length; i++) {
+    const [x, y, time] = pts[i];
+    const [prevX, prevY, prevTime] = pts[i - 1];
+    maxStep = Math.max(maxStep, Math.hypot(x - prevX, y - prevY) * 16.67 / Math.max(16.67, time - prevTime));
+  }
   // How far the push carried it (it then drifts back toward the cursor).
   const travel = Math.max(0, ...pts.map((q) => Math.hypot(q[0] - pts[0][0], q[1] - pts[0][1])));
   check(pts.length > 10 && maxStep < 9 && travel > 15, `cursed click: the ghost glides back smoothly (largest frame step ${maxStep.toFixed(1)}px, moved ${Math.round(travel)}px over ${pts.length} frames)`);

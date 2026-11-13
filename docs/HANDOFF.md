@@ -84,6 +84,8 @@ Written at the end of Major Push 5 (Nov 12, 2026) so any assistant (ChatGPT, Cod
 **MP5 closeout:** The production themes suite reproduced React #418 on mobile with the saved Board games draft theme. The dice tray now renders inside the hero's React tree, avoiding direct DOM insertion during hydration. Core and fun2 fix the browser clock, with explicit Night owl and Early bird checks. The GitHub audit closed #154, #166, and #169 and recorded progress on the related open issues.
 
 **Remaining work:**
+
+The MP5 mobile footer leaves room for the floating Toy box so the on-screen Gamepad is still reachable. The review checklist includes this and reloading the saved Board games draft theme.
 1. **Leaderboards.** The API reports storage connected; a real score submission end to end hasn't been tested.
 2. **Secrets.** The MP5 preview includes four Monkey Mode secrets and the portal cake in the main secret list. Carrying over discoveries already saved by draft visitors is a separate question.
 3. **Small known rough edges:** with Monkey Mode on, vines hang over text on phones; on touch, starting a scroll while holding a smoke bomb also throws one.

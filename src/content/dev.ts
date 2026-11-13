@@ -6,7 +6,7 @@
  */
 
 /** The date this file was last brought up to date (YYYY-MM-DD). */
-export const DEV_AS_OF = "2026-11-12";
+export const DEV_AS_OF = "2026-11-13";
 
 export type RoadmapStatus = "Shipped" | "Waiting on Auhbon" | "WIP" | "Planned" | "Skipped";
 

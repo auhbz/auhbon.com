@@ -114,6 +114,7 @@ export class GravityEngine {
       const home = center(loot.home());
       placeGhost(loot, home.x, home.y);
       loot.ghost.dataset.gravityPiece = "";
+      if (loot.isName) loot.ghost.dataset.gravityName = "";
       const b: Body = { loot, w: loot.w, h: loot.h, p: [], rest: [], state: "wobble", t: 0, delay: i * 0.05 + rand(0, 0.15), grab: null, thrownAt: -1e9 };
       this.setBox(b, home.x, home.y, 0);
       loot.ghost.addEventListener("pointerdown", (e) => this.grabStart(b, e));
