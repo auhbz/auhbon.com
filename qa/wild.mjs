@@ -169,9 +169,8 @@ const wildState = (mode, on = true) => JSON.stringify({ on, mode, seen: ["wild",
   const low = s.bodies.filter((b) => b.y > 600).length;
   check(low >= s.bodies.length * 0.6, `they fell to the bottom (${low} of ${s.bodies.length} low)`);
   await page.screenshot({ path: `${out}/wild-gravity.png`, scale: "css" });
-  // Playwright finds an unobstructed point on the moving name before pressing.
+  // Use the current rendered position after the screenshot, while the pieces still move.
   const name = page.locator("[data-gravity-name]");
-  await name.hover();
   const { x, y, width, height } = await name.boundingBox();
   const start = { x: x + width / 2, y: y + height / 2 };
   await page.mouse.move(start.x, start.y);
