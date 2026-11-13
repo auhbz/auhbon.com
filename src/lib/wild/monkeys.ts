@@ -218,6 +218,7 @@ export class MonkeyEngine {
   calmGorilla() {
     const g = this.gorilla;
     if (!g || g.phase === "leave") return;
+    this.pile = [];
     if (g.phase === "jump" || g.phase === "leap") {
       g.y = this.floor() - 10;
       g.vy = 0;

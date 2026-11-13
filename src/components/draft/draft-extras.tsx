@@ -6,7 +6,7 @@ import { DEFAULT_FUN, getFun, lookActive, subscribeFun } from "@/lib/fun";
 import { BoardGames } from "@/components/draft/dice";
 import { workbench } from "@/lib/availability";
 
-/** Everything interactive that only exists on /dev/draft, switched by the draft store. */
+/** The approved games, selected from the main theme picker. */
 export function LiveBoardGames() {
   const fun = useSyncExternalStore(subscribeFun, getFun, () => DEFAULT_FUN);
   return lookActive(fun) === "boardgames" ? <BoardGames draft={false} /> : null;
@@ -20,7 +20,7 @@ export function DraftExtras() {
         <div data-draft-slot="dice">
           <BoardGames draft={workbench} />
         </div>
-      ) : null}
+      ) : <LiveBoardGames />}
     </>
   );
 }
